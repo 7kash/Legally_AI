@@ -150,16 +150,70 @@ UI_STRINGS = {
     }
 }
 
-# Contract types
+# Contract types (expanded catalog)
 CONTRACT_TYPES = {
-    "lease": "Residential lease",
-    "nda": "Non-Disclosure Agreement (NDA)",
-    "employment": "Employment agreement",
-    "tos": "Terms of Service",
-    "vendor": "Vendor agreement",
-    "freelance": "Freelance/Contractor agreement",
-    "partnership": "Partnership agreement",
-    "unknown": "Unknown agreement type"
+    # Housing & Real Estate
+    "residential_lease": "Residential lease / rental",
+    "short_term_rental": "Short-term rental",
+    "room_share": "Room / house share",
+    "parking_storage": "Parking / storage unit",
+    "lease_assignment": "Lease assignment / surrender",
+    "rent_to_own": "Rent-to-own / lease-option",
+    "lease_guarantor": "Guarantor / surety for lease",
+    "property_management": "Property management",
+    "listing_brokerage": "Listing / brokerage",
+    "buyer_agency": "Buyer's agency agreement",
+    "home_purchase": "Home purchase and sale",
+    "home_inspection": "Home inspection",
+    "moving": "Moving company",
+    "timeshare": "Timeshare / vacation club",
+    "co_ownership": "Co-ownership / fractional",
+    "home_repair": "Home repair / renovation",
+
+    # Services & Work
+    "event_services": "Event services",
+    "freelancer": "Freelancer / independent contractor",
+    "employment": "Employment / offer",
+    "severance": "Severance / separation",
+    "tutoring_childcare": "Tutoring / childcare",
+    "elder_care": "Elder-care caregiver services",
+
+    # Commercial
+    "purchase_sale": "Purchase/sale of goods",
+    "vehicle_lease": "Vehicle lease / rental",
+
+    # IP & Confidentiality
+    "nda": "NDA (one-way/mutual)",
+    "ip_assignment": "Invention / IP assignment",
+    "content_license": "Content license & model release",
+    "influencer": "Influencer / brand partnership",
+
+    # Memberships & Subscriptions
+    "coworking": "Co-working membership",
+    "gym": "Gym / fitness membership",
+    "saas": "SaaS / subscription",
+    "eula": "EULA / software license",
+    "tos": "Consumer ToS / click-wrap",
+
+    # Financial
+    "bank_finance": "Bank / finance",
+    "personal_loan": "Personal loan / promissory note",
+    "personal_guarantee": "Personal guarantee / pledge",
+    "insurance": "Insurance policy",
+
+    # Legal & Dispute
+    "arbitration": "Arbitration agreement",
+    "settlement": "Settlement / release",
+
+    # Family & Personal
+    "prenup": "Prenup / postnup",
+    "separation": "Separation / divorce agreement",
+    "cohabitation": "Cohabitation agreement",
+    "parenting_plan": "Parenting plan / custody",
+    "assisted_living": "Assisted-living / nursing home",
+
+    # Fallback
+    "other": "Other agreement type"
 }
 
 # Negotiability levels
