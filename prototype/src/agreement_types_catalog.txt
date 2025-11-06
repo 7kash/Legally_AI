@@ -1,0 +1,179 @@
+Agreement Types Catalog — AI-Readable Reference
+
+FORMAT: One block per agreement type. Fields are key: value. Lists are comma-separated.
+
+TYPE: Residential lease / rental
+NEGOTIABILITY_DEFAULT: High
+KEY_FIELDS: Rent, deposit, term, utilities, notice, entry
+
+TYPE: Short-term rental
+NEGOTIABILITY_DEFAULT: Medium
+KEY_FIELDS: Price per period, fees, cancellation, rules
+
+TYPE: Room / house share
+NEGOTIABILITY_DEFAULT: High
+KEY_FIELDS: Rent split, joint/several, common spaces, rules
+
+TYPE: Parking / storage unit
+NEGOTIABILITY_DEFAULT: Medium
+KEY_FIELDS: Fees, access hours, insurance/liability, term
+
+TYPE: Lease assignment / surrender
+NEGOTIABILITY_DEFAULT: High
+KEY_FIELDS: Consent process, fees, release of liability
+
+TYPE: Rent-to-own / lease-option
+NEGOTIABILITY_DEFAULT: High
+KEY_FIELDS: Option fee, price, timeline, rent credits
+
+TYPE: Guarantor / surety for lease
+NEGOTIABILITY_DEFAULT: Medium
+KEY_FIELDS: Scope, cap, term, release conditions
+
+TYPE: Property management (owner↔agent)
+NEGOTIABILITY_DEFAULT: High
+KEY_FIELDS: Fees, authority, repairs, termination
+
+TYPE: Listing / brokerage (seller's agent)
+NEGOTIABILITY_DEFAULT: Medium
+KEY_FIELDS: Commission, exclusivity, term, marketing
+
+TYPE: Buyer's agency agreement
+NEGOTIABILITY_DEFAULT: Medium
+KEY_FIELDS: Commission, scope, exclusivity, term
+
+TYPE: Home purchase and sale
+NEGOTIABILITY_DEFAULT: Medium
+KEY_FIELDS: Price, deposits, contingencies, closing
+
+TYPE: Home inspection
+NEGOTIABILITY_DEFAULT: High
+KEY_FIELDS: Scope, limits, liability cap, re-inspection
+
+TYPE: Moving company
+NEGOTIABILITY_DEFAULT: High
+KEY_FIELDS: Quote basis, insurance, delays, claims
+
+TYPE: Timeshare / vacation club
+NEGOTIABILITY_DEFAULT: Medium
+KEY_FIELDS: Fees, use rights, exit rules
+
+TYPE: Co-ownership / fractional
+NEGOTIABILITY_DEFAULT: Medium
+KEY_FIELDS: Shares, usage, costs, exit/transfer
+
+TYPE: Home repair / renovation
+NEGOTIABILITY_DEFAULT: High
+KEY_FIELDS: Scope, price/schedule, change orders, warranty
+
+TYPE: Event services
+NEGOTIABILITY_DEFAULT: High
+KEY_FIELDS: Date/time, deliverables, cancellation, IP, liability
+
+TYPE: Freelancer / independent contractor
+NEGOTIABILITY_DEFAULT: High
+KEY_FIELDS: Deliverables, payment, timeline, IP, confidentiality
+
+TYPE: Purchase/sale of goods
+NEGOTIABILITY_DEFAULT: Medium
+KEY_FIELDS: Price, delivery, risk transfer, returns
+
+TYPE: Vehicle lease / rental
+NEGOTIABILITY_DEFAULT: Medium
+KEY_FIELDS: Mileage, deposit, damage, fees, fuel
+
+TYPE: Employment / offer
+NEGOTIABILITY_DEFAULT: Medium
+KEY_FIELDS: Pay, schedule, benefits, IP/confidentiality
+
+TYPE: Severance / separation (employment)
+NEGOTIABILITY_DEFAULT: Medium
+KEY_FIELDS: Payment, release scope, non-disparage
+
+TYPE: NDA (one-way/mutual)
+NEGOTIABILITY_DEFAULT: High
+KEY_FIELDS: CI definition, exclusions, term, return/delete
+
+TYPE: Invention / IP assignment
+NEGOTIABILITY_DEFAULT: Medium
+KEY_FIELDS: Scope, carve-outs, compensation
+
+TYPE: Content license & model release
+NEGOTIABILITY_DEFAULT: Medium
+KEY_FIELDS: Scope, territory, duration, credit, revocation
+
+TYPE: Influencer / brand partnership
+NEGOTIABILITY_DEFAULT: Medium
+KEY_FIELDS: Deliverables, approvals, usage rights, FTC rules
+
+TYPE: Tutoring / childcare
+NEGOTIABILITY_DEFAULT: High
+KEY_FIELDS: Hours, cancellations, safety, data
+
+TYPE: Co-working membership
+NEGOTIABILITY_DEFAULT: Medium
+KEY_FIELDS: Term, access, fees, liability, data
+
+TYPE: Gym / fitness membership
+NEGOTIABILITY_DEFAULT: Medium
+KEY_FIELDS: Term, freeze, cancel, fees
+
+TYPE: SaaS / subscription
+NEGOTIABILITY_DEFAULT: Low-Medium
+KEY_FIELDS: Billing, renewal, data export/delete
+
+TYPE: EULA / software license
+NEGOTIABILITY_DEFAULT: Low
+KEY_FIELDS: License scope, telemetry, updates
+
+TYPE: Consumer ToS / click-wrap
+NEGOTIABILITY_DEFAULT: Low
+KEY_FIELDS: Changes, arbitration, refunds
+
+TYPE: Bank / finance (card/loan/account)
+NEGOTIABILITY_DEFAULT: Low
+KEY_FIELDS: Rates/fees, repayment, closure
+
+TYPE: Personal loan / promissory note
+NEGOTIABILITY_DEFAULT: High
+KEY_FIELDS: Amount, interest, schedule, collateral
+
+TYPE: Personal guarantee / pledge
+NEGOTIABILITY_DEFAULT: Medium
+KEY_FIELDS: Scope, cap, term, release
+
+TYPE: Insurance policy
+NEGOTIABILITY_DEFAULT: Low
+KEY_FIELDS: Coverage, deductibles, exclusions, claims
+
+TYPE: Arbitration agreement (standalone)
+NEGOTIABILITY_DEFAULT: Low
+KEY_FIELDS: Rules, seat, fees, opt-out
+
+TYPE: Settlement / release
+NEGOTIABILITY_DEFAULT: Medium
+KEY_FIELDS: Release scope, payment, confidentiality
+
+TYPE: Prenup / postnup
+NEGOTIABILITY_DEFAULT: Medium
+KEY_FIELDS: Assets, support, disclosure, governing law
+
+TYPE: Separation / divorce agreement
+NEGOTIABILITY_DEFAULT: Medium
+KEY_FIELDS: Division, custody, support, debts
+
+TYPE: Cohabitation agreement
+NEGOTIABILITY_DEFAULT: High
+KEY_FIELDS: Expenses, property, exit rules
+
+TYPE: Parenting plan / custody
+NEGOTIABILITY_DEFAULT: Medium
+KEY_FIELDS: Schedule, decision-making, costs
+
+TYPE: Elder-care caregiver services
+NEGOTIABILITY_DEFAULT: High
+KEY_FIELDS: Hours, duties, liability, pay
+
+TYPE: Assisted-living / nursing home
+NEGOTIABILITY_DEFAULT: Medium
+KEY_FIELDS: Fees, care levels, discharge, liability
