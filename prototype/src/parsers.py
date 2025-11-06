@@ -8,6 +8,59 @@ from docx import Document
 from typing import Optional, Dict
 import re
 
+# OCR support for scanned PDFs
+try:
+    from pdf2image import convert_from_path
+    import pytesseract
+    from PIL import Image
+    OCR_AVAILABLE = True
+except ImportError:
+    OCR_AVAILABLE = False
+
+
+def extract_text_with_ocr(file_path: str) -> Dict[str, any]:
+    """
+    Extract text from scanned PDF using OCR
+
+    Returns:
+        dict with extracted text and metadata
+    """
+    if not OCR_AVAILABLE:
+        raise ValueError(
+            "OCR libraries not available. Install with: pip install pdf2image pytesseract pillow"
+        )
+
+    try:
+        # Convert PDF to images
+        images = convert_from_path(file_path)
+
+        pages = []
+        total_chars = 0
+
+        for i, image in enumerate(images):
+            # Perform OCR on each page
+            text = pytesseract.image_to_string(image, lang='eng+rus+srp+fra')
+            if text.strip():
+                pages.append(text)
+                total_chars += len(text)
+
+        full_text = "\n\n".join(pages)
+        avg_chars_per_page = total_chars / len(images) if images else 0
+
+        # OCR quality varies, estimate based on text extracted
+        quality_score = min(0.8, avg_chars_per_page / 2000)  # Max 0.8 for OCR
+
+        return {
+            "text": full_text,
+            "pages": len(images),
+            "quality_score": quality_score,
+            "is_scanned": True,
+            "avg_chars_per_page": avg_chars_per_page
+        }
+
+    except Exception as e:
+        raise ValueError(f"Failed to perform OCR on PDF: {str(e)}")
+
 
 def extract_text_from_pdf(file_path: str) -> Dict[str, any]:
     """
@@ -40,6 +93,11 @@ def extract_text_from_pdf(file_path: str) -> Dict[str, any]:
             # Less than 500 suggests poor OCR or scanned without OCR
             quality_score = min(1.0, avg_chars_per_page / 2000)
             is_scanned = avg_chars_per_page < 500
+
+            # If document appears scanned (little/no text), try OCR
+            if is_scanned and OCR_AVAILABLE and avg_chars_per_page < 200:
+                print(f"PDF appears scanned (avg {avg_chars_per_page:.0f} chars/page), attempting OCR...")
+                return extract_text_with_ocr(file_path)
 
             return {
                 "text": full_text,
