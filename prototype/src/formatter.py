@@ -86,7 +86,7 @@ def format_analysis_output(
 """
 
     # Add payment bullets
-    payment_bullets = generate_payment_section(preparation_data)
+    payment_bullets = generate_payment_section(analysis_data, preparation_data)
     for bullet in payment_bullets:
         output += f"- {bullet}\n"
 

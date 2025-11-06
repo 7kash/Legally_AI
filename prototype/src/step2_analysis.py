@@ -41,6 +41,7 @@ Coverage: {preparation_data.get('coverage_score', 1.0):.2f}
     prompt = prompt_template.replace("{preparation_data}", prep_summary)
     prompt = prompt.replace("{contract_text}", contract_text[:15000])  # Limit to ~15k chars
     prompt = prompt.replace("{user_role}", preparation_data.get('user_role', 'user'))
+    prompt = prompt.replace("{agreement_type}", preparation_data.get('agreement_type', 'agreement'))
 
     # Call LLM
     try:
@@ -73,6 +74,11 @@ def generate_about_section(preparation_data: Dict, analysis_data: Dict) -> str:
     Returns:
         About text
     """
+    # Use LLM-generated summary if available
+    if analysis_data.get('about_summary'):
+        return analysis_data['about_summary'][:300]
+
+    # Fallback to generated text
     parties = preparation_data.get('parties', [])
     agreement_type = preparation_data.get('agreement_type', 'agreement')
     user_role = preparation_data.get('user_role', 'party')
@@ -106,32 +112,55 @@ def generate_about_section(preparation_data: Dict, analysis_data: Dict) -> str:
     return about
 
 
-def generate_payment_section(preparation_data: Dict) -> list:
+def generate_payment_section(analysis_data: Dict, preparation_data: Dict = None) -> list:
     """
     Generate "What you pay and when" section (up to 5 bullets, ≤120 chars each)
 
     Args:
-        preparation_data: Step 1 results
+        analysis_data: Step 2 results (contains payment_terms)
+        preparation_data: Step 1 results (fallback)
 
     Returns:
         List of payment bullet points
     """
     bullets = []
 
-    # Extract amounts
-    key_amounts = preparation_data.get('key_amounts', [])
-    if key_amounts:
-        amounts_text = ", ".join(key_amounts[:3])
-        bullets.append(f"Amounts: {amounts_text}"[:120])
+    # Use LLM-generated payment terms if available
+    payment_terms = analysis_data.get('payment_terms', {})
 
-    # Extract payment terms from LLM if available
-    # For now, use simple extraction
-    term_start = preparation_data.get('term_start')
-    if term_start:
-        bullets.append(f"First payment: {term_start}"[:120])
+    if payment_terms.get('main_amount'):
+        bullets.append(f"Amount: {payment_terms['main_amount']}"[:120])
 
-    # Add note about taxes
-    bullets.append("Taxes/fees not analyzed.")
+    if payment_terms.get('deposit_upfront'):
+        bullets.append(f"Deposit: {payment_terms['deposit_upfront']}"[:120])
+
+    if payment_terms.get('first_due_date'):
+        bullets.append(f"First due: {payment_terms['first_due_date']}"[:120])
+
+    if payment_terms.get('due_frequency'):
+        bullets.append(f"Frequency: {payment_terms['due_frequency']}"[:120])
+
+    if payment_terms.get('end_date_renewal'):
+        bullets.append(f"Term: {payment_terms['end_date_renewal']}"[:120])
+
+    if payment_terms.get('cancellation_notice'):
+        bullets.append(f"To cancel: {payment_terms['cancellation_notice']}"[:120])
+
+    # Always add taxes note
+    bullets.append(payment_terms.get('taxes_fees_note', 'Taxes/fees not analyzed.'))
+
+    # Fallback if no LLM payment terms
+    if not bullets and preparation_data:
+        key_amounts = preparation_data.get('key_amounts', [])
+        if key_amounts:
+            amounts_text = ", ".join([str(a.get('amount', a)) if isinstance(a, dict) else str(a) for a in key_amounts[:3]])
+            bullets.append(f"Amounts: {amounts_text}"[:120])
+
+        term_start = preparation_data.get('term_start')
+        if term_start:
+            bullets.append(f"First payment: {term_start}"[:120])
+
+        bullets.append("Taxes/fees not analyzed.")
 
     return bullets[:5]
 
