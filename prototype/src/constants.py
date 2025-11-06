@@ -172,7 +172,7 @@ NEGOTIABILITY = {
 # Confidence thresholds
 CONFIDENCE_THRESHOLDS = {
     "high": 0.8,
-    "medium": 0.5,
+    "medium": 0.3,  # Lowered for prototype testing
     "low": 0.0
 }
 
