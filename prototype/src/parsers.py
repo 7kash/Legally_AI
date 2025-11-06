@@ -191,12 +191,12 @@ def detect_structure(text: str) -> Dict[str, any]:
         - sections: list of detected section names
         - appears_complete: boolean (has typical contract sections)
     """
-    # Common contract section patterns
+    # Common contract section patterns (expanded for better detection)
     section_patterns = [
-        r'\b(parties|definitions|term|payment|termination|warranties|liability|dispute|governing law)\b',
-        r'\b(стороны|определения|срок|оплата|расторжение|гарантии|ответственность|споры|применимое право)\b',  # Russian
-        r'\b(strane|definicije|rok|plaćanje|raskid|garancije|odgovornost|sporovi|pravo)\b',  # Serbian
-        r'\b(parties|définitions|durée|paiement|résiliation|garanties|responsabilité|litiges|droit applicable)\b'  # French
+        r'\b(parties|definitions|term|duration|payment|price|fee|termination|end|warranties|liability|obligations|rights|dispute|arbitration|governing law|jurisdiction|confidentiality|indemnity|force majeure|assignment|notice|entire agreement)\b',
+        r'\b(стороны|определения|срок|период|оплата|цена|расторжение|окончание|гарантии|ответственность|обязательства|права|споры|арбитраж|применимое право|юрисдикция|конфиденциальность)\b',  # Russian
+        r'\b(strane|definicije|rok|period|plaćanje|cena|raskid|kraj|garancije|odgovornost|obaveze|prava|sporovi|arbitraža|pravo|nadležnost|poverljivost)\b',  # Serbian
+        r'\b(parties|définitions|durée|période|paiement|prix|résiliation|fin|garanties|responsabilité|obligations|droits|litiges|arbitrage|droit applicable|juridiction|confidentialité)\b'  # French
     ]
 
     sections_found = []
@@ -213,7 +213,9 @@ def detect_structure(text: str) -> Dict[str, any]:
     has_headings = has_numbering or has_articles or len(sections_found) > 3
 
     # Consider complete if has at least 3 typical sections (lowered for prototype testing)
-    appears_complete = len(set([s.lower() for s in sections_found])) >= 3
+    # OR if document is reasonably long (>2000 chars suggests real contract)
+    unique_sections = len(set([s.lower() for s in sections_found]))
+    appears_complete = unique_sections >= 3 or (len(text) > 2000 and unique_sections >= 1)
 
     return {
         "has_headings": has_headings,
