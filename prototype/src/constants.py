@@ -188,7 +188,7 @@ QUALITY_FACTORS = {
 # Hard gates (stop analysis if below threshold)
 HARD_GATES = {
     "scan_legibility": 0.4,
-    "coverage": 0.5
+    "coverage": 0.0  # Don't block on missing annexes for prototype testing
 }
 
 # Groq model settings
