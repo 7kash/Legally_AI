@@ -68,9 +68,21 @@ def extract_text_from_docx(file_path: str) -> Dict[str, any]:
         doc = Document(file_path)
 
         paragraphs = []
+
+        # Extract text from paragraphs
         for para in doc.paragraphs:
             if para.text.strip():
                 paragraphs.append(para.text)
+
+        # Extract text from tables
+        for table in doc.tables:
+            for row in table.rows:
+                row_text = []
+                for cell in row.cells:
+                    if cell.text.strip():
+                        row_text.append(cell.text.strip())
+                if row_text:
+                    paragraphs.append(" | ".join(row_text))
 
         full_text = "\n\n".join(paragraphs)
 
