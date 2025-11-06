@@ -212,8 +212,8 @@ def detect_structure(text: str) -> Dict[str, any]:
 
     has_headings = has_numbering or has_articles or len(sections_found) > 3
 
-    # Consider complete if has at least 5 typical sections
-    appears_complete = len(set([s.lower() for s in sections_found])) >= 5
+    # Consider complete if has at least 3 typical sections (lowered for prototype testing)
+    appears_complete = len(set([s.lower() for s in sections_found])) >= 3
 
     return {
         "has_headings": has_headings,
