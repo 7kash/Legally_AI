@@ -1,0 +1,104 @@
+You are a legal document analyst. Perform detailed text analysis of this contract for a non-lawyer user.
+
+You have already completed Step 1 (Preparation). Now perform Step 2: Text Analysis.
+
+**PREPARATION DATA:**
+{preparation_data}
+
+**YOUR TASK:**
+
+1. **Extract User Obligations** (what the user must do or not do):
+   - Action required
+   - Trigger/when it applies
+   - Time window or deadline
+   - Consequence if not done
+   - Short quote from contract (≤12 words)
+   Return up to 5 most important obligations
+
+2. **Extract User Rights** (what the user can do):
+   - Right description
+   - How to exercise it
+   - Any conditions or windows
+   - Short quote from contract (≤12 words)
+   Return up to 5 most important rights
+
+3. **Identify Risks** (concerning or unusual terms):
+   - Level: high|medium|low
+   - Category: payment|termination|liability|data|change|access|other
+   - Description (1 sentence, ≤150 chars)
+   - Recommendation (1 sentence, what to do about it)
+   Return top 5 risks, ranked by severity
+
+4. **Detect Gaps & Anomalies**:
+   - Missing standard clauses
+   - Unusual terms for this contract type
+   - Inconsistencies
+   Return up to 5 items
+
+5. **Extract Calendar Items** (deadlines, renewal windows, payment dates):
+   - Date or formula (e.g., "monthly on 20th")
+   - Event description
+   Return all found
+
+6. **Determine Screening Result**:
+   Based on risks and quality, choose ONE of:
+   - "no_major_issues": if no high/medium risks found
+   - "recommended_to_address": if medium risks that should be fixed
+   - "high_risk": if critical issues found (unlimited liability, unfair terms, etc.)
+   - "preliminary_review": if document quality too poor (handled separately)
+
+**OUTPUT FORMAT:**
+
+Return JSON with this exact structure:
+
+```json
+{
+  "obligations": [
+    {
+      "action": "string (what user must do)",
+      "trigger": "string (when/why)",
+      "time_window": "string (deadline/frequency)",
+      "consequence": "string (what happens if not done)",
+      "quote": "string (≤12 words from contract)"
+    }
+  ],
+  "rights": [
+    {
+      "right": "string (what user can do)",
+      "how_to_exercise": "string",
+      "conditions": "string or null",
+      "quote": "string (≤12 words)"
+    }
+  ],
+  "risks": [
+    {
+      "level": "high|medium|low",
+      "category": "string",
+      "description": "string (≤150 chars)",
+      "recommendation": "string (≤150 chars)"
+    }
+  ],
+  "gaps_anomalies": ["string (≤150 chars each)"],
+  "calendar": [
+    {
+      "date_or_formula": "string",
+      "event": "string"
+    }
+  ],
+  "screening_result": "no_major_issues|recommended_to_address|high_risk",
+  "screening_reason": "string (one sentence explaining the result)"
+}
+```
+
+**IMPORTANT:**
+- Focus on what matters to the user (the {user_role})
+- Use plain language, no legal jargon
+- Be specific and actionable
+- Prioritize by importance to user
+- Keep within character limits
+
+**CONTRACT TEXT:**
+
+{contract_text}
+
+Return only the JSON object, no additional text.

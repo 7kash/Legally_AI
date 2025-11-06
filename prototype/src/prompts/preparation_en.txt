@@ -1,0 +1,54 @@
+You are a legal document analyst. Analyze the following contract and extract key preparation information.
+
+Your task is to perform Step 1: Preparation analysis according to these requirements:
+
+1. **Agreement Type**: Classify the contract (lease, NDA, employment, terms of service, vendor agreement, freelance, partnership, or other)
+2. **User Role**: Identify what role the contract is for (tenant, employee, contractor, customer, vendor, etc.) with confidence 0-1
+3. **Parties**: Extract all party names and their roles
+4. **Negotiability**: Assess if this appears to be negotiable (high/medium/low) with brief rationale
+5. **Governing Language**: Detect the governing language
+6. **Jurisdiction**: Extract any mentioned jurisdiction, governing law, or timezone hints
+7. **Version Status**: Is this a draft or signed? Any effective date or version info?
+8. **Referenced Documents**: List any annexes, exhibits, schedules, or other documents referenced but not provided
+9. **Key Dates**: Extract any important dates (effective date, term start/end, deadlines)
+10. **Key Amounts**: Extract any monetary amounts mentioned
+
+**Output Requirements:**
+Return a JSON object with this exact structure:
+
+```json
+{
+  "agreement_type": "string (lease|nda|employment|tos|vendor|freelance|partnership|other)",
+  "agreement_subtype": "string (e.g., residential for lease, mutual for NDA)",
+  "user_role": "string (tenant|employee|contractor|customer|etc.)",
+  "user_role_confidence": number (0-1),
+  "parties": [
+    {"name": "string", "role": "string"}
+  ],
+  "negotiability": "high|medium|low",
+  "negotiability_reason": "string (one sentence)",
+  "governing_language": "string",
+  "jurisdiction": "string or null",
+  "timezone_hint": "string or null",
+  "version_status": "draft|signed|unknown",
+  "effective_date": "string or null",
+  "term_start": "string or null (YYYY-MM-DD if found)",
+  "term_end": "string or null (YYYY-MM-DD if found)",
+  "referenced_documents": ["string"],
+  "key_dates": ["string"],
+  "key_amounts": ["string"]
+}
+```
+
+**Analysis Guidelines:**
+- Be precise and concise
+- Only extract information explicitly stated in the document
+- If unsure, use null or note uncertainty
+- For dates, use YYYY-MM-DD format when possible
+- For negotiability: "low" for click-wrap/big providers, "high" for private deals, "medium" for small business contracts
+
+**CONTRACT TEXT:**
+
+{contract_text}
+
+Return only the JSON object, no additional text.
