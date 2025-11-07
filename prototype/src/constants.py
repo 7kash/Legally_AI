@@ -252,3 +252,12 @@ GROQ_SETTINGS = {
     "max_tokens": 8000,
     "top_p": 0.9
 }
+
+# DeepSeek model settings
+DEEPSEEK_SETTINGS = {
+    "model": "deepseek-chat",
+    "temperature": 0.1,  # Low temperature for consistent, accurate extraction
+    "max_tokens": 8000,
+    "top_p": 0.9,
+    "base_url": "https://api.deepseek.com"
+}
