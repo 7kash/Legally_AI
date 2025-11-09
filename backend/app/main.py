@@ -13,12 +13,17 @@ from .config import settings
 
 # Initialize Sentry if DSN provided
 if settings.SENTRY_DSN:
-    sentry_sdk.init(
-        dsn=settings.SENTRY_DSN,
-        integrations=[FastApiIntegration()],
-        traces_sample_rate=0.1,
-        environment="production" if not settings.DEBUG else "development"
-    )
+    try:
+        sentry_sdk.init(
+            dsn=settings.SENTRY_DSN,
+            integrations=[FastApiIntegration()],
+            traces_sample_rate=0.1,
+            environment="production" if not settings.DEBUG else "development"
+        )
+    except Exception as e:
+        # If Sentry DSN is invalid or not configured properly, just skip it
+        print(f"Warning: Failed to initialize Sentry: {e}")
+        print("Continuing without error tracking...")
 
 # Create FastAPI app
 app = FastAPI(
