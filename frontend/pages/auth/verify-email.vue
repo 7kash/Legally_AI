@@ -180,15 +180,12 @@ async function verifyEmail() {
   error.value = ''
 
   try {
-    // TODO: Call API to verify email
-    // await $fetch('/auth/verify-email', {
-    //   method: 'POST',
-    //   body: { token: token.value },
-    //   baseURL: useRuntimeConfig().public.apiBase,
-    // })
-
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 2000))
+    // Call API to verify email
+    await $fetch('/auth/verify-email', {
+      method: 'POST',
+      body: { token: token.value },
+      baseURL: useRuntimeConfig().public.apiBase,
+    })
 
     verified.value = true
 
@@ -210,14 +207,11 @@ async function resendVerification() {
   resending.value = true
 
   try {
-    // TODO: Call API to resend verification email
-    // await $fetch('/auth/resend-verification', {
-    //   method: 'POST',
-    //   baseURL: useRuntimeConfig().public.apiBase,
-    // })
-
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500))
+    // Call API to resend verification email
+    await $fetch('/auth/resend-verification', {
+      method: 'POST',
+      baseURL: useRuntimeConfig().public.apiBase,
+    })
 
     const { success } = useNotifications()
     success('Verification email sent', 'Please check your inbox')

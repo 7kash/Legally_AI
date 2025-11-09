@@ -164,15 +164,12 @@ async function handleSubmit() {
   error.value = ''
 
   try {
-    // TODO: Call API to send password reset email
-    // await $fetch('/auth/forgot-password', {
-    //   method: 'POST',
-    //   body: { email: email.value },
-    //   baseURL: useRuntimeConfig().public.apiBase,
-    // })
-
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500))
+    // Call API to send password reset email
+    await $fetch('/auth/forgot-password', {
+      method: 'POST',
+      body: { email: email.value },
+      baseURL: useRuntimeConfig().public.apiBase,
+    })
 
     emailSent.value = true
 

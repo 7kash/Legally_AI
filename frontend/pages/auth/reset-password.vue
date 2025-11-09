@@ -206,18 +206,15 @@ async function handleSubmit() {
   error.value = ''
 
   try {
-    // TODO: Call API to reset password
-    // await $fetch('/auth/reset-password', {
-    //   method: 'POST',
-    //   body: {
-    //     token: token.value,
-    //     password: password.value,
-    //   },
-    //   baseURL: useRuntimeConfig().public.apiBase,
-    // })
-
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500))
+    // Call API to reset password
+    await $fetch('/auth/reset-password', {
+      method: 'POST',
+      body: {
+        token: token.value,
+        password: password.value,
+      },
+      baseURL: useRuntimeConfig().public.apiBase,
+    })
 
     // Show success notification
     const { success } = useNotifications()

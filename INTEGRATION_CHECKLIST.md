@@ -14,32 +14,32 @@ This document tracks the integration of the Nuxt 3 frontend with the FastAPI bac
 
 | Endpoint | Method | Frontend Component | Status | Notes |
 |----------|--------|-------------------|--------|-------|
-| `/api/auth/register` | POST | `pages/register.vue` | ⏳ TODO | Replace placeholder with actual API call |
-| `/api/auth/login` | POST | `pages/login.vue` | ⏳ TODO | Replace placeholder with actual API call |
-| `/api/auth/logout` | POST | `stores/auth.ts` | ⏳ TODO | Clear session, redirect to login |
-| `/api/auth/me` | GET | `plugins/auth.client.ts` | ⏳ TODO | Load user on app init |
-| `/api/auth/forgot-password` | POST | `pages/auth/forgot-password.vue` | ⏳ TODO | Send reset email |
-| `/api/auth/reset-password` | POST | `pages/auth/reset-password.vue` | ⏳ TODO | Reset with token from URL |
-| `/api/auth/verify-email` | POST | `pages/auth/verify-email.vue` | ⏳ TODO | Verify with token from URL |
-| `/api/auth/resend-verification` | POST | `pages/auth/verify-email.vue` | ⏳ TODO | Resend verification email |
+| `/api/auth/register` | POST | `stores/auth.ts` | ✅ DONE | Real API integration complete |
+| `/api/auth/login` | POST | `stores/auth.ts` | ✅ DONE | Real API integration complete |
+| `/api/auth/logout` | POST | `stores/auth.ts` | ✅ DONE | Real API integration complete |
+| `/api/auth/me` | GET | `stores/auth.ts` | ✅ DONE | Real API integration complete |
+| `/api/auth/forgot-password` | POST | `pages/auth/forgot-password.vue` | ✅ DONE | Send reset email |
+| `/api/auth/reset-password` | POST | `pages/auth/reset-password.vue` | ✅ DONE | Reset with token from URL |
+| `/api/auth/verify-email` | POST | `pages/auth/verify-email.vue` | ✅ DONE | Verify with token from URL |
+| `/api/auth/resend-verification` | POST | `pages/auth/verify-email.vue` | ✅ DONE | Resend verification email |
 
 ### Contract Endpoints
 
 | Endpoint | Method | Frontend Component | Status | Notes |
 |----------|--------|-------------------|--------|-------|
-| `/api/contracts/upload` | POST | `stores/contracts.ts` | ⏳ TODO | File upload with FormData, progress tracking |
-| `/api/contracts` | GET | `pages/history.vue` | ⏳ TODO | List user's contracts with pagination |
-| `/api/contracts/{id}` | GET | `pages/history.vue` | ⏳ TODO | Get contract details |
-| `/api/contracts/{id}` | DELETE | `pages/history.vue` | ⏳ TODO | Delete contract (soft delete) |
-| `/api/contracts/{id}/analyze` | POST | `stores/contracts.ts` | ⏳ TODO | Trigger analysis, returns task_id |
+| `/api/contracts/upload` | POST | `stores/contracts.ts` | ✅ DONE | Real API integration complete |
+| `/api/contracts` | GET | `stores/contracts.ts` | ✅ DONE | Real API integration complete |
+| `/api/contracts/{id}` | GET | `stores/contracts.ts` | ✅ DONE | Real API integration complete |
+| `/api/contracts/{id}` | DELETE | `stores/contracts.ts` | ✅ DONE | Real API integration complete |
+| `/api/contracts/{id}/analyze` | POST | `stores/contracts.ts` | ✅ DONE | Real API integration complete |
 
 ### Analysis Endpoints
 
 | Endpoint | Method | Frontend Component | Status | Notes |
 |----------|--------|-------------------|--------|-------|
-| `/api/analyses/{id}` | GET | `pages/analysis/[id].vue` | ⏳ TODO | Get analysis results |
-| `/api/analyses/{id}/stream` | GET (SSE) | `stores/analyses.ts` | ⏳ TODO | Real-time progress updates |
-| `/api/analyses/{id}/feedback` | POST | `pages/analysis/[id].vue` | ⏳ TODO | Submit user feedback on section |
+| `/api/analyses/{id}` | GET | `stores/analyses.ts` | ✅ DONE | Real API integration complete |
+| `/api/analyses/{id}/stream` | GET (SSE) | `stores/analyses.ts` | ✅ DONE | Real SSE integration complete |
+| `/api/analyses/{id}/feedback` | POST | `stores/analyses.ts` | ✅ DONE | Real API integration complete |
 | `/api/analyses/{id}/export/pdf` | GET | `pages/analysis/[id].vue` | ⏳ TODO | Export results as PDF |
 | `/api/analyses/{id}/export/docx` | GET | `pages/analysis/[id].vue` | ⏳ TODO | Export results as DOCX |
 
@@ -58,83 +58,84 @@ This document tracks the integration of the Nuxt 3 frontend with the FastAPI bac
 
 ### High Priority (Core Functionality)
 
-#### 1. `stores/auth.ts`
+#### 1. `stores/auth.ts` ✅ COMPLETE
 **Location**: `/frontend/stores/auth.ts`
 
-**TODO Items**:
+**Status**: Real API integration complete for all endpoints
 ```typescript
-// Line ~35: async function login(credentials: LoginCredentials)
-// TODO: Replace mock with actual API call
-await $fetch('/auth/login', {
+// Lines 51-75: async function login(credentials: LoginCredentials)
+const response = await $fetch<AuthResponse>('/auth/login', {
   method: 'POST',
   body: credentials,
   baseURL: useRuntimeConfig().public.apiBase,
 })
 
-// Line ~55: async function register(data: RegisterData)
-// TODO: Replace mock with actual API call
+// Lines 77-101: async function register(data: RegisterData)
+// Real API integration complete
 
-// Line ~75: async function logout()
-// TODO: Call /auth/logout endpoint
+// Lines 103-121: async function logout()
+// Real API integration complete
 
-// Line ~95: async function checkAuth()
-// TODO: Call /auth/me to validate token
+// Lines 137-149: async function initializeAuth()
+// Calls /auth/me to validate token - Real API integration complete
 ```
 
-#### 2. `stores/contracts.ts`
+#### 2. `stores/contracts.ts` ✅ COMPLETE
 **Location**: `/frontend/stores/contracts.ts`
 
-**TODO Items**:
+**Status**: Real API integration complete for all endpoints
 ```typescript
-// Line ~40: async function uploadContract(file: File)
-// TODO: Replace FormData upload mock with actual API
-// IMPORTANT: Include Authorization header with JWT token
+// Lines 51-76: async function uploadContract(file: File)
+const response = await $fetch<UploadResponse>('/contracts/upload', {
+  method: 'POST',
+  body: formData,
+  baseURL: useRuntimeConfig().public.apiBase,
+  headers: { Authorization: `Bearer ${token}` },
+  onUploadProgress: (progressEvent) => { ... }
+})
 
-// Line ~65: async function fetchContracts()
-// TODO: Fetch user's contract list from /api/contracts
+// Lines 93-117: async function fetchContracts()
+// Real API integration complete
 
-// Line ~85: async function deleteContract(id: string)
-// TODO: Call DELETE /api/contracts/{id}
+// Lines 133-153: async function deleteContract(id: string)
+// Real API integration complete
 ```
 
-#### 3. `stores/analyses.ts`
+#### 3. `stores/analyses.ts` ✅ COMPLETE
 **Location**: `/frontend/stores/analyses.ts`
 
-**TODO Items**:
+**Status**: Real API integration complete for SSE and all endpoints
 ```typescript
-// Line ~50: function connectSSE(analysisId: string)
-// TODO: Update SSE URL to actual backend endpoint
-// Example: const url = `${baseURL}/analyses/${analysisId}/stream?token=${token}`
+// Lines 79-107: function connectSSE(analysisId: string)
+const baseURL = useRuntimeConfig().public.apiBase
+const url = `${baseURL}/analyses/${analysisId}/stream`
+const es = new EventSource(`${url}?token=${token}`)
 
-// Line ~90: async function fetchAnalysis(id: string)
-// TODO: Fetch analysis results from /api/analyses/{id}
+// Lines 121-145: async function fetchAnalysis(id: string)
+// Real API integration complete
 
-// Line ~110: async function submitFeedback(...)
-// TODO: POST feedback to /api/analyses/{id}/feedback
+// Lines 162-182: async function submitFeedback(...)
+// Real API integration complete
 ```
 
-#### 4. `pages/analysis/[id].vue`
+#### 4. `pages/analysis/[id].vue` ⏳ PENDING
 **Location**: `/frontend/pages/analysis/[id].vue`
 
 **TODO Items**:
 ```typescript
-// Line ~120: async function handleExport()
+// Export functionality still uses placeholder
 // TODO: Replace exportToPDF mock with actual API call
-// Call GET /api/analyses/{id}/export/pdf
-
-// Line ~140: async function handleFeedback(data)
-// TODO: Ensure feedback submission is connected to API
+// Call GET /api/analyses/{id}/export/pdf or /api/analyses/{id}/export/docx
 ```
 
 ### Medium Priority (Auth Flows)
 
-#### 5. `pages/auth/forgot-password.vue`
+#### 5. `pages/auth/forgot-password.vue` ✅ COMPLETE
 **Location**: `/frontend/pages/auth/forgot-password.vue`
 
-**TODO Items**:
+**Status**: Real API integration complete
 ```typescript
-// Line ~45: async function handleSubmit()
-// TODO: Call POST /api/auth/forgot-password
+// Line 167-172: async function handleSubmit()
 await $fetch('/auth/forgot-password', {
   method: 'POST',
   body: { email: email.value },
@@ -142,38 +143,39 @@ await $fetch('/auth/forgot-password', {
 })
 ```
 
-#### 6. `pages/auth/reset-password.vue`
+#### 6. `pages/auth/reset-password.vue` ✅ COMPLETE
 **Location**: `/frontend/pages/auth/reset-password.vue`
 
-**TODO Items**:
+**Status**: Real API integration complete
 ```typescript
-// Line ~60: async function handleSubmit()
-// TODO: Call POST /api/auth/reset-password
+// Line 209-217: async function handleSubmit()
 await $fetch('/auth/reset-password', {
   method: 'POST',
   body: {
     token: token.value,
-    new_password: password.value,
+    password: password.value,
   },
   baseURL: useRuntimeConfig().public.apiBase,
 })
 ```
 
-#### 7. `pages/auth/verify-email.vue`
+#### 7. `pages/auth/verify-email.vue` ✅ COMPLETE
 **Location**: `/frontend/pages/auth/verify-email.vue`
 
-**TODO Items**:
+**Status**: Real API integration complete
 ```typescript
-// Line ~50: async function verifyEmail()
-// TODO: Call POST /api/auth/verify-email
+// Line 183-188: async function verifyEmail()
 await $fetch('/auth/verify-email', {
   method: 'POST',
   body: { token: token.value },
   baseURL: useRuntimeConfig().public.apiBase,
 })
 
-// Line ~70: async function resendVerification()
-// TODO: Call POST /api/auth/resend-verification
+// Line 210-214: async function resendVerification()
+await $fetch('/auth/resend-verification', {
+  method: 'POST',
+  baseURL: useRuntimeConfig().public.apiBase,
+})
 ```
 
 ### Low Priority (Enhancements)
