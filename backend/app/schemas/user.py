@@ -60,3 +60,32 @@ class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     user: UserResponse
+
+
+class AccountDetails(UserResponse):
+    """
+    Extended account details with statistics
+    """
+    total_contracts: int
+    total_analyses: int
+    tier_limit: int  # -1 for unlimited (premium), 3 for free
+
+
+class AccountUpdate(BaseModel):
+    """
+    Account profile update schema
+    """
+    email: Optional[EmailStr] = None
+    current_password: Optional[str] = None
+    new_password: Optional[str] = None
+
+
+class AccountExportData(BaseModel):
+    """
+    GDPR data export schema
+    """
+    user: dict
+    contracts: list
+    analyses: list
+    feedback: list
+    exported_at: datetime

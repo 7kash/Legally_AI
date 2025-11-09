@@ -47,10 +47,10 @@ This document tracks the integration of the Nuxt 3 frontend with the FastAPI bac
 
 | Endpoint | Method | Frontend Component | Status | Notes |
 |----------|--------|-------------------|--------|-------|
-| `/api/account` | GET | `pages/account.vue` | ⏳ TODO | Get account details, usage stats |
-| `/api/account` | PATCH | `pages/account.vue` | ⏳ TODO | Update profile settings |
-| `/api/account/export` | GET | `pages/account.vue` | ⏳ TODO | GDPR data export |
-| `/api/account` | DELETE | `pages/account.vue` | ⏳ TODO | GDPR account deletion |
+| `/api/account` | GET | `pages/account.vue` | ✅ DONE | Backend complete, account details + usage stats |
+| `/api/account` | PATCH | `pages/account.vue` | ✅ DONE | Backend complete, update email/password with validation |
+| `/api/account/export` | GET | `pages/account.vue` | ✅ DONE | Backend complete, GDPR data export (user, contracts, analyses, feedback) |
+| `/api/account` | DELETE | `pages/account.vue` | ✅ DONE | Backend complete, GDPR account deletion with cascade |
 
 ---
 
