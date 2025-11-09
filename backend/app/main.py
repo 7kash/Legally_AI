@@ -68,10 +68,13 @@ async def root():
 
 
 # Import and include routers
-# TODO: Add routers as they're created
-# from .api import auth, contracts, analyses, deadlines, billing
-# app.include_router(auth.router, prefix=f"{settings.API_PREFIX}/auth", tags=["auth"])
-# app.include_router(contracts.router, prefix=f"{settings.API_PREFIX}/contracts", tags=["contracts"])
+from .api import auth, contracts
+
+app.include_router(auth.router, prefix=f"{settings.API_PREFIX}/auth", tags=["auth"])
+app.include_router(contracts.router, prefix=f"{settings.API_PREFIX}/contracts", tags=["contracts"])
+
+# TODO: Add more routers as they're created
+# from .api import analyses, deadlines, billing
 # app.include_router(analyses.router, prefix=f"{settings.API_PREFIX}/analyses", tags=["analyses"])
 # app.include_router(deadlines.router, prefix=f"{settings.API_PREFIX}/deadlines", tags=["deadlines"])
 # app.include_router(billing.router, prefix=f"{settings.API_PREFIX}/billing", tags=["billing"])
