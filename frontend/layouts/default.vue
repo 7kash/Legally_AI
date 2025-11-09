@@ -1,7 +1,7 @@
 <template>
   <div class="layout-default flex min-h-screen flex-col">
     <!-- Main Navigation Header -->
-    <header role="banner" class="sticky top-0 z-40 border-b border-gray-200 bg-white shadow-sm">
+    <header role="banner" class="sticky top-0 z-40 border-b border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-900">
       <nav
         role="navigation"
         aria-label="Main navigation"
@@ -17,7 +17,7 @@
         </NuxtLink>
 
         <!-- Desktop Navigation -->
-        <div class="hidden items-center gap-6 md:flex">
+        <div class="hidden items-center gap-4 md:flex">
           <NuxtLink
             v-if="isAuthenticated"
             to="/upload"
@@ -39,6 +39,9 @@
           >
             Account
           </NuxtLink>
+
+          <!-- Theme Toggle -->
+          <ThemeToggle />
 
           <!-- Auth buttons -->
           <div v-if="!isAuthenticated" class="flex items-center gap-3">

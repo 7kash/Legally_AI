@@ -10,16 +10,8 @@
       <NuxtPage />
     </NuxtLayout>
 
-    <!-- Global notifications/toasts portal -->
-    <Teleport to="body">
-      <div
-        id="notifications"
-        role="region"
-        aria-live="polite"
-        aria-atomic="true"
-        class="fixed right-4 top-4 z-50 space-y-2"
-      />
-    </Teleport>
+    <!-- Global notifications/toasts -->
+    <NotificationContainer />
   </div>
 </template>
 

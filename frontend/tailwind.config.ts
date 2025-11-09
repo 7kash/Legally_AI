@@ -8,6 +8,7 @@ export default {
     './plugins/**/*.{js,ts}',
     './app.vue',
   ],
+  darkMode: ['selector', '[data-theme="dark"]'],
   theme: {
     extend: {
       // Design tokens - Colors

@@ -156,6 +156,26 @@
 
           <!-- Actions -->
           <div class="flex flex-wrap gap-3">
+            <button
+              type="button"
+              class="btn btn--secondary"
+              @click="handleExport"
+            >
+              <svg
+                class="h-5 w-5 -ml-1"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+              Export Results
+            </button>
             <NuxtLink
               to="/upload"
               class="btn btn--primary"
@@ -216,6 +236,7 @@ import { onMounted, onUnmounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAnalysesStore } from '~/stores/analyses'
 import type { AnalysisEvent } from '~/stores/analyses'
+import { exportAnalysisToPDF } from '~/utils/exportToPDF'
 
 /**
  * Analysis Results Page
@@ -297,8 +318,36 @@ async function handleFeedback(data: {
       data.isCorrect,
       data.comment
     )
+
+    // Show success notification
+    const { success } = useNotifications()
+    success('Feedback submitted', 'Thank you for your feedback!')
   } catch (error) {
     console.error('Failed to submit feedback:', error)
+    const { error: showError } = useNotifications()
+    showError('Failed to submit feedback', 'Please try again later.')
+  }
+}
+
+async function handleExport(): Promise<void> {
+  try {
+    const { success } = useNotifications()
+
+    await exportAnalysisToPDF({
+      title: 'Contract Analysis',
+      content: formattedOutput.value,
+      metadata: {
+        contractName: `Analysis ${analysisId.value}`,
+        analysisDate: new Date(analysesStore.currentAnalysis?.created_at || '').toLocaleDateString(),
+        confidenceScore: analysesStore.currentAnalysis?.confidence_score || undefined,
+      },
+    })
+
+    success('Export successful', 'Analysis results have been downloaded.')
+  } catch (error) {
+    console.error('Failed to export analysis:', error)
+    const { error: showError } = useNotifications()
+    showError('Export failed', 'Please try again later.')
   }
 }
 
