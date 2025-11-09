@@ -130,10 +130,10 @@ const es = new EventSource(`${url}?token=${token}`)
 
 ### Medium Priority (Auth Flows)
 
-#### 5. `pages/auth/forgot-password.vue` ✅ COMPLETE
+#### 5. `pages/auth/forgot-password.vue` ✅ COMPLETE (Frontend + Backend)
 **Location**: `/frontend/pages/auth/forgot-password.vue`
 
-**Status**: Real API integration complete
+**Frontend Status**: Real API integration complete
 ```typescript
 // Line 167-172: async function handleSubmit()
 await $fetch('/auth/forgot-password', {
@@ -143,10 +143,14 @@ await $fetch('/auth/forgot-password', {
 })
 ```
 
-#### 6. `pages/auth/reset-password.vue` ✅ COMPLETE
+**Backend Status**: Endpoint implemented in `backend/app/api/auth.py` (lines 175-211)
+- Validates email, generates 1-hour reset token, sends email via SendGrid
+- Prevents email enumeration by always returning success
+
+#### 6. `pages/auth/reset-password.vue` ✅ COMPLETE (Frontend + Backend)
 **Location**: `/frontend/pages/auth/reset-password.vue`
 
-**Status**: Real API integration complete
+**Frontend Status**: Real API integration complete
 ```typescript
 // Line 209-217: async function handleSubmit()
 await $fetch('/auth/reset-password', {
@@ -159,10 +163,13 @@ await $fetch('/auth/reset-password', {
 })
 ```
 
-#### 7. `pages/auth/verify-email.vue` ✅ COMPLETE
+**Backend Status**: Endpoint implemented in `backend/app/api/auth.py` (lines 214-265)
+- Verifies token, validates user, updates password with bcrypt hash
+
+#### 7. `pages/auth/verify-email.vue` ✅ COMPLETE (Frontend + Backend)
 **Location**: `/frontend/pages/auth/verify-email.vue`
 
-**Status**: Real API integration complete
+**Frontend Status**: Real API integration complete
 ```typescript
 // Line 183-188: async function verifyEmail()
 await $fetch('/auth/verify-email', {
@@ -177,6 +184,10 @@ await $fetch('/auth/resend-verification', {
   baseURL: useRuntimeConfig().public.apiBase,
 })
 ```
+
+**Backend Status**: Both endpoints implemented in `backend/app/api/auth.py`
+- /verify-email (lines 268-312): Verifies token, sets user.is_verified = True
+- /resend-verification (lines 314-345): Requires auth, sends new 24-hour token
 
 ### Low Priority (Enhancements)
 
