@@ -4,6 +4,7 @@
 # This script tests all API endpoints systematically
 
 set -e  # Exit on error
+set -x  # Debug mode - print commands as they execute
 
 # Colors for output
 RED='\033[0;31m'
