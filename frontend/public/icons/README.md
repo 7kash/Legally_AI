@@ -2,15 +2,32 @@
 
 This directory contains the icons for the Progressive Web App (PWA) manifest.
 
-## Current Status
+## Generated Icons ✅
 
-- ✅ `icon.svg` - Source SVG icon (512x512)
-- ⏳ `icon-192x192.png` - Needs to be generated
-- ⏳ `icon-512x512.png` - Needs to be generated
+The PNG icons have been generated from the SVG source:
+- ✅ `icon-192x192.png` - 192x192 PWA icon (3.0KB)
+- ✅ `icon-512x512.png` - 512x512 PWA icon (8.8KB)
 
-## How to Generate PNG Icons
+## Source
 
-### Option 1: Using Online Tools
+- `icon.svg` - Source SVG icon (512x512)
+
+## Regenerate Icons
+
+To regenerate the icons from the SVG source:
+
+```bash
+cd /home/user/Legally_AI/frontend
+npm run icons
+```
+
+This runs the `scripts/generate-icons.mjs` script which uses sharp to convert the SVG to PNG at the required sizes.
+
+## Manual Generation Methods
+
+If you need to regenerate manually without the script:
+
+### Method 1: Using Squoosh (Online)
 
 1. Open [Squoosh.app](https://squoosh.app/)
 2. Upload `icon.svg`
@@ -18,7 +35,7 @@ This directory contains the icons for the Progressive Web App (PWA) manifest.
 4. Resize to 512x512, download as `icon-512x512.png`
 5. Place both files in this directory
 
-### Option 2: Using ImageMagick (Command Line)
+### Method 2: Using ImageMagick (Command Line)
 
 ```bash
 # Install ImageMagick if not already installed
@@ -32,18 +49,7 @@ convert icon.svg -resize 192x192 icon-192x192.png
 convert icon.svg -resize 512x512 icon-512x512.png
 ```
 
-### Option 3: Using Node.js (Sharp)
-
-```bash
-# Install sharp
-npm install --save-dev sharp sharp-cli
-
-# Generate icons
-npx sharp -i icon.svg -o icon-192x192.png resize 192 192
-npx sharp -i icon.svg -o icon-512x512.png resize 512 512
-```
-
-### Option 4: Using Figma/Sketch/Adobe XD
+### Method 3: Using Figma/Sketch/Adobe XD
 
 1. Import `icon.svg` into your design tool
 2. Export as PNG at 192x192px and 512x512px
@@ -64,30 +70,30 @@ To customize the icon:
 1. Edit `icon.svg` directly (it's just XML)
 2. Or use a vector editor (Figma, Inkscape, Adobe Illustrator)
 3. Keep dimensions at 512x512 for best quality
-4. Regenerate PNG files after changes
+4. Regenerate PNG files with `npm run icons`
 
 ## PWA Manifest
 
-These icons are referenced in `/public/manifest.json`:
+These icons are referenced in `nuxt.config.ts`:
 
-```json
-{
-  "icons": [
-    {
-      "src": "/icons/icon-192x192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "/icons/icon-512x512.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    }
-  ]
+```typescript
+pwa: {
+  manifest: {
+    icons: [
+      {
+        src: '/icons/icon-192x192.png',
+        sizes: '192x192',
+        type: 'image/png',
+      },
+      {
+        src: '/icons/icon-512x512.png',
+        sizes: '512x512',
+        type: 'image/png',
+      },
+    ],
+  },
 }
 ```
-
-Once PNG files are generated, the PWA will be fully functional for installation.
 
 ## Testing
 
@@ -102,4 +108,4 @@ After generating the icons:
 ---
 
 **Created**: 2025-11-09
-**Status**: SVG placeholder ready, PNG generation pending
+**Status**: ✅ Icons generated and ready for PWA
