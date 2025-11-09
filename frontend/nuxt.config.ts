@@ -17,6 +17,8 @@ export default defineNuxtConfig({
     '@pinia/nuxt',
     '@vueuse/nuxt',
     '@nuxt/devtools',
+    '@nuxtjs/i18n',
+    '@vite-pwa/nuxt',
   ],
 
   // App configuration
@@ -57,6 +59,7 @@ export default defineNuxtConfig({
     public: {
       apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:8000/api',
       appVersion: '1.0.0',
+      enableAnalytics: process.env.NUXT_PUBLIC_ENABLE_ANALYTICS === 'true',
     },
   },
 
@@ -99,6 +102,89 @@ export default defineNuxtConfig({
     configPath: 'tailwind.config.ts',
     exposeConfig: false,
     viewer: true,
+  },
+
+  // i18n
+  i18n: {
+    strategy: 'no_prefix',
+    detectBrowserLanguage: {
+      useCookie: true,
+      cookieKey: 'legally_ai_locale',
+      redirectOn: 'root',
+      alwaysRedirect: false,
+    },
+    locales: [
+      { code: 'en', iso: 'en-US', name: 'English' },
+      { code: 'ru', iso: 'ru-RU', name: 'Русский' },
+      { code: 'fr', iso: 'fr-FR', name: 'Français' },
+      { code: 'sr', iso: 'sr-RS', name: 'Српски' },
+    ],
+    defaultLocale: 'en',
+    vueI18n: './i18n.config.ts',
+  },
+
+  // PWA
+  pwa: {
+    registerType: 'autoUpdate',
+    manifest: {
+      name: 'Legally AI - Contract Analysis',
+      short_name: 'Legally AI',
+      description: 'AI-powered multilingual contract analysis',
+      theme_color: '#0ea5e9',
+      background_color: '#ffffff',
+      display: 'standalone',
+      icons: [
+        {
+          src: '/icons/icon-192x192.png',
+          sizes: '192x192',
+          type: 'image/png',
+        },
+        {
+          src: '/icons/icon-512x512.png',
+          sizes: '512x512',
+          type: 'image/png',
+        },
+      ],
+    },
+    workbox: {
+      navigateFallback: '/',
+      globPatterns: ['**/*.{js,css,html,png,svg,ico}'],
+      runtimeCaching: [
+        {
+          urlPattern: /^https:\/\/.*\/api\/.*/i,
+          handler: 'NetworkFirst',
+          options: {
+            cacheName: 'api-cache',
+            expiration: {
+              maxEntries: 50,
+              maxAgeSeconds: 3600,
+            },
+            cacheableResponse: {
+              statuses: [0, 200],
+            },
+          },
+        },
+        {
+          urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/,
+          handler: 'CacheFirst',
+          options: {
+            cacheName: 'image-cache',
+            expiration: {
+              maxEntries: 100,
+              maxAgeSeconds: 86400 * 30,
+            },
+          },
+        },
+      ],
+    },
+    client: {
+      installPrompt: true,
+      periodicSyncForUpdates: 3600,
+    },
+    devOptions: {
+      enabled: false,
+      type: 'module',
+    },
   },
 
   // Performance

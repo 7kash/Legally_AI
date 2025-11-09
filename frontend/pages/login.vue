@@ -165,12 +165,12 @@
 
         <!-- Forgot password link -->
         <div class="flex items-center justify-end">
-          <a
-            href="#"
+          <NuxtLink
+            to="/auth/forgot-password"
             class="text-sm font-medium text-primary-600 hover:text-primary-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded"
           >
             Forgot your password?
-          </a>
+          </NuxtLink>
         </div>
 
         <!-- Submit button -->
