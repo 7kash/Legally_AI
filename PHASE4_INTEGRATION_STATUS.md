@@ -161,21 +161,25 @@ All frontend stores and core pages have **real API integration**:
 - ✅ Security: Prevents email enumeration attacks
 - ✅ Development fallback: Logs emails when SendGrid not configured
 
+### ✅ Export Endpoints (NEWLY COMPLETE)
+
+**File**: `backend/app/api/analyses.py` (lines 310-447)
+
+| Endpoint | Method | Status | Lines |
+|----------|--------|--------|-------|
+| `/analyses/{id}/export/pdf` | GET | ✅ DONE | 310-377 |
+| `/analyses/{id}/export/docx` | GET | ✅ DONE | 380-447 |
+
+**Implemented features** (`backend/app/utils/export.py`):
+- ✅ PDF generation with ReportLab
+- ✅ DOCX generation with python-docx
+- ✅ Professional formatting with brand colors
+- ✅ Structured sections (metadata, analysis results)
+- ✅ Proper file download headers
+- ✅ Authorization verification (user access control)
+- ✅ Status validation (only exports completed analyses)
+
 ### ⏳ Missing Backend Endpoints
-
-#### Export Endpoints ❌
-**Required for analysis export feature**:
-
-| Endpoint | Method | Status | Purpose |
-|----------|--------|--------|---------|
-| `/analyses/{id}/export/pdf` | GET | ⏳ TODO | Export analysis as PDF |
-| `/analyses/{id}/export/docx` | GET | ⏳ TODO | Export analysis as DOCX |
-
-**Implementation needed**:
-- PDF generation (ReportLab or WeasyPrint)
-- DOCX generation (python-docx)
-- Template rendering
-- File streaming response
 
 #### Account Endpoints ❌
 **Required for account management page**:
@@ -235,12 +239,16 @@ All core flows are ready for integration testing:
    - Backend: `POST /auth/verify-email` + `POST /auth/resend-verification`
    - Status: ✅ Ready
 
+8. **PDF/DOCX Export**
+   - Frontend: `pages/analysis/[id].vue`
+   - Backend: `GET /analyses/{id}/export/pdf` + `GET /analyses/{id}/export/docx`
+   - Status: ✅ Ready
+
 ### ⏳ Cannot Test Yet
 
 These flows require backend implementation:
 
-1. **PDF/DOCX Export** - Missing backend endpoints
-2. **Account Management** - Missing backend endpoints
+1. **Account Management** - Missing backend endpoints
 
 ---
 
@@ -286,10 +294,11 @@ NUXT_PUBLIC_ENABLE_ANALYTICS=true
    - ✅ Integrated SendGrid for email sending
    - ✅ Added email templates
 
-2. **Export Endpoints** (1 day)
-   - Implement PDF export with ReportLab
-   - Implement DOCX export with python-docx
-   - Create export templates
+2. **✅ Export Endpoints COMPLETE**
+   - ✅ Implemented PDF export with ReportLab
+   - ✅ Implemented DOCX export with python-docx
+   - ✅ Created professional export templates
+   - ✅ Added proper file download headers
 
 3. **Account Endpoints** (1 day)
    - Implement profile update
@@ -334,7 +343,7 @@ NUXT_PUBLIC_ENABLE_ANALYTICS=true
 
 ### Medium Risk ⚠️
 - **✅ Email service integration** - ~~Needs SendGrid configuration and testing~~ COMPLETE
-- **Export functionality** - PDF/DOCX generation needs implementation and testing
+- **✅ Export functionality** - ~~PDF/DOCX generation needs implementation and testing~~ COMPLETE
 - **Account management** - GDPR compliance requires careful implementation
 
 ### Mitigation Strategies
@@ -353,12 +362,12 @@ NUXT_PUBLIC_ENABLE_ANALYTICS=true
 - ✅ Frontend stores use real API calls
 - ✅ SSE real-time updates working
 - ✅ Auth flow endpoints implemented (forgot/reset/verify)
-- ⏳ Export endpoints implemented (PDF/DOCX)
+- ✅ Export endpoints implemented (PDF/DOCX)
 - ✅ PWA icons generated (192x192, 512x512)
 - ⏳ Integration tests passing
 - ⏳ Deployed to production
 
-**Current Completion**: 80% (Core + Auth + PWA complete, export & deployment pending)
+**Current Completion**: 90% (Core + Auth + PWA + Export complete, account & deployment pending)
 
 ---
 

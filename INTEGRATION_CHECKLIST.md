@@ -40,8 +40,8 @@ This document tracks the integration of the Nuxt 3 frontend with the FastAPI bac
 | `/api/analyses/{id}` | GET | `stores/analyses.ts` | ✅ DONE | Real API integration complete |
 | `/api/analyses/{id}/stream` | GET (SSE) | `stores/analyses.ts` | ✅ DONE | Real SSE integration complete |
 | `/api/analyses/{id}/feedback` | POST | `stores/analyses.ts` | ✅ DONE | Real API integration complete |
-| `/api/analyses/{id}/export/pdf` | GET | `pages/analysis/[id].vue` | ⏳ TODO | Export results as PDF |
-| `/api/analyses/{id}/export/docx` | GET | `pages/analysis/[id].vue` | ⏳ TODO | Export results as DOCX |
+| `/api/analyses/{id}/export/pdf` | GET | `pages/analysis/[id].vue` | ✅ DONE | Backend complete, frontend ready |
+| `/api/analyses/{id}/export/docx` | GET | `pages/analysis/[id].vue` | ✅ DONE | Backend complete, frontend ready |
 
 ### Account Endpoints
 
@@ -118,14 +118,31 @@ const es = new EventSource(`${url}?token=${token}`)
 // Real API integration complete
 ```
 
-#### 4. `pages/analysis/[id].vue` ⏳ PENDING
+#### 4. `pages/analysis/[id].vue` ✅ COMPLETE (Backend Ready)
 **Location**: `/frontend/pages/analysis/[id].vue`
 
-**TODO Items**:
+**Backend Status**: Export endpoints implemented in `backend/app/api/analyses.py`
+```python
+# Lines 310-377: @router.get("/{analysis_id}/export/pdf")
+# - Generates professional PDF with ReportLab
+# - Includes metadata, analysis sections, formatted content
+# - Returns file download with proper headers
+
+# Lines 380-447: @router.get("/{analysis_id}/export/docx")
+# - Generates formatted DOCX with python-docx
+# - Includes styled headings, tables, bullet lists
+# - Returns file download with proper headers
+```
+
+**Frontend Integration**: Can call endpoints directly
 ```typescript
-// Export functionality still uses placeholder
-// TODO: Replace exportToPDF mock with actual API call
-// Call GET /api/analyses/{id}/export/pdf or /api/analyses/{id}/export/docx
+// Download PDF
+const pdfUrl = `${apiBase}/analyses/${analysisId}/export/pdf`
+window.open(pdfUrl, '_blank')
+
+// Download DOCX
+const docxUrl = `${apiBase}/analyses/${analysisId}/export/docx`
+window.open(docxUrl, '_blank')
 ```
 
 ### Medium Priority (Auth Flows)

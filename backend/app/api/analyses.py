@@ -305,3 +305,143 @@ async def submit_feedback(
     db.commit()
 
     return None
+
+
+@router.get("/{analysis_id}/export/pdf")
+async def export_analysis_pdf(
+    analysis_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Export analysis as PDF
+
+    Args:
+        analysis_id: Analysis ID
+        current_user: Current authenticated user
+        db: Database session
+
+    Returns:
+        PDF file download
+
+    Raises:
+        HTTPException: If analysis not found or access denied
+    """
+    from fastapi.responses import Response
+    from ..utils.export import generate_pdf
+
+    # Verify access
+    analysis = db.query(Analysis).join(Contract).filter(
+        Analysis.id == analysis_id,
+        Contract.user_id == current_user.id
+    ).first()
+
+    if not analysis:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Analysis not found"
+        )
+
+    # Check if analysis is complete
+    if analysis.status != "succeeded":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Analysis is not complete (status: {analysis.status})"
+        )
+
+    # Get contract for filename
+    contract = db.query(Contract).filter(Contract.id == analysis.contract_id).first()
+
+    # Prepare analysis data
+    analysis_data = {
+        'contract_filename': contract.filename if contract else 'Unknown',
+        'status': analysis.status,
+        'results': analysis.results or {},
+        'analysis_id': str(analysis.id),
+        'created_at': analysis.created_at.isoformat() if analysis.created_at else None,
+    }
+
+    # Generate PDF
+    pdf_bytes = generate_pdf(analysis_data)
+
+    # Return PDF file
+    filename = f"contract_analysis_{analysis_id}.pdf"
+
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            "Content-Type": "application/pdf"
+        }
+    )
+
+
+@router.get("/{analysis_id}/export/docx")
+async def export_analysis_docx(
+    analysis_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Export analysis as DOCX
+
+    Args:
+        analysis_id: Analysis ID
+        current_user: Current authenticated user
+        db: Database session
+
+    Returns:
+        DOCX file download
+
+    Raises:
+        HTTPException: If analysis not found or access denied
+    """
+    from fastapi.responses import Response
+    from ..utils.export import generate_docx
+
+    # Verify access
+    analysis = db.query(Analysis).join(Contract).filter(
+        Analysis.id == analysis_id,
+        Contract.user_id == current_user.id
+    ).first()
+
+    if not analysis:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Analysis not found"
+        )
+
+    # Check if analysis is complete
+    if analysis.status != "succeeded":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Analysis is not complete (status: {analysis.status})"
+        )
+
+    # Get contract for filename
+    contract = db.query(Contract).filter(Contract.id == analysis.contract_id).first()
+
+    # Prepare analysis data
+    analysis_data = {
+        'contract_filename': contract.filename if contract else 'Unknown',
+        'status': analysis.status,
+        'results': analysis.results or {},
+        'analysis_id': str(analysis.id),
+        'created_at': analysis.created_at.isoformat() if analysis.created_at else None,
+    }
+
+    # Generate DOCX
+    docx_bytes = generate_docx(analysis_data)
+
+    # Return DOCX file
+    filename = f"contract_analysis_{analysis_id}.docx"
+
+    return Response(
+        content=docx_bytes,
+        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        }
+    )
