@@ -1,10 +1,10 @@
 # Legally AI - Development Progress
 
-## Current Status: Phase 4 Integration - Core Complete
+## Current Status: Phase 4 Integration - Auth Complete
 
 **Last Updated**: 2025-11-09
-**Phase**: Phase 4 - Frontend-Backend Integration (60% Complete)
-**Overall Progress**: 100% (Prototype) / 100% (Phase 2 Backend) / 100% (Phase 3 Frontend) / 60% (Phase 4 Integration)
+**Phase**: Phase 4 - Frontend-Backend Integration (75% Complete)
+**Overall Progress**: 100% (Prototype) / 100% (Phase 2 Backend) / 100% (Phase 3 Frontend) / 75% (Phase 4 Integration)
 
 ---
 
@@ -110,8 +110,18 @@
 - [x] Error handling and loading states implemented
 - [x] Created comprehensive integration documentation
 
+#### ✅ Backend Auth Flow Complete (November 2025)
+- [x] Auth flow endpoints implemented:
+  - [x] POST /auth/forgot-password - Password reset email with 1-hour token
+  - [x] POST /auth/reset-password - Reset password with token validation
+  - [x] POST /auth/verify-email - Email verification with 24-hour token
+  - [x] POST /auth/resend-verification - Resend verification (requires auth)
+- [x] Email service integration via SendGrid
+- [x] Token generation and validation utilities
+- [x] HTML and plain text email templates
+- [x] Security: Prevents email enumeration attacks
+
 #### ⏳ Backend Endpoints Pending
-- [ ] Auth flow endpoints (forgot-password, reset-password, verify-email, resend-verification)
 - [ ] Export endpoints (PDF, DOCX generation)
 - [ ] Account management endpoints (profile update, GDPR export, deletion)
 
@@ -125,10 +135,12 @@
 
 ## In Progress 🚧
 
-### Phase 4: Integration & Testing (60% Complete)
+### Phase 4: Integration & Testing (75% Complete)
 - [x] Connect frontend stores to backend API (auth, contracts, analyses)
 - [x] Connect auth pages to backend API
-- [ ] Implement missing backend endpoints (auth flows, exports, account)
+- [x] Implement auth flow backend endpoints (forgot/reset/verify password)
+- [ ] Implement export backend endpoints (PDF, DOCX generation)
+- [ ] Implement account management backend endpoints
 - [ ] Generate PWA icons
 - [ ] End-to-end integration testing
 - [ ] Performance optimization
@@ -314,9 +326,10 @@ See `decisions.md` for detailed rationale.
 | Dark mode & accessibility | - | ✅ Complete | Nov 9 |
 | PWA & offline support | - | ✅ Complete | Nov 9 |
 | Multi-language support | - | ✅ Complete | Nov 9 |
-| **Phase 4: Integration** | Dec 10 | 🔄 In Progress (60%) | Nov 9 (core) |
+| **Phase 4: Integration** | Dec 10 | 🔄 In Progress (75%) | Nov 9 (core) |
 | Core integration (auth, contracts, analyses) | - | ✅ Complete | Nov 9 |
 | Auth flow pages integration | - | ✅ Complete | Nov 9 |
+| Auth flow backend endpoints | - | ✅ Complete | Nov 9 |
 | **Phase 5: Payments** | Dec 17 | ⏳ Pending | - |
 | **Phase 6: Launch** | Dec 31 | ⏳ Pending | - |
 | **MVP Launch** | Jan 1, 2026 | ⏳ Pending | - |
@@ -351,5 +364,5 @@ See `decisions.md` for detailed rationale.
 ---
 
 **Last Updated**: 2025-11-09 by Session 011CUtiiNvgPVR7ram5DwPLU
-**Current Status**: Phase 4 Integration - Core Complete (60%)
-**Next Steps**: Implement missing backend endpoints, PWA icons, integration testing
+**Current Status**: Phase 4 Integration - Auth Complete (75%)
+**Next Steps**: Export endpoints, account management, PWA icons, integration testing
