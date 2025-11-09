@@ -1,13 +1,13 @@
 # Phase 4: Frontend-Backend Integration Status
 
-**Date**: 2025-11-09
-**Status**: Core Integration Complete ✅ | Optional Enhancements Pending
+**Date**: 2025-11-09 (Updated)
+**Status**: Core Integration Complete ✅ | Auth Flows Complete ✅ | Export Pending
 
 ---
 
 ## Executive Summary
 
-The frontend-backend integration for Legally AI is **substantially complete** for core functionality. All critical user flows (authentication, contract upload, real-time analysis) are fully integrated with real API calls. Three categories of enhancements remain for full production readiness.
+The frontend-backend integration for Legally AI is **nearly complete** for production readiness. All critical user flows (authentication, contract upload, real-time analysis, password reset, email verification) are fully integrated with real API calls. Only export functionality and account management endpoints remain for full production readiness.
 
 ---
 
@@ -141,23 +141,27 @@ All frontend stores and core pages have **real API integration**:
 - Feedback storage
 - User authorization verification
 
+### ✅ Auth Flow Endpoints (NEWLY COMPLETE)
+
+**File**: `backend/app/api/auth.py` (lines 175-345)
+
+| Endpoint | Method | Status | Lines |
+|----------|--------|--------|-------|
+| `/auth/forgot-password` | POST | ✅ DONE | 175-211 |
+| `/auth/reset-password` | POST | ✅ DONE | 214-265 |
+| `/auth/verify-email` | POST | ✅ DONE | 268-312 |
+| `/auth/resend-verification` | POST | ✅ DONE | 314-345 |
+
+**Implemented features**:
+- ✅ Email service integration via SendGrid (`backend/app/utils/email.py`)
+- ✅ Token generation and validation (`backend/app/core/security.py`)
+- ✅ HTML and plain text email templates
+- ✅ Password reset flow (1-hour token expiry)
+- ✅ Email verification flow (24-hour token expiry)
+- ✅ Security: Prevents email enumeration attacks
+- ✅ Development fallback: Logs emails when SendGrid not configured
+
 ### ⏳ Missing Backend Endpoints
-
-#### Auth Flow Endpoints ❌
-**Required for frontend auth pages**:
-
-| Endpoint | Method | Status | Purpose |
-|----------|--------|--------|---------|
-| `/auth/forgot-password` | POST | ⏳ TODO | Send password reset email |
-| `/auth/reset-password` | POST | ⏳ TODO | Reset password with token |
-| `/auth/verify-email` | POST | ⏳ TODO | Verify email with token |
-| `/auth/resend-verification` | POST | ⏳ TODO | Resend verification email |
-
-**Implementation needed**:
-- Email service integration (SendGrid configured in .env)
-- Token generation and validation
-- Email templates
-- Password reset flow
 
 #### Export Endpoints ❌
 **Required for analysis export feature**:
@@ -221,14 +225,22 @@ All core flows are ready for integration testing:
    - Backend: `GET /contracts`
    - Status: ✅ Ready
 
+6. **Password Reset Flow**
+   - Frontend: `pages/auth/forgot-password.vue` + `pages/auth/reset-password.vue`
+   - Backend: `POST /auth/forgot-password` + `POST /auth/reset-password`
+   - Status: ✅ Ready
+
+7. **Email Verification Flow**
+   - Frontend: `pages/auth/verify-email.vue`
+   - Backend: `POST /auth/verify-email` + `POST /auth/resend-verification`
+   - Status: ✅ Ready
+
 ### ⏳ Cannot Test Yet
 
 These flows require backend implementation:
 
-1. **Password Reset Flow** - Missing backend endpoints
-2. **Email Verification Flow** - Missing backend endpoints
-3. **PDF/DOCX Export** - Missing backend endpoints
-4. **Account Management** - Missing backend endpoints
+1. **PDF/DOCX Export** - Missing backend endpoints
+2. **Account Management** - Missing backend endpoints
 
 ---
 
@@ -268,11 +280,11 @@ NUXT_PUBLIC_ENABLE_ANALYTICS=true
 
 ### Priority 1: Backend Missing Endpoints (High Impact)
 
-1. **Auth Flow Endpoints** (1-2 days)
-   - Implement password reset flow
-   - Implement email verification flow
-   - Integrate SendGrid for email sending
-   - Add email templates
+1. **✅ Auth Flow Endpoints COMPLETE**
+   - ✅ Implemented password reset flow
+   - ✅ Implemented email verification flow
+   - ✅ Integrated SendGrid for email sending
+   - ✅ Added email templates
 
 2. **Export Endpoints** (1 day)
    - Implement PDF export with ReportLab
@@ -320,7 +332,7 @@ NUXT_PUBLIC_ENABLE_ANALYTICS=true
 - **No major architectural changes needed**
 
 ### Medium Risk ⚠️
-- **Email service integration** - Needs SendGrid configuration and testing
+- **✅ Email service integration** - ~~Needs SendGrid configuration and testing~~ COMPLETE
 - **Export functionality** - PDF/DOCX generation needs implementation and testing
 - **Account management** - GDPR compliance requires careful implementation
 
@@ -339,13 +351,13 @@ NUXT_PUBLIC_ENABLE_ANALYTICS=true
 - ✅ All core API endpoints integrated (auth, contracts, analyses)
 - ✅ Frontend stores use real API calls
 - ✅ SSE real-time updates working
-- ⏳ Auth flow endpoints implemented (forgot/reset/verify)
+- ✅ Auth flow endpoints implemented (forgot/reset/verify)
 - ⏳ Export endpoints implemented (PDF/DOCX)
 - ⏳ PWA icons generated
 - ⏳ Integration tests passing
 - ⏳ Deployed to production
 
-**Current Completion**: 60% (Core complete, optional features pending)
+**Current Completion**: 75% (Core + Auth complete, export & deployment pending)
 
 ---
 
