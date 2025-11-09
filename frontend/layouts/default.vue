@@ -274,6 +274,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '~/stores/auth'
 
 /**
  * Default Layout Component
@@ -282,17 +283,17 @@ import { useRouter } from 'vue-router'
  */
 
 const router = useRouter()
+const authStore = useAuthStore()
 
 // State
 const isUserMenuOpen = ref(false)
 const isMobileMenuOpen = ref(false)
-const isAuthenticated = ref(false) // TODO: Connect to auth store
-const userEmail = ref('user@example.com') // TODO: Get from auth store
 
 // Computed
 const currentYear = computed(() => new Date().getFullYear())
+const isAuthenticated = computed(() => authStore.isAuthenticated)
 const userInitials = computed(() => {
-  const email = userEmail.value
+  const email = authStore.user?.email
   return email ? email.charAt(0).toUpperCase() : 'U'
 })
 
@@ -310,11 +311,14 @@ const closeMobileMenu = () => {
 }
 
 const handleLogout = async () => {
-  // TODO: Implement logout logic
-  isAuthenticated.value = false
-  isUserMenuOpen.value = false
-  isMobileMenuOpen.value = false
-  await router.push('/login')
+  try {
+    await authStore.logout()
+    isUserMenuOpen.value = false
+    isMobileMenuOpen.value = false
+    await router.push('/login')
+  } catch (error) {
+    console.error('Logout error:', error)
+  }
 }
 
 // Close dropdowns when clicking outside
