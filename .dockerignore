@@ -1,0 +1,67 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+.DS_Store?
+
+# Environment variables
+.env
+*.env
+!.env.example
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+*.md
+!README.md
+docs/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+*.cover
+
+# Logs
+*.log
+logs/
+
+# Uploads (not needed in image)
+uploads/
+prototype/uploads/
+
+# Database
+*.db
+*.sqlite
+
+# Node modules (if any)
+node_modules/
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
