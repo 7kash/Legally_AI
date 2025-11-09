@@ -356,7 +356,7 @@ async def export_analysis_pdf(
     analysis_data = {
         'contract_filename': contract.filename if contract else 'Unknown',
         'status': analysis.status,
-        'results': analysis.results or {},
+        'results': analysis.formatted_output or {},
         'analysis_id': str(analysis.id),
         'created_at': analysis.created_at.isoformat() if analysis.created_at else None,
     }
@@ -426,7 +426,7 @@ async def export_analysis_docx(
     analysis_data = {
         'contract_filename': contract.filename if contract else 'Unknown',
         'status': analysis.status,
-        'results': analysis.results or {},
+        'results': analysis.formatted_output or {},
         'analysis_id': str(analysis.id),
         'created_at': analysis.created_at.isoformat() if analysis.created_at else None,
     }

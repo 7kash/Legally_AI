@@ -5,7 +5,7 @@ Main application entry point
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.middleware.gzip import GZip Middleware
+from fastapi.middleware.gzip import GZipMiddleware
 import sentry_sdk
 from sentry_sdk.integrations.fastapi import FastApiIntegration
 
