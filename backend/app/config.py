@@ -60,6 +60,9 @@ class Settings(BaseSettings):
     SENDGRID_API_KEY: Optional[str] = None
     FROM_EMAIL: str = "noreply@legally-ai.com"
 
+    # Frontend URL (for email links)
+    FRONTEND_URL: str = "http://localhost:3000"
+
     # Sentry
     SENTRY_DSN: Optional[str] = None
 

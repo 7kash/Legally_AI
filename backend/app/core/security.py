@@ -76,3 +76,83 @@ def decode_access_token(token: str) -> Optional[dict]:
         return payload
     except JWTError:
         return None
+
+
+def create_verification_token(email: str, expires_hours: int = 24) -> str:
+    """
+    Create a token for email verification
+
+    Args:
+        email: User's email address
+        expires_hours: Token expiration time in hours
+
+    Returns:
+        Encoded JWT token
+    """
+    expire = datetime.utcnow() + timedelta(hours=expires_hours)
+    to_encode = {
+        "sub": email,
+        "type": "email_verification",
+        "exp": expire,
+        "iat": datetime.utcnow()
+    }
+
+    return jwt.encode(
+        to_encode,
+        settings.SECRET_KEY,
+        algorithm=settings.ALGORITHM
+    )
+
+
+def create_password_reset_token(email: str, expires_hours: int = 1) -> str:
+    """
+    Create a token for password reset
+
+    Args:
+        email: User's email address
+        expires_hours: Token expiration time in hours (default 1 hour for security)
+
+    Returns:
+        Encoded JWT token
+    """
+    expire = datetime.utcnow() + timedelta(hours=expires_hours)
+    to_encode = {
+        "sub": email,
+        "type": "password_reset",
+        "exp": expire,
+        "iat": datetime.utcnow()
+    }
+
+    return jwt.encode(
+        to_encode,
+        settings.SECRET_KEY,
+        algorithm=settings.ALGORITHM
+    )
+
+
+def verify_token(token: str, token_type: str) -> Optional[str]:
+    """
+    Verify and decode a token (email verification or password reset)
+
+    Args:
+        token: JWT token to verify
+        token_type: Expected token type ("email_verification" or "password_reset")
+
+    Returns:
+        Email from token if valid, None otherwise
+    """
+    try:
+        payload = jwt.decode(
+            token,
+            settings.SECRET_KEY,
+            algorithms=[settings.ALGORITHM]
+        )
+
+        # Verify token type
+        if payload.get("type") != token_type:
+            return None
+
+        # Return the email (stored in "sub")
+        return payload.get("sub")
+    except JWTError:
+        return None

@@ -170,3 +170,180 @@ async def logout():
     # JWT tokens are stateless, so logout is handled client-side
     # Client should delete the token from storage
     return {"message": "Successfully logged out"}
+
+
+@router.post("/forgot-password")
+async def forgot_password(request_body: dict, db: Session = Depends(get_db)):
+    """
+    Request password reset email
+
+    Args:
+        request_body: Request with email field
+        db: Database session
+
+    Returns:
+        Success message (always returns success to prevent email enumeration)
+    """
+    email = request_body.get("email")
+
+    if not email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email is required"
+        )
+
+    # Note: We always return success to prevent email enumeration attacks
+    # Even if the user doesn't exist, we return the same response
+
+    user = db.query(User).filter(User.email == email).first()
+
+    if user:
+        # Generate password reset token
+        from ..core.security import create_password_reset_token
+        from ..utils.email import send_password_reset_email
+
+        token = create_password_reset_token(user.email)
+
+        # Send password reset email
+        send_password_reset_email(user.email, token)
+
+    # Always return success (security best practice)
+    return {"message": "If an account exists with this email, a password reset link has been sent"}
+
+
+@router.post("/reset-password")
+async def reset_password(
+    request_body: dict,
+    db: Session = Depends(get_db)
+):
+    """
+    Reset password with token
+
+    Args:
+        request_body: Request with token and password fields
+        db: Database session
+
+    Returns:
+        Success message
+
+    Raises:
+        HTTPException: If token is invalid or expired
+    """
+    from ..core.security import verify_token, get_password_hash
+
+    token = request_body.get("token")
+    password = request_body.get("password")
+
+    if not token or not password:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Token and password are required"
+        )
+
+    # Verify token
+    email = verify_token(token, "password_reset")
+
+    if not email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired reset token"
+        )
+
+    # Get user by email
+    user = db.query(User).filter(User.email == email).first()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+
+    # Update password
+    user.hashed_password = get_password_hash(password)
+    db.commit()
+
+    return {"message": "Password reset successful"}
+
+
+@router.post("/verify-email")
+async def verify_email(request_body: dict, db: Session = Depends(get_db)):
+    """
+    Verify email address with token
+
+    Args:
+        request_body: Request with token field
+        db: Database session
+
+    Returns:
+        Success message
+
+    Raises:
+        HTTPException: If token is invalid or expired
+    """
+    from ..core.security import verify_token
+
+    token = request_body.get("token")
+
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Token is required"
+        )
+
+    # Verify token
+    email = verify_token(token, "email_verification")
+
+    if not email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired verification token"
+        )
+
+    # Get user by email
+    user = db.query(User).filter(User.email == email).first()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+
+    # Update user verification status
+    user.is_verified = True
+    db.commit()
+
+    return {"message": "Email verified successfully"}
+
+
+@router.post("/resend-verification")
+async def resend_verification(
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Resend email verification link
+
+    Args:
+        current_user: Current authenticated user
+
+    Returns:
+        Success message
+
+    Raises:
+        HTTPException: If email already verified
+    """
+    if current_user.is_verified:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email already verified"
+        )
+
+    # Generate new verification token
+    from ..core.security import create_verification_token
+    from ..utils.email import send_verification_email
+
+    token = create_verification_token(current_user.email)
+
+    # Send verification email
+    send_verification_email(current_user.email, token)
+
+    return {"message": "Verification email sent"}
