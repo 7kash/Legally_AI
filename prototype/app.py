@@ -25,10 +25,13 @@ from src.constants import LANGUAGES, UI_STRINGS
 
 # Initialize LLM router
 try:
-    llm_router = LLMRouter()
+    # Get provider from environment variable (defaults to "groq")
+    provider = os.getenv("LLM_PROVIDER", "groq").lower()
+    llm_router = LLMRouter(provider=provider)
+    print(f"LLM Router initialized with provider: {provider}")
 except Exception as e:
     print(f"Warning: Could not initialize LLM router: {e}")
-    print("Make sure GROQ_API_KEY is set in environment or .env file")
+    print("Make sure the appropriate API key is set (GROQ_API_KEY or DEEPSEEK_API_KEY)")
     llm_router = None
 
 
@@ -240,7 +243,7 @@ def build_interface():
 
         ---
 
-        **Technology**: Groq (llama-3.3-70b-versatile) · pdfplumber · Gradio
+        **Technology**: Groq (llama-3.3-70b-versatile) / DeepSeek (deepseek-chat) · pdfplumber · Gradio
 
         **Version**: Prototype 0.1 (HF Spaces)
         """)

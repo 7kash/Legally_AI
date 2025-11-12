@@ -41,6 +41,100 @@ This document explains the organization of the Legally AI project, including loc
 │           ├── preparation_en.txt               # Step 1 prompt
 │           └── analysis_en.txt                  # Step 2 prompt
 │
+├── backend/                                     # FastAPI production backend
+│   ├── app/                                     # Application code
+│   │   ├── api/                                 # API endpoints
+│   │   │   ├── auth.py                          # Authentication endpoints
+│   │   │   ├── contracts.py                     # Contract upload/management
+│   │   │   └── analyses.py                      # Analysis endpoints + SSE
+│   │   ├── core/                                # Core configuration
+│   │   │   ├── config.py                        # Settings
+│   │   │   ├── security.py                      # JWT, password hashing
+│   │   │   └── database.py                      # DB connection
+│   │   ├── models/                              # SQLAlchemy models
+│   │   │   ├── user.py
+│   │   │   ├── contract.py
+│   │   │   └── analysis.py
+│   │   ├── schemas/                             # Pydantic schemas
+│   │   │   ├── user.py
+│   │   │   ├── contract.py
+│   │   │   └── analysis.py
+│   │   ├── services/                            # Business logic
+│   │   │   ├── auth_service.py
+│   │   │   ├── contract_service.py
+│   │   │   └── analysis_service.py
+│   │   ├── tasks/                               # Celery tasks
+│   │   │   └── analyze_contract.py
+│   │   └── main.py                              # FastAPI app entry point
+│   ├── alembic/                                 # Database migrations
+│   │   └── versions/
+│   ├── tests/                                   # Pytest tests
+│   ├── requirements.txt                         # Python dependencies
+│   ├── alembic.ini                              # Alembic config
+│   ├── .env.example                             # Environment variables template
+│   └── README.md                                # Backend documentation
+│
+├── frontend/                                    # Nuxt 3 production frontend
+│   ├── .nuxt/                                   # Auto-generated (gitignored)
+│   ├── node_modules/                            # Dependencies (gitignored)
+│   ├── public/                                  # Static assets
+│   │   └── manifest.json                        # PWA manifest
+│   ├── assets/                                  # Compiled assets
+│   │   └── styles/
+│   │       ├── main.scss                        # Global styles
+│   │       ├── variables.scss                   # CSS variables & design tokens
+│   │       └── tailwind.css                     # Tailwind entry point
+│   ├── components/                              # Vue components
+│   │   ├── analysis/
+│   │   │   ├── AnalysisSection.vue
+│   │   │   └── FileUpload.vue
+│   │   └── common/
+│   │       ├── NotificationContainer.vue
+│   │       ├── ThemeToggle.vue
+│   │       ├── LanguageSwitcher.vue
+│   │       └── SkeletonLoader.vue
+│   ├── composables/                             # Composition functions
+│   │   ├── useDarkMode.ts
+│   │   └── useNotifications.ts
+│   ├── layouts/                                 # Layout components
+│   │   └── default.vue
+│   ├── middleware/                              # Route middleware
+│   │   ├── auth.ts                              # Protected routes
+│   │   └── guest.ts                             # Public-only routes
+│   ├── pages/                                   # File-based routing
+│   │   ├── index.vue                            # Landing page
+│   │   ├── login.vue                            # Login
+│   │   ├── register.vue                         # Registration
+│   │   ├── upload.vue                           # Upload contracts
+│   │   ├── history.vue                          # Past analyses
+│   │   ├── account.vue                          # User settings
+│   │   ├── analysis/
+│   │   │   └── [id].vue                         # Analysis results (SSE)
+│   │   └── auth/
+│   │       ├── forgot-password.vue
+│   │       ├── reset-password.vue
+│   │       └── verify-email.vue
+│   ├── plugins/                                 # Nuxt plugins
+│   │   ├── auth.client.ts                       # Auth initialization
+│   │   └── analytics.client.ts                  # Analytics tracking
+│   ├── stores/                                  # Pinia stores
+│   │   ├── auth.ts                              # Authentication state
+│   │   ├── contracts.ts                         # Contract uploads
+│   │   └── analyses.ts                          # Analysis results & SSE
+│   ├── utils/                                   # Utility functions
+│   │   └── exportToPDF.ts                       # PDF export helper
+│   ├── types/                                   # TypeScript types
+│   │   └── index.ts
+│   ├── nuxt.config.ts                           # Nuxt configuration
+│   ├── tailwind.config.ts                       # Tailwind configuration
+│   ├── i18n.config.ts                           # i18n configuration
+│   ├── pwa.config.ts                            # PWA configuration
+│   ├── tsconfig.json                            # TypeScript config
+│   ├── vitest.config.ts                         # Vitest config
+│   ├── playwright.config.ts                     # Playwright config
+│   ├── package.json                             # Node dependencies
+│   └── README.md                                # Frontend documentation
+│
 ├── DEPLOYMENT_GUIDE.md                          # How to deploy (this is you!)
 ├── FOLDER_STRUCTURE.md                          # This file
 ├── Claude.md                                    # Session context
@@ -48,6 +142,7 @@ This document explains the organization of the Legally AI project, including loc
 ├── progress.md                                  # Progress tracking
 ├── decisions.md                                 # Technical decisions
 ├── branding.md                                  # Branding guidelines
+├── architecture.md                              # System architecture
 └── README.md                                    # Main project README
 
 ```
@@ -392,6 +487,7 @@ pip install -r requirements.txt
 
 ---
 
-**Last Updated**: 2025-11-06
+**Last Updated**: 2025-11-09
 **Maintained By**: Ekaterina Matyushina
-**Session**: 011CUrqJ4XHZNzds1gS41u9E
+**Session**: 011CUtiiNvgPVR7ram5DwPLU
+**Status**: Phase 3 Frontend Complete

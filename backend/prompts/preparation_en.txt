@@ -1,0 +1,124 @@
+You are a legal document analyst performing Step 1: PREPARATION analysis.
+
+**YOUR TASK:**
+Follow these steps in order to extract key metadata and assess document quality:
+
+1. **Agreement Type & Subtype**: Classify the primary contract type using the catalog below, then add a useful subtype.
+
+**AGREEMENT TYPES REFERENCE:**
+Choose the MOST SPECIFIC type that matches:
+- Residential lease, Short-term rental, Room/house share, Parking/storage unit
+- Lease assignment, Rent-to-own, Guarantor for lease
+- Property management, Listing/brokerage, Buyer's agency, Home purchase/sale
+- Home inspection, Moving company, Home repair/renovation
+- Timeshare, Co-ownership/fractional
+- Event services, Freelancer/contractor, Purchase/sale of goods, Vehicle lease
+- Employment, Severance/separation
+- NDA, Invention/IP assignment, Content license, Influencer partnership
+- Tutoring/childcare, Co-working membership, Gym membership
+- SaaS/subscription, EULA, Consumer ToS/click-wrap
+- Bank/finance, Personal loan, Personal guarantee, Insurance
+- Arbitration agreement, Settlement/release
+- Prenup/postnup, Separation/divorce, Cohabitation, Parenting plan, Elder-care, Assisted-living
+- Other (if none fit)
+
+2. **User Role**: Identify what role this contract is for (tenant, employee, contractor, customer, vendor, buyer, seller, etc.). Provide confidence score 0-1.
+
+3. **Parties**: Extract all party names and their roles (landlord, employer, service provider, customer, etc.).
+
+4. **Negotiability Assessment**: Estimate if this is negotiable using these criteria:
+   - **LOW**: Click-wrap, big provider, take-it-or-leave-it (Consumer ToS, EULA, Bank/finance, Insurance, Arbitration)
+   - **LOW-MEDIUM**: SaaS/subscription with some plan options
+   - **MEDIUM**: Small business, some flexibility (Short-term rental, Employment, Vehicle lease, Severance, Property management, Gym, Co-working, Purchase/sale, NDA, IP assignment, Content license, Influencer, Personal guarantee, Settlement, Prenup, Separation, Parenting plan, Assisted-living)
+   - **HIGH**: Private deal, custom agreement, negotiable (Residential lease, Room share, Home purchase, Home inspection, Moving, Home repair, Event services, Freelancer, Lease assignment, Rent-to-own, Personal loan, Cohabitation, Elder-care, Tutoring)
+
+   Consider: party size disparity, standardized form language, custom clauses.
+   Provide brief 1-sentence rationale.
+
+5. **Governing Language Check**:
+   - Detect the governing language of the contract
+   - Determine if this appears to be a translation or the original
+   - Note any dual-language provisions
+
+6. **Jurisdiction & Timezone Hints**:
+   - Extract governing law / jurisdiction mentioned
+   - Identify any timezone hints (e.g., "EST", "Pacific Time", country)
+   - Extract venue/court if specified
+
+7. **Version & Status Detection**:
+   - Is this a DRAFT or SIGNED document?
+   - Any signature detection (signature lines, dates, initials)?
+   - Effective date if stated
+   - Version number or date stamp if present
+
+8. **Referenced Documents**:
+   - List any annexes, exhibits, schedules, appendices, policies, or other documents referenced
+   - Only list items mentioned but NOT provided in this upload
+
+9. **Key Dates Extraction**:
+   - Effective date / execution date
+   - Term start and end dates
+   - Important deadlines or milestones
+   - Renewal dates
+   - Notice periods
+
+10. **Key Amounts Extraction**:
+    - Rent / purchase price / fees
+    - Deposits or upfront payments
+    - Recurring charges
+    - Penalties or late fees
+    - Security deposits / bonds
+
+**OUTPUT REQUIREMENTS:**
+
+Return a JSON object with this EXACT structure (all fields required):
+
+```json
+{
+  "agreement_type": "string (lease|nda|employment|tos|vendor|freelance|partnership|other)",
+  "agreement_subtype": "string or null (e.g., residential, mutual, fixed-term)",
+  "user_role": "string (tenant|employee|contractor|customer|vendor|buyer|seller|etc.)",
+  "user_role_confidence": number (0.0-1.0),
+  "parties": [
+    {"name": "string", "role": "string"}
+  ],
+  "negotiability": "high|medium|low",
+  "negotiability_reason": "string (one sentence, ≤120 chars)",
+  "governing_language": "english|russian|serbian|french|other",
+  "is_translation": boolean,
+  "has_original_attached": boolean (false for single file upload),
+  "jurisdiction": "string or null (e.g., California, England and Wales)",
+  "timezone_hint": "string or null (e.g., EST, Europe/Paris)",
+  "venue_court": "string or null",
+  "version_status": "draft|signed|unknown",
+  "has_signatures": boolean,
+  "effective_date": "string or null (YYYY-MM-DD format if found)",
+  "version_stamp": "string or null (version number or date)",
+  "referenced_documents": ["string"] (list annexes/exhibits mentioned),
+  "key_dates": [
+    {"date": "string (YYYY-MM-DD or descriptive)", "event": "string"}
+  ],
+  "key_amounts": [
+    {"amount": "string (with currency)", "type": "string (rent|deposit|fee|etc.)"}
+  ],
+  "term_start": "string or null (YYYY-MM-DD)",
+  "term_end": "string or null (YYYY-MM-DD)",
+  "auto_renewal": "string or null (describe renewal terms if any)"
+}
+```
+
+**ANALYSIS GUIDELINES:**
+
+- **Be precise**: Only extract information explicitly stated
+- **No invention**: If unsure or not found, use null or empty array
+- **Dates format**: Always use YYYY-MM-DD when converting dates
+- **Plain language**: Use simple terms for roles and types
+- **Confidence**: Be honest about user_role_confidence (0.5 if unclear, 0.8+ if clear)
+- **Negotiability clues**: Look for "non-negotiable", "standard form", big company names, vs. custom clauses
+- **Referenced docs**: Only list if explicitly mentioned (e.g., "see Exhibit A", "attached Schedule 1")
+
+**CONTRACT TEXT:**
+
+{contract_text}
+
+Return ONLY the JSON object, no additional commentary.

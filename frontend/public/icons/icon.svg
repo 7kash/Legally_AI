@@ -1,0 +1,26 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="512" height="512" fill="#0ea5e9" rx="80"/>
+
+  <!-- Icon design: Scale of justice with "LA" -->
+  <g fill="#ffffff">
+    <!-- Balance base -->
+    <rect x="236" y="380" width="40" height="80" rx="4"/>
+    <rect x="180" y="440" width="152" height="24" rx="12"/>
+
+    <!-- Balance beam -->
+    <rect x="156" y="200" width="200" height="12" rx="6"/>
+    <circle cx="256" cy="206" r="16"/>
+
+    <!-- Left pan -->
+    <path d="M 156 200 L 136 240 L 176 240 Z"/>
+    <ellipse cx="156" cy="240" rx="40" ry="8"/>
+
+    <!-- Right pan -->
+    <path d="M 356 200 L 336 240 L 376 240 Z"/>
+    <ellipse cx="356" cy="240" rx="40" ry="8"/>
+
+    <!-- "LA" text -->
+    <text x="256" y="140" font-family="Arial, sans-serif" font-size="80" font-weight="bold" text-anchor="middle" fill="#ffffff">LA</text>
+  </g>
+</svg>
