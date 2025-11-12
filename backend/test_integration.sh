@@ -230,7 +230,7 @@ fi
 # Test 8: Start Analysis
 test_header "Start Analysis"
 
-RESPONSE=$(curl -s -X POST "$API_BASE/analyses" \
+RESPONSE=$(curl -s --max-time 10 -X POST "$API_BASE/analyses" \
     -H "Authorization: Bearer $TOKEN" \
     -H "Content-Type: application/json" \
     -d "{\"contract_id\":\"$CONTRACT_ID\"}")
