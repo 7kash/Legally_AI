@@ -183,11 +183,12 @@ startxref
 fi
 
 # FIXED: Changed from .txt to .pdf
-RESPONSE=$(curl -s -X POST $API_BASE/contracts/ \
+# FIXED: Changed endpoint from /contracts/ to /contracts/upload
+RESPONSE=$(curl -s -X POST $API_BASE/contracts/upload \
     -H "Authorization: Bearer $TOKEN" \
     -F "file=@test_contract.pdf")
 
-CONTRACT_ID=$(echo "$RESPONSE" | jq -r '.id' 2>/dev/null)
+CONTRACT_ID=$(echo "$RESPONSE" | jq -r '.contract_id' 2>/dev/null)
 
 if [ "$CONTRACT_ID" != "null" ] && [ -n "$CONTRACT_ID" ]; then
     pass "Contract uploaded successfully"
