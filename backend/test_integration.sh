@@ -215,7 +215,7 @@ fi
 # Test 7: Get Contract Details
 test_header "Get Contract Details"
 
-RESPONSE=$(curl -s -X GET "$API_BASE/contracts/$CONTRACT_ID/" \
+RESPONSE=$(curl -s -X GET "$API_BASE/contracts/$CONTRACT_ID" \
     -H "Authorization: Bearer $TOKEN")
 
 FILENAME=$(echo "$RESPONSE" | jq -r '.filename' 2>/dev/null)
@@ -249,7 +249,7 @@ test_header "Get Analysis Status"
 info "Waiting 2 seconds for analysis to process..."
 sleep 2
 
-RESPONSE=$(curl -s -X GET "$API_BASE/analyses/$ANALYSIS_ID/" \
+RESPONSE=$(curl -s -X GET "$API_BASE/analyses/$ANALYSIS_ID" \
     -H "Authorization: Bearer $TOKEN")
 
 STATUS=$(echo "$RESPONSE" | jq -r '.status' 2>/dev/null)
