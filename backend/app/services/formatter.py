@@ -18,7 +18,7 @@ def format_analysis_output(
     preparation_data: Dict[str, Any],
     analysis_data: Dict[str, Any],
     output_language: str = "english"
-) -> str:
+) -> Dict[str, Any]:
     """
     Format complete analysis output for display
 
@@ -28,7 +28,7 @@ def format_analysis_output(
         output_language: Language for output (english, russian, serbian, french)
 
     Returns:
-        Formatted markdown string for Gradio display
+        Structured dictionary for frontend display
     """
     strings = UI_STRINGS[output_language]
 
@@ -53,119 +53,65 @@ def format_analysis_output(
         1  # Number of files
     )
 
-    # Build output
-    output = f"""
-# {strings['summary_title']}
-
-## {strings['our_quick_take']}
-
-**{screening_text}**
-
----
-
-## {strings['important_limits_title']}
-
-{IMPORTANT_LIMITS[output_language]}
-
----
-
-## {strings['confidence_title']}
-
-**{strings[f'confidence_{confidence_level.lower()}']}** — {confidence_explanation}
-
----
-
-# {strings['about_contract']}
-
-{generate_about_section(preparation_data, analysis_data)}
-
----
-
-## {strings['payment_title']}
-
-"""
-
-    # Add payment bullets
+    # Build structured output for frontend
     payment_bullets = generate_payment_section(analysis_data, preparation_data)
-    for bullet in payment_bullets:
-        output += f"- {bullet}\n"
-
-    output += "\n---\n\n"
-    output += f"## {strings['obligations_title']}\n\n"
-
-    # Add obligation bullets
     obligation_bullets = generate_obligations_section(analysis_data)
-    for bullet in obligation_bullets:
-        output += f"- {bullet}\n"
-
-    output += "\n---\n\n"
-    output += f"## {strings['check_terms']}\n\n"
-
-    # Add risks as "terms to check"
     risks = analysis_data.get('risks', [])
-    for risk in risks[:5]:
-        output += f"- **{risk.get('description', '')}** — {risk.get('recommendation', '')}\n"
-
-    if len(risks) > 5:
-        output += f"\n*{strings['more_button']}* (showing top 5 of {len(risks)})\n"
-
-    output += "\n---\n\n"
-    output += f"## {strings['also_think']}\n\n"
-
-    # Add gaps & anomalies as "also think about"
     gaps = analysis_data.get('gaps_anomalies', [])
-    for gap in gaps[:5]:
-        output += f"- {gap}\n"
-
-    if len(gaps) > 5:
-        output += f"\n*{strings['more_button']}* (showing top 5 of {len(gaps)})\n"
-
-    output += "\n---\n\n"
-
-    # Only show "Ask for these changes" if negotiability isn't low
-    negotiability = preparation_data.get('negotiability', 'medium')
-    if negotiability != 'low':
-        output += f"## {strings['ask_changes']}\n\n"
-        output += "*Feature coming soon: Specific change recommendations based on your risks*\n\n"
-        output += "---\n\n"
-
-    output += f"## {strings['sign_as_is']}\n\n"
-    output += "*Feature coming soon: Practical mitigations if you sign without changes*\n\n"
-    output += "---\n\n"
-
-    output += f"## {strings['act_now']}\n\n"
-
-    # Add calendar items if any
     calendar = analysis_data.get('calendar', [])
-    if calendar:
-        output += "**Important dates:**\n\n"
-        for item in calendar[:5]:
-            output += f"- {item.get('event', '')}: {item.get('date_or_formula', '')}\n"
-        output += "\n"
-
-    output += "*Feature coming soon: Export to calendar, checklists, email templates*\n\n"
-    output += "---\n\n"
-
-    output += f"## {strings['all_terms']} (collapsed)\n\n"
-    output += "<details>\n<summary>Click to expand all key terms</summary>\n\n"
-
-    # Add extracted fields
-    output += "### Extracted Fields\n\n"
     parties = preparation_data.get('parties', [])
-    for party in parties:
-        output += f"- **{party.get('role', 'Party')}**: {party.get('name', 'Unknown')}\n"
+    negotiability = preparation_data.get('negotiability', 'medium')
 
-    if preparation_data.get('term_start'):
-        output += f"- **Term Start**: {preparation_data.get('term_start')}\n"
-    if preparation_data.get('term_end'):
-        output += f"- **Term End**: {preparation_data.get('term_end')}\n"
-    if preparation_data.get('detected_jurisdiction'):
-        output += f"- **Jurisdiction**: {preparation_data.get('detected_jurisdiction')}\n"
-
-    output += "\n</details>\n\n"
-
-    output += "---\n\n"
-    output += "*This is a prototype. Feedback welcome!*\n"
+    output = {
+        "summary": {
+            "title": strings['summary_title'],
+            "quick_take": screening_text,
+            "confidence": {
+                "level": confidence_level,
+                "explanation": confidence_explanation
+            },
+            "important_limits": IMPORTANT_LIMITS[output_language]
+        },
+        "about": {
+            "title": strings['about_contract'],
+            "content": generate_about_section(preparation_data, analysis_data)
+        },
+        "payment": {
+            "title": strings['payment_title'],
+            "items": payment_bullets
+        },
+        "obligations": {
+            "title": strings['obligations_title'],
+            "items": obligation_bullets
+        },
+        "risks": {
+            "title": strings['check_terms'],
+            "items": [
+                {
+                    "description": risk.get('description', ''),
+                    "recommendation": risk.get('recommendation', '')
+                }
+                for risk in risks[:5]
+            ],
+            "total_count": len(risks)
+        },
+        "gaps_anomalies": {
+            "title": strings['also_think'],
+            "items": gaps[:5],
+            "total_count": len(gaps)
+        },
+        "action_items": {
+            "title": strings['act_now'],
+            "calendar": calendar[:5] if calendar else []
+        },
+        "metadata": {
+            "parties": parties,
+            "term_start": preparation_data.get('term_start'),
+            "term_end": preparation_data.get('term_end'),
+            "jurisdiction": preparation_data.get('detected_jurisdiction'),
+            "negotiability": negotiability
+        }
+    }
 
     return output
 
