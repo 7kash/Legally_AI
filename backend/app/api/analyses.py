@@ -17,7 +17,7 @@ from ..models.user import User
 from ..models.contract import Contract
 from ..models.analysis import Analysis
 from ..schemas.analysis import AnalysisCreate, AnalysisResponse, AnalysisFeedback
-from ..core.deps import get_current_user, check_analysis_limit
+from ..core.deps import get_current_user, get_current_user_from_token, check_analysis_limit
 from ..tasks.analyze_contract import analyze_contract_task
 
 router = APIRouter()
@@ -200,7 +200,7 @@ async def event_generator(
 @router.get("/{analysis_id}/stream")
 async def stream_analysis_progress(
     analysis_id: uuid.UUID,
-    current_user: User = Depends(get_current_user),
+    token: str,
     db: Session = Depends(get_db)
 ):
     """
@@ -208,7 +208,7 @@ async def stream_analysis_progress(
 
     Args:
         analysis_id: Analysis ID
-        current_user: Current authenticated user
+        token: JWT token (passed as query parameter since EventSource doesn't support headers)
         db: Database session
 
     Returns:
@@ -217,6 +217,8 @@ async def stream_analysis_progress(
     Raises:
         HTTPException: If analysis not found or access denied
     """
+    # Get authenticated user from token query parameter
+    current_user = await get_current_user_from_token(token, db)
     # Verify access
     analysis = db.query(Analysis).join(Contract).filter(
         Analysis.id == analysis_id,

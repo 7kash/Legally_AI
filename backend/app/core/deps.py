@@ -117,6 +117,58 @@ async def get_current_premium_user(
     return current_user
 
 
+async def get_current_user_from_token(
+    token: str,
+    db: Session = Depends(get_db)
+) -> User:
+    """
+    Get the current authenticated user from JWT token in query parameter
+
+    This is used for SSE endpoints where headers cannot be set (EventSource limitation)
+
+    Args:
+        token: JWT token from query parameter
+        db: Database session
+
+    Returns:
+        Current user
+
+    Raises:
+        HTTPException: If token is invalid or user not found
+    """
+    # Decode token
+    payload = decode_access_token(token)
+    if payload is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials"
+        )
+
+    # Get user ID from token
+    user_id: Optional[str] = payload.get("sub")
+    if user_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials"
+        )
+
+    # Get user from database
+    user = db.query(User).filter(User.id == user_id).first()
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found"
+        )
+
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User is inactive"
+        )
+
+    return user
+
+
 def check_analysis_limit(user: User) -> None:
     """
     Check if user has reached their analysis limit
