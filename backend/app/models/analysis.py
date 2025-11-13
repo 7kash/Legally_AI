@@ -46,7 +46,7 @@ class Analysis(Base):
     completed_at = Column(TIMESTAMP(timezone=True), nullable=True)
 
     # Relationships
-    # contract = relationship("Contract", back_populates="analyses")
+    contract = relationship("Contract", back_populates="analyses")
     # events = relationship("Event", back_populates="analysis", cascade="all, delete-orphan")
     # feedback = relationship("Feedback", back_populates="analysis", cascade="all, delete-orphan")
 
