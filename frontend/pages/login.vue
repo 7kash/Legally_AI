@@ -282,8 +282,9 @@ async function handleSubmit() {
       password: formData.value.password,
     })
 
-    // Redirect to upload page on success
-    await router.push('/upload')
+    // Redirect to upload page on success (or return URL from query)
+    const redirectTo = route.query.redirect as string || '/upload'
+    return navigateTo(redirectTo, { replace: true })
   } catch (error) {
     // Error is handled by the store
     console.error('Login error:', error)
