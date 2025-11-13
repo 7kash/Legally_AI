@@ -43,7 +43,7 @@ class Contract(Base):
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), nullable=False)
 
     # Relationships
-    # analyses = relationship("Analysis", back_populates="contract", cascade="all, delete-orphan")
+    analyses = relationship("Analysis", back_populates="contract", cascade="all, delete-orphan")
     # deadlines = relationship("Deadline", back_populates="contract", cascade="all, delete-orphan")
 
     # Indexes

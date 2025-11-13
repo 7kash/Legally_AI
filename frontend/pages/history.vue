@@ -155,10 +155,10 @@
             <!-- Actions -->
             <div class="flex flex-col gap-2">
               <button
-                v-if="contract.status === 'processed'"
+                v-if="contract.status === 'processed' && contract.latest_analysis_id"
                 type="button"
                 class="btn btn--primary btn-sm"
-                @click="viewAnalysis(contract.id)"
+                @click="viewAnalysis(contract.latest_analysis_id)"
               >
                 View Analysis
               </button>
@@ -438,10 +438,9 @@ async function loadPage(page: number): Promise<void> {
   }
 }
 
-function viewAnalysis(contractId: string): void {
-  // Navigate to the first analysis for this contract
-  // In a real app, you'd fetch the analysis ID from the API
-  router.push(`/analysis/${contractId}`)
+function viewAnalysis(analysisId: string): void {
+  // Navigate to the analysis results page
+  router.push(`/analysis/${analysisId}`)
 }
 
 function confirmDelete(contractId: string, filename: string): void {

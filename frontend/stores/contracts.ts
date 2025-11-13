@@ -16,6 +16,7 @@ export interface Contract {
   language: string | null
   uploaded_at: string
   updated_at: string
+  latest_analysis_id: string | null
 }
 
 export interface ContractListResponse {

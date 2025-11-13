@@ -41,6 +41,7 @@ class ContractResponse(ContractBase):
     confidence_reason: Optional[str]
     status: str
     created_at: datetime
+    latest_analysis_id: Optional[UUID4] = None
 
     model_config = {"from_attributes": True}
 

@@ -115,6 +115,8 @@ async def list_contracts(
     Returns:
         Paginated list of contracts
     """
+    from ..models.analysis import Analysis
+
     # Calculate offset
     offset = (page - 1) * page_size
 
@@ -129,8 +131,36 @@ async def list_contracts(
     # Get total count
     total = db.query(Contract).filter(Contract.user_id == current_user.id).count()
 
+    # Build response with latest analysis ID for each contract
+    contract_responses = []
+    for contract in contracts:
+        # Get the latest analysis for this contract
+        latest_analysis = db.query(Analysis)\
+            .filter(Analysis.contract_id == contract.id)\
+            .order_by(Analysis.created_at.desc())\
+            .first()
+
+        # Create response dict
+        contract_dict = {
+            "id": contract.id,
+            "user_id": contract.user_id,
+            "filename": contract.filename,
+            "mime_type": contract.mime_type,
+            "file_size_bytes": contract.file_size_bytes,
+            "pages": contract.pages,
+            "detected_language": contract.detected_language,
+            "quality_score": contract.quality_score,
+            "coverage_score": contract.coverage_score,
+            "confidence_level": contract.confidence_level,
+            "confidence_reason": contract.confidence_reason,
+            "status": contract.status,
+            "created_at": contract.created_at,
+            "latest_analysis_id": latest_analysis.id if latest_analysis else None
+        }
+        contract_responses.append(ContractResponse(**contract_dict))
+
     return ContractList(
-        contracts=[ContractResponse.model_validate(c) for c in contracts],
+        contracts=contract_responses,
         total=total,
         page=page,
         page_size=page_size
