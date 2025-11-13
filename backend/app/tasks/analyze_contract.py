@@ -44,6 +44,7 @@ def create_event(db, analysis_id: uuid.UUID, kind: str, payload: Dict = None):
         Column('kind', Text, nullable=False),
         Column('payload', JSONB, nullable=True),
         Column('created_at', TIMESTAMP(timezone=True), server_default=func.now()),
+        extend_existing=True
     )
 
     db.execute(
