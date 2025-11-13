@@ -241,6 +241,7 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '~/stores/auth'
 import { useContractsStore } from '~/stores/contracts'
+import FileUpload from '~/components/upload/FileUpload.vue'
 
 /**
  * Upload Page
