@@ -373,8 +373,15 @@ async function handleSubmit() {
       password: formData.value.password,
     })
 
+    console.log('Registration successful!', {
+      user: authStore.user,
+      hasAnalysesRemaining: authStore.hasAnalysesRemaining,
+      token: authStore.token ? 'present' : 'missing'
+    })
+
     // Redirect to upload page on success
     await router.push('/upload')
+    console.log('Navigation to /upload triggered')
   } catch (error) {
     // Error is handled by the store
     console.error('Registration error:', error)
