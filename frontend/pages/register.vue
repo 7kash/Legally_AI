@@ -380,8 +380,8 @@ async function handleSubmit() {
     })
 
     // Redirect to upload page on success
-    await router.push('/upload')
-    console.log('Navigation to /upload triggered')
+    // Use navigateTo with replace to avoid back button issues
+    return navigateTo('/upload', { replace: true })
   } catch (error) {
     // Error is handled by the store
     console.error('Registration error:', error)
