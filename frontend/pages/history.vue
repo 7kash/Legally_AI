@@ -130,24 +130,16 @@
                     <span>{{ formatFileSize(contract.file_size) }}</span>
                     <span aria-hidden="true">•</span>
                     <span>{{ formatDate(contract.uploaded_at) }}</span>
-                    <span v-if="contract.language" aria-hidden="true">•</span>
-                    <span v-if="contract.language">{{ formatLanguage(contract.language) }}</span>
+                    <span v-if="contract.detected_language" aria-hidden="true">•</span>
+                    <span v-if="contract.detected_language">{{ formatLanguage(contract.detected_language) }}</span>
                   </div>
                 </div>
               </div>
 
-              <!-- Status Badge -->
-              <div class="mt-2">
-                <span
-                  class="badge"
-                  :class="{
-                    'badge--warning': contract.status === 'pending',
-                    'badge--success': contract.status === 'processed',
-                    'badge--error': contract.status === 'failed',
-                  }"
-                  role="status"
-                >
-                  {{ contract.status }}
+              <!-- Page Count -->
+              <div v-if="contract.page_count" class="mt-2">
+                <span class="text-sm text-gray-600">
+                  {{ contract.page_count }} {{ contract.page_count === 1 ? 'page' : 'pages' }}
                 </span>
               </div>
             </div>
@@ -155,12 +147,11 @@
             <!-- Actions -->
             <div class="flex flex-col gap-2">
               <button
-                v-if="contract.status === 'processed'"
                 type="button"
                 class="btn btn--primary btn-sm"
                 @click="viewAnalysis(contract.id)"
               >
-                View Analysis
+                Analyze Contract
               </button>
 
               <button

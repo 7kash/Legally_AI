@@ -3,6 +3,7 @@ Application configuration using environment variables.
 """
 
 import os
+from pydantic import Field
 from pydantic_settings import BaseSettings
 from typing import Optional
 
@@ -20,6 +21,8 @@ class Settings(BaseSettings):
         "DATABASE_URL",
         "postgresql://postgres:postgres@localhost:5432/legally_ai"
     )
+    DB_POOL_SIZE: int = int(os.getenv("DB_POOL_SIZE", 10))
+    DB_MAX_OVERFLOW: int = int(os.getenv("DB_MAX_OVERFLOW", 20))
 
     # Redis
     REDIS_URL: str = os.getenv(
@@ -45,13 +48,15 @@ class Settings(BaseSettings):
     # File Storage
     UPLOAD_DIR: str = os.getenv("UPLOAD_DIR", "/app/uploads")
     MAX_UPLOAD_SIZE: int = int(os.getenv("MAX_UPLOAD_SIZE", 10 * 1024 * 1024))  # 10MB
+    MAX_FILE_SIZE_MB: int = 10  # Maximum file size in MB
+    ALLOWED_EXTENSIONS: list = Field(default_factory=lambda: [".pdf", ".docx"])  # Allowed file extensions
 
     # CORS
-    CORS_ORIGINS: list = [
+    CORS_ORIGINS: list = Field(default_factory=lambda: [
         "http://localhost:3000",
         "http://localhost:8000",
         "https://legally-ai.vercel.app"
-    ]
+    ])
 
     # JWT
     SECRET_KEY: str = os.getenv("SECRET_KEY", "change-me-in-production")

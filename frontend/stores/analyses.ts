@@ -101,7 +101,7 @@ export const useAnalysesStore = defineStore('analyses', () => {
         if (currentAnalysis.value) {
           if (data.kind === 'status_update' && data.payload.status) {
             currentAnalysis.value.status = data.payload.status
-          } else if (data.kind === 'completed' || data.kind === 'failed') {
+          } else if (data.kind === 'succeeded' || data.kind === 'failed') {
             // Fetch full analysis to get final results
             fetchAnalysis(analysisId)
           }

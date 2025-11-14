@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, Field
-from typing import Optional, AsyncGenerator
+from typing import Optional, AsyncGenerator, Any, Dict
 import uuid
 from datetime import datetime
 import asyncio
@@ -35,6 +35,7 @@ class AnalysisResponse(BaseModel):
     contract_id: str
     status: str
     output_language: str
+    formatted_output: Optional[Dict[str, Any]] = None
     created_at: datetime
     started_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None
@@ -92,11 +93,20 @@ def create_analysis(
         output_language=data.output_language
     )
 
+    # Handle formatted_output conversion (TEXT to JSON)
+    formatted_output = analysis.formatted_output
+    if formatted_output and isinstance(formatted_output, str):
+        try:
+            formatted_output = json.loads(formatted_output)
+        except json.JSONDecodeError:
+            formatted_output = None
+
     return AnalysisResponse(
         id=str(analysis.id),
         contract_id=str(analysis.contract_id),
         status=analysis.status,
         output_language=analysis.output_language,
+        formatted_output=formatted_output,
         created_at=analysis.created_at,
         started_at=analysis.started_at,
         completed_at=analysis.completed_at
@@ -124,11 +134,20 @@ def get_analysis(
             detail=f"Analysis {analysis_id} not found"
         )
 
+    # Handle formatted_output conversion (TEXT to JSON)
+    formatted_output = analysis.formatted_output
+    if formatted_output and isinstance(formatted_output, str):
+        try:
+            formatted_output = json.loads(formatted_output)
+        except json.JSONDecodeError:
+            formatted_output = None
+
     return AnalysisResponse(
         id=str(analysis.id),
         contract_id=str(analysis.contract_id),
         status=analysis.status,
         output_language=analysis.output_language,
+        formatted_output=formatted_output,
         created_at=analysis.created_at,
         started_at=analysis.started_at,
         completed_at=analysis.completed_at
@@ -183,10 +202,13 @@ async def stream_analysis_events(
 
             # Send events to client
             for event in events:
+                # Format event data to match frontend expectations
                 event_data = {
-                    "type": event.event_type,
-                    "message": event.message,
-                    "data": event.data,
+                    "kind": event.event_type,  # Frontend expects "kind"
+                    "payload": {
+                        "message": event.message,
+                        **(event.data or {})  # Spread event.data into payload
+                    },
                     "timestamp": event.created_at.isoformat()
                 }
                 yield f"data: {json.dumps(event_data)}\n\n"
@@ -194,12 +216,14 @@ async def stream_analysis_events(
 
             # Check if analysis is complete
             db.refresh(analysis)
-            if analysis.status in ["completed", "failed"]:
+            if analysis.status in ["succeeded", "failed"]:
                 # Send final status event
                 final_event = {
-                    "type": "status_change",
-                    "message": f"Analysis {analysis.status}",
-                    "data": {"status": analysis.status},
+                    "kind": analysis.status,  # "succeeded" or "failed"
+                    "payload": {
+                        "message": f"Analysis {analysis.status}",
+                        "status": analysis.status
+                    },
                     "timestamp": datetime.utcnow().isoformat()
                 }
                 yield f"data: {json.dumps(final_event)}\n\n"
@@ -212,9 +236,11 @@ async def stream_analysis_events(
         # Timeout reached
         if iteration >= max_iterations:
             timeout_event = {
-                "type": "error",
-                "message": "Stream timeout reached",
-                "data": {"status": "timeout"},
+                "kind": "error",
+                "payload": {
+                    "message": "Stream timeout reached",
+                    "status": "timeout"
+                },
                 "timestamp": datetime.utcnow().isoformat()
             }
             yield f"data: {json.dumps(timeout_event)}\n\n"

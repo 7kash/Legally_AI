@@ -15,16 +15,19 @@ redis==5.0.1
 # Validation and settings
 pydantic==2.5.0
 pydantic-settings==2.1.0
+email-validator==2.1.0
 
 # Authentication
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
+bcrypt==4.0.1
 python-multipart==0.0.6
 
 # HTTP requests
 httpx==0.25.1
 aiohttp==3.9.1
 requests==2.31.0
+aiofiles==23.2.1
 
 # LLM integration (from prototype)
 groq==0.4.0

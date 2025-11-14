@@ -278,23 +278,25 @@ onUnmounted(() => {
 
 // Methods
 function formatEventMessage(event: AnalysisEvent): string {
+  // Use the message from the event payload if available
+  if (event.payload?.message) {
+    return event.payload.message
+  }
+
+  // Fallback to event kind-based messages
   switch (event.kind) {
-    case 'parsing':
-      return 'Extracting text from document...'
-    case 'language_detection':
-      return `Detected language: ${event.payload.language || 'Unknown'}`
-    case 'preprocessing':
-      return 'Preparing contract for analysis...'
-    case 'analysis':
-      return 'Analyzing contract clauses...'
-    case 'formatting':
-      return 'Formatting results...'
-    case 'completed':
-      return 'Analysis completed!'
+    case 'status_change':
+      return event.payload?.status === 'running' ? 'Analysis started' : 'Status changed'
+    case 'progress':
+      return 'Processing...'
+    case 'succeeded':
+      return 'Analysis completed successfully!'
     case 'failed':
       return 'Analysis failed'
+    case 'error':
+      return 'An error occurred'
     default:
-      return event.kind
+      return event.kind || 'Processing...'
   }
 }
 
