@@ -1,4 +1,10 @@
-from .contract import Contract
-from .analysis import Analysis, AnalysisEvent
+"""
+Database Models
+All SQLAlchemy models for the application
+"""
 
-__all__ = ["Contract", "Analysis", "AnalysisEvent"]
+from .user import User
+from .contract import Contract
+from .analysis import Analysis
+
+__all__ = ["User", "Contract", "Analysis"]
