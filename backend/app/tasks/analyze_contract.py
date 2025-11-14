@@ -12,10 +12,13 @@ from typing import Dict, Any
 import uuid
 from datetime import datetime
 import traceback
+from pathlib import Path
 
 from ..celery_app import celery_app
 from ..database import SessionLocal
 from ..models import Contract, Analysis, AnalysisEvent
+from ..services.document_parser import extract_text
+from ..config import settings
 
 
 class DatabaseTask(Task):
@@ -104,6 +107,51 @@ def analyze_contract_task(
             data={"status": "running"}
         )
 
+        # ===== STEP 0: Extract Text from Document (if not already extracted) =====
+        if not contract.extracted_text:
+            create_event(
+                db,
+                analysis.id,
+                event_type="progress",
+                message="Extracting text from document",
+                data={"step": "extraction", "progress": 10}
+            )
+
+            try:
+                # Build full file path
+                file_path = Path(settings.UPLOAD_DIR) / contract.file_path
+
+                # Extract text using document parser
+                extraction_result = extract_text(str(file_path))
+
+                # Update contract with extracted text
+                contract.extracted_text = extraction_result['text']
+                if 'page_count' in extraction_result:
+                    contract.page_count = extraction_result['page_count']
+                elif 'paragraph_count' in extraction_result:
+                    contract.page_count = extraction_result['paragraph_count'] // 20  # Rough estimate
+
+                db.commit()
+
+                create_event(
+                    db,
+                    analysis.id,
+                    event_type="progress",
+                    message=f"Extracted {len(extraction_result['text'])} characters from document",
+                    data={"step": "extraction", "progress": 20}
+                )
+            except Exception as e:
+                # Log error but continue with empty text
+                create_event(
+                    db,
+                    analysis.id,
+                    event_type="progress",
+                    message=f"Text extraction failed: {str(e)}. Continuing with empty text.",
+                    data={"step": "extraction", "progress": 20, "error": str(e)}
+                )
+                contract.extracted_text = ""
+                db.commit()
+
         # ===== STEP 1: Document Preparation =====
         create_event(
             db,
@@ -117,12 +165,36 @@ def analyze_contract_task(
         # from prototype.src.step1_preparation import run_preparation
         # preparation_result = run_preparation(contract.extracted_text, output_language)
 
-        # Placeholder for now
+        # Basic placeholder analysis using extracted text
+        extracted_text = contract.extracted_text or ""
+        text_lower = extracted_text.lower()
+
+        # Try to detect agreement type
+        agreement_type = "Contract"
+        if "employment" in text_lower or "employee" in text_lower:
+            agreement_type = "Employment Agreement"
+        elif "service" in text_lower or "services" in text_lower:
+            agreement_type = "Service Agreement"
+        elif "lease" in text_lower or "rental" in text_lower:
+            agreement_type = "Lease Agreement"
+        elif "sale" in text_lower or "purchase" in text_lower:
+            agreement_type = "Sales Agreement"
+        elif "license" in text_lower or "licensing" in text_lower:
+            agreement_type = "License Agreement"
+
+        # Try to extract some basic parties (very simplified)
+        parties = []
+        if "between" in text_lower:
+            # This is a very basic extraction - production would use NER
+            parties = ["Party A", "Party B"]
+
         preparation_result = {
-            "agreement_type": "Unknown",
-            "parties": [],
-            "jurisdiction": contract.jurisdiction or "Unknown",
-            "negotiability": "medium"
+            "agreement_type": agreement_type,
+            "parties": parties,
+            "jurisdiction": contract.jurisdiction or "Not specified",
+            "negotiability": "medium",
+            "document_length": len(extracted_text),
+            "has_content": len(extracted_text) > 100
         }
 
         analysis.preparation_result = preparation_result
@@ -149,13 +221,40 @@ def analyze_contract_task(
         # from prototype.src.step2_analysis import run_analysis
         # analysis_result = run_analysis(contract.extracted_text, preparation_result, output_language)
 
-        # Placeholder for now
+        # Basic content analysis
+        obligations = []
+        rights = []
+        risks = []
+
+        # Look for obligation keywords
+        if "shall" in text_lower or "must" in text_lower or "required" in text_lower:
+            obligations.append("Contractual obligations identified (detailed analysis pending)")
+
+        # Look for rights keywords
+        if "right" in text_lower or "entitled" in text_lower or "may" in text_lower:
+            rights.append("Contractual rights identified (detailed analysis pending)")
+
+        # Look for risk keywords
+        if "terminate" in text_lower or "liability" in text_lower or "damages" in text_lower:
+            risks.append("Potential risk areas identified (detailed analysis pending)")
+
+        # Look for payment terms
+        payment_terms = {}
+        if "$" in extracted_text or "payment" in text_lower or "fee" in text_lower:
+            payment_terms = {"note": "Payment terms present - detailed extraction pending"}
+
+        # Look for dates
+        key_dates = []
+        if any(word in text_lower for word in ["date", "term", "duration", "expire"]):
+            key_dates.append("Important dates identified in document")
+
         analysis_result = {
-            "obligations": [],
-            "rights": [],
-            "risks": [],
-            "payment_terms": {},
-            "key_dates": []
+            "obligations": obligations,
+            "rights": rights,
+            "risks": risks,
+            "payment_terms": payment_terms,
+            "key_dates": key_dates,
+            "text_analyzed": len(extracted_text) > 0
         }
 
         analysis.analysis_result = analysis_result
