@@ -32,16 +32,14 @@ class ContractResponse(ContractBase):
     user_id: UUID4
     filename: str
     mime_type: str
-    file_size_bytes: Optional[int]
-    pages: Optional[int]
+    file_size: int
+    file_path: str
+    page_count: Optional[int]
+    extracted_text: Optional[str]
     detected_language: Optional[str]
-    quality_score: Optional[float]
-    coverage_score: Optional[float]
-    confidence_level: Optional[str]
-    confidence_reason: Optional[str]
-    status: str
-    created_at: datetime
-    latest_analysis_id: Optional[UUID4] = None
+    jurisdiction: Optional[str]
+    uploaded_at: datetime
+    updated_at: datetime
 
     model_config = {"from_attributes": True}
 
