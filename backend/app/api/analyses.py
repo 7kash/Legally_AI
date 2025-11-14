@@ -35,6 +35,8 @@ class AnalysisResponse(BaseModel):
     contract_id: str
     status: str
     output_language: str
+    formatted_output: Optional[dict] = None
+    confidence_score: Optional[int] = None
     created_at: datetime
     started_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None
@@ -184,22 +186,26 @@ async def stream_analysis_events(
             # Send events to client
             for event in events:
                 event_data = {
-                    "type": event.event_type,
-                    "message": event.message,
-                    "data": event.data,
+                    "kind": event.event_type,
+                    "payload": event.data or {},
                     "timestamp": event.created_at.isoformat()
                 }
+                # Add message to payload if present
+                if event.message:
+                    event_data["payload"]["message"] = event.message
                 yield f"data: {json.dumps(event_data)}\n\n"
                 last_event_time = event.created_at
 
             # Check if analysis is complete
             db.refresh(analysis)
-            if analysis.status in ["completed", "failed"]:
+            if analysis.status in ["succeeded", "failed"]:
                 # Send final status event
                 final_event = {
-                    "type": "status_change",
-                    "message": f"Analysis {analysis.status}",
-                    "data": {"status": analysis.status},
+                    "kind": "status_change",
+                    "payload": {
+                        "status": analysis.status,
+                        "message": f"Analysis {analysis.status}"
+                    },
                     "timestamp": datetime.utcnow().isoformat()
                 }
                 yield f"data: {json.dumps(final_event)}\n\n"
@@ -212,9 +218,11 @@ async def stream_analysis_events(
         # Timeout reached
         if iteration >= max_iterations:
             timeout_event = {
-                "type": "error",
-                "message": "Stream timeout reached",
-                "data": {"status": "timeout"},
+                "kind": "error",
+                "payload": {
+                    "status": "timeout",
+                    "message": "Stream timeout reached"
+                },
                 "timestamp": datetime.utcnow().isoformat()
             }
             yield f"data: {json.dumps(timeout_event)}\n\n"

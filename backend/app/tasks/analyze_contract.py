@@ -12,10 +12,14 @@ from typing import Dict, Any
 import uuid
 from datetime import datetime
 import traceback
+import logging
+
+logger = logging.getLogger(__name__)
 
 from ..celery_app import celery_app
 from ..database import SessionLocal
 from ..models import Contract, Analysis, AnalysisEvent
+from ..services.document_parser import extract_text_from_document, validate_document_exists
 
 
 class DatabaseTask(Task):
@@ -104,13 +108,58 @@ def analyze_contract_task(
             data={"status": "running"}
         )
 
+        # ===== STEP 0: Text Extraction (if needed) =====
+        if not contract.extracted_text or len(contract.extracted_text.strip()) == 0:
+            create_event(
+                db,
+                analysis.id,
+                event_type="progress",
+                message="Extracting text from document",
+                data={"step": "extraction", "progress": 0}
+            )
+
+            # Check if file exists
+            if not validate_document_exists(contract.file_path):
+                raise FileNotFoundError(
+                    f"Document file not found at: {contract.file_path}. "
+                    "Please ensure the file was uploaded correctly and the uploads directory is properly mounted."
+                )
+
+            try:
+                # Extract text from document
+                extracted_text, char_count = extract_text_from_document(contract.file_path)
+
+                # Update contract with extracted text
+                contract.extracted_text = extracted_text
+                db.commit()
+
+                create_event(
+                    db,
+                    analysis.id,
+                    event_type="progress",
+                    message=f"Extracted {char_count} characters from document",
+                    data={"step": "extraction", "progress": 20, "char_count": char_count}
+                )
+            except Exception as e:
+                logger.error(f"Text extraction failed: {e}")
+                # Continue with empty text rather than failing completely
+                contract.extracted_text = ""
+                db.commit()
+                create_event(
+                    db,
+                    analysis.id,
+                    event_type="progress",
+                    message=f"Warning: Text extraction failed: {str(e)}",
+                    data={"step": "extraction", "progress": 20, "error": str(e)}
+                )
+
         # ===== STEP 1: Document Preparation =====
         create_event(
             db,
             analysis.id,
             event_type="progress",
             message="Starting document preparation",
-            data={"step": "preparation", "progress": 0}
+            data={"step": "preparation", "progress": 25}
         )
 
         # TODO: Import and use actual analysis modules from prototype
@@ -133,7 +182,7 @@ def analyze_contract_task(
             analysis.id,
             event_type="progress",
             message="Document preparation completed",
-            data={"step": "preparation", "progress": 50, "result": preparation_result}
+            data={"step": "preparation", "progress": 40, "result": preparation_result}
         )
 
         # ===== STEP 2: Contract Analysis =====
@@ -142,7 +191,7 @@ def analyze_contract_task(
             analysis.id,
             event_type="progress",
             message="Starting contract analysis",
-            data={"step": "analysis", "progress": 50}
+            data={"step": "analysis", "progress": 45}
         )
 
         # TODO: Import and use actual analysis modules from prototype
@@ -166,7 +215,7 @@ def analyze_contract_task(
             analysis.id,
             event_type="progress",
             message="Contract analysis completed",
-            data={"step": "analysis", "progress": 75, "result": analysis_result}
+            data={"step": "analysis", "progress": 65, "result": analysis_result}
         )
 
         # ===== STEP 3: Format Output =====
@@ -175,34 +224,51 @@ def analyze_contract_task(
             analysis.id,
             event_type="progress",
             message="Formatting results",
-            data={"step": "formatting", "progress": 80}
+            data={"step": "formatting", "progress": 85}
         )
 
         # TODO: Import and use formatter from prototype
         # from prototype.src.formatter import format_analysis
         # formatted_output = format_analysis(preparation_result, analysis_result, output_language)
 
-        # Placeholder for now
-        formatted_output = f"""
-# Contract Analysis Results
-
-## Agreement Type
-{preparation_result['agreement_type']}
-
-## Parties
-- {', '.join(preparation_result['parties']) if preparation_result['parties'] else 'Not specified'}
-
-## Jurisdiction
-{preparation_result['jurisdiction']}
-
-## Analysis
-- Obligations: {len(analysis_result['obligations'])}
-- Rights: {len(analysis_result['rights'])}
-- Risks: {len(analysis_result['risks'])}
-"""
+        # Create structured JSON output
+        formatted_output = {
+            "agreement_type": {
+                "title": "Agreement Type",
+                "content": preparation_result['agreement_type']
+            },
+            "parties": {
+                "title": "Parties",
+                "content": preparation_result['parties'] if preparation_result['parties'] else ["Not specified"]
+            },
+            "jurisdiction": {
+                "title": "Jurisdiction",
+                "content": preparation_result['jurisdiction']
+            },
+            "obligations": {
+                "title": "Obligations",
+                "content": analysis_result['obligations'] if analysis_result['obligations'] else ["No obligations identified"]
+            },
+            "rights": {
+                "title": "Rights",
+                "content": analysis_result['rights'] if analysis_result['rights'] else ["No rights identified"]
+            },
+            "risks": {
+                "title": "Risks & Concerns",
+                "content": analysis_result['risks'] if analysis_result['risks'] else ["No risks identified"]
+            },
+            "payment_terms": {
+                "title": "Payment Terms",
+                "content": analysis_result.get('payment_terms', {})
+            },
+            "key_dates": {
+                "title": "Key Dates",
+                "content": analysis_result.get('key_dates', [])
+            }
+        }
 
         analysis.formatted_output = formatted_output
-        analysis.status = "completed"
+        analysis.status = "succeeded"
         analysis.completed_at = datetime.utcnow()
         db.commit()
 
@@ -213,7 +279,7 @@ def analyze_contract_task(
             event_type="status_change",
             message="Analysis completed successfully",
             data={
-                "status": "completed",
+                "status": "succeeded",
                 "progress": 100,
                 "formatted_output": formatted_output
             }
@@ -221,7 +287,7 @@ def analyze_contract_task(
 
         return {
             "analysis_id": str(analysis.id),
-            "status": "completed",
+            "status": "succeeded",
             "preparation_result": preparation_result,
             "analysis_result": analysis_result
         }
@@ -267,7 +333,7 @@ def cleanup_old_analyses():
 
         deleted_count = db.query(Analysis).filter(
             Analysis.created_at < cutoff_date,
-            Analysis.status.in_(["completed", "failed"])
+            Analysis.status.in_(["succeeded", "failed"])
         ).delete()
 
         db.commit()
