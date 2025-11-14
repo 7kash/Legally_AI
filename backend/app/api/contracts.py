@@ -70,9 +70,8 @@ async def upload_contract(
         user_id=current_user.id,
         filename=file.filename,
         mime_type=file.content_type or "application/octet-stream",
-        file_size_bytes=file_size,
-        file_path=f"{current_user.id}/{contract_id}{file_ext}",
-        status="uploaded"
+        file_size=file_size,
+        file_path=f"{current_user.id}/{contract_id}{file_ext}"
     )
 
     # Save file to disk
@@ -92,7 +91,7 @@ async def upload_contract(
     return ContractUpload(
         contract_id=contract.id,
         filename=contract.filename,
-        status=contract.status
+        status="uploaded"
     )
 
 

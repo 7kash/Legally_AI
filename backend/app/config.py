@@ -47,6 +47,8 @@ class Settings(BaseSettings):
     # File Storage
     UPLOAD_DIR: str = os.getenv("UPLOAD_DIR", "/app/uploads")
     MAX_UPLOAD_SIZE: int = int(os.getenv("MAX_UPLOAD_SIZE", 10 * 1024 * 1024))  # 10MB
+    MAX_FILE_SIZE_MB: int = 10  # Maximum file size in MB
+    ALLOWED_EXTENSIONS: list = [".pdf", ".docx"]  # Allowed file extensions
 
     # CORS
     CORS_ORIGINS: list = [
