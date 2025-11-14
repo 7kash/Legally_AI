@@ -79,9 +79,9 @@ async def create_analysis(
     db.commit()
     db.refresh(analysis)
 
-    # Dispatch Celery task
+    # Dispatch Celery task with analysis_id to avoid duplicate creation
     analyze_contract_task.delay(
-        contract_id=str(contract.id),
+        analysis_id=str(analysis.id),
         output_language=data.output_language
     )
 

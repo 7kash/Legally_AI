@@ -60,7 +60,7 @@ def create_event(db, analysis_id: uuid.UUID, kind: str, payload: Dict = None):
 @celery_app.task(bind=True, name="analyze_contract")
 def analyze_contract_task(
     self,
-    contract_id: str,
+    analysis_id: str,
     output_language: str = "english"
 ) -> Dict[str, Any]:
     """
@@ -68,7 +68,7 @@ def analyze_contract_task(
 
     Args:
         self: Celery task instance (for state updates)
-        contract_id: Contract UUID
+        analysis_id: Analysis UUID (created by API endpoint)
         output_language: Language for output
 
     Returns:
@@ -77,23 +77,22 @@ def analyze_contract_task(
     db = SessionLocal()
 
     try:
-        contract_uuid = uuid.UUID(contract_id)
+        analysis_uuid = uuid.UUID(analysis_id)
+
+        # Get existing analysis record (created by API endpoint)
+        analysis = db.query(Analysis).filter(Analysis.id == analysis_uuid).first()
+        if not analysis:
+            raise ValueError(f"Analysis {analysis_id} not found")
 
         # Get contract
-        contract = db.query(Contract).filter(Contract.id == contract_uuid).first()
+        contract = db.query(Contract).filter(Contract.id == analysis.contract_id).first()
         if not contract:
-            raise ValueError(f"Contract {contract_id} not found")
+            raise ValueError(f"Contract {analysis.contract_id} not found")
 
-        # Create analysis record
-        analysis = Analysis(
-            id=uuid.uuid4(),
-            contract_id=contract.id,
-            status="running",
-            started_at=datetime.utcnow()
-        )
-        db.add(analysis)
+        # Update analysis status to running
+        analysis.status = "running"
+        analysis.started_at = datetime.utcnow()
         db.commit()
-        db.refresh(analysis)
 
         # Update contract status
         contract.status = "analyzing"
