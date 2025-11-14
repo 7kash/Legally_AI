@@ -1,0 +1,22 @@
+#!/bin/bash
+
+echo "=== Quick Backend Test ==="
+echo ""
+
+echo "Please run these commands and send me the output:"
+echo ""
+echo "1. Check if containers are running:"
+echo "   docker compose ps"
+echo ""
+echo "2. Check API container logs:"
+echo "   docker compose logs api --tail 50"
+echo ""
+echo "3. Try to access backend directly:"
+echo "   curl http://localhost:8000/health"
+echo ""
+echo "4. Check if port 8000 is listening:"
+echo "   lsof -i :8000"
+echo ""
+echo "5. Try starting the API manually to see errors:"
+echo "   docker compose exec api python -m app.main"
+echo ""
