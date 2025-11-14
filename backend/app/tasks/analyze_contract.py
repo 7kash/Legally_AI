@@ -182,24 +182,41 @@ def analyze_contract_task(
         # from prototype.src.formatter import format_analysis
         # formatted_output = format_analysis(preparation_result, analysis_result, output_language)
 
-        # Placeholder for now
-        formatted_output = f"""
-# Contract Analysis Results
-
-## Agreement Type
-{preparation_result['agreement_type']}
-
-## Parties
-- {', '.join(preparation_result['parties']) if preparation_result['parties'] else 'Not specified'}
-
-## Jurisdiction
-{preparation_result['jurisdiction']}
-
-## Analysis
-- Obligations: {len(analysis_result['obligations'])}
-- Rights: {len(analysis_result['rights'])}
-- Risks: {len(analysis_result['risks'])}
-"""
+        # Format output as JSON structure for frontend
+        formatted_output = {
+            "agreement_type": {
+                "title": "Agreement Type",
+                "content": preparation_result['agreement_type']
+            },
+            "parties": {
+                "title": "Parties",
+                "content": ', '.join(preparation_result['parties']) if preparation_result['parties'] else 'Not specified'
+            },
+            "jurisdiction": {
+                "title": "Jurisdiction",
+                "content": preparation_result['jurisdiction']
+            },
+            "obligations": {
+                "title": "Obligations",
+                "content": f"Found {len(analysis_result['obligations'])} obligations in the contract."
+            },
+            "rights": {
+                "title": "Rights",
+                "content": f"Found {len(analysis_result['rights'])} rights in the contract."
+            },
+            "risks": {
+                "title": "Risks",
+                "content": f"Found {len(analysis_result['risks'])} potential risks in the contract."
+            },
+            "payment_terms": {
+                "title": "Payment Terms",
+                "content": str(analysis_result['payment_terms']) if analysis_result['payment_terms'] else 'No payment terms specified.'
+            },
+            "key_dates": {
+                "title": "Key Dates",
+                "content": ', '.join(str(date) for date in analysis_result['key_dates']) if analysis_result['key_dates'] else 'No key dates identified.'
+            }
+        }
 
         analysis.formatted_output = formatted_output
         analysis.status = "succeeded"
@@ -215,7 +232,7 @@ def analyze_contract_task(
             data={
                 "status": "succeeded",
                 "progress": 100,
-                "formatted_output": formatted_output
+                "has_results": True
             }
         )
 

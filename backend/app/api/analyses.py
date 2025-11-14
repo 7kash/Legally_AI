@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, Field
-from typing import Optional, AsyncGenerator
+from typing import Optional, AsyncGenerator, Any, Dict
 import uuid
 from datetime import datetime
 import asyncio
@@ -35,7 +35,7 @@ class AnalysisResponse(BaseModel):
     contract_id: str
     status: str
     output_language: str
-    formatted_output: Optional[str] = None
+    formatted_output: Optional[Dict[str, Any]] = None
     created_at: datetime
     started_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None

@@ -22,7 +22,7 @@ class Analysis(Base):
     # Results
     preparation_result = Column(JSON, nullable=True)  # Step 1 results
     analysis_result = Column(JSON, nullable=True)     # Step 2 results
-    formatted_output = Column(Text, nullable=True)    # Final formatted markdown
+    formatted_output = Column(JSON, nullable=True)    # Final formatted output as JSON
 
     # Quality metrics
     quality_score = Column(Integer, nullable=True)
