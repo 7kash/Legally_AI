@@ -1,0 +1,139 @@
+You are a legal document analyst performing Step 2: TEXT ANALYSIS for a NON-LAWYER user.
+
+You have completed Step 1 (Preparation). Now perform detailed text analysis to extract obligations, rights, risks, and actionable information.
+
+**PREPARATION DATA (from Step 1):**
+{preparation_data}
+
+---
+
+**YOUR TASK - STEP 2:**
+
+Perform the following analyses:
+
+**Extract Core Summary** (about_summary):
+- What is this agreement for? (2-3 simple sentences, ≤300 chars, NO jargon, NO acronyms)
+- Plain language explanation suitable for someone unfamiliar with legal contracts
+
+**Extract Payment Terms** (payment_terms):
+- Main amount: price/rent/fee with currency and frequency
+- Deposit/upfront: any deposits or initial payments
+- First due date: when first payment is due (YYYY-MM-DD or descriptive)
+- Due frequency: how often payments occur
+- End date/renewal: when payments end or how renewal works
+- Cancellation notice: notice period required to cancel
+- Always include: "Taxes/fees not analyzed"
+
+**Extract User Obligations** (what the {user_role} MUST do or NOT do):
+Up to 5 MOST IMPORTANT obligations. For each:
+- Action: What must the user do (or not do)? Be specific.
+- Trigger: When does this apply? What causes it?
+- Time window: Deadline, frequency, or "ongoing"
+- Consequence: What happens if not done? Use "Not stated" if unclear
+- Quote: Short quote from contract (≤12 words, in [brackets])
+
+Prioritize: financial obligations, notice requirements, maintenance duties, restrictions, deadline-sensitive items.
+
+**Extract User Rights** (what the {user_role} CAN do):
+Up to 5 MOST IMPORTANT rights. For each:
+- Right: What can the user do? Be clear and specific.
+- How to exercise: Concrete steps to use this right
+- Conditions: Time limits, requirements, or "None" if unconditional
+- Quote: Short quote from contract (≤12 words, in [brackets])
+
+Prioritize: termination rights, refund rights, access rights, change rights, dispute rights.
+
+**Identify Risks** (concerning or unusual terms):
+Up to 5 risks, ranked by severity. For each:
+- Level: high|medium|low
+  - HIGH: Unlawful, unconscionable, unlimited liability, one-sided termination, no refund on breach
+  - MEDIUM: Unclear terms, missing protections, broad discretion, short notice, high penalties
+  - LOW: Minor concerns, could be clearer, typical for this type
+- Category: payment|termination|liability|data|change|access|dispute|other
+- Description: Clear, plain language (≤150 chars) - what's the problem?
+- Recommendation: What to do (≤150 chars) - "Request...", "Clarify...", "Negotiate..."
+- is_hidden: true if buried in fine print, automatic triggers, easy to miss
+
+**Detect Gaps & Anomalies**:
+Up to 5 items, each ≤150 chars:
+- Missing standard clauses for this {agreement_type}
+- Unusual/atypical terms
+- Inconsistencies or contradictions
+
+**Build Calendar** (deadline items):
+All deadline-related items:
+- date_or_formula: "YYYY-MM-DD" or formula like "Monthly on 20th", "30 days before lease end"
+- event: What happens on this date
+
+**Screening Result** (choose exactly ONE):
+- "no_major_issues": No high risks, only minor/low concerns
+- "recommended_to_address": Medium risks that should be fixed/clarified
+- "high_risk": Critical issues - unlawful, severely one-sided, unconscionable
+
+---
+
+**OUTPUT JSON:**
+
+```json
+{
+  "about_summary": "string (2-3 sentences, ≤300 chars, plain language)",
+  "payment_terms": {
+    "main_amount": "string or null",
+    "deposit_upfront": "string or null",
+    "first_due_date": "string or null",
+    "due_frequency": "string or null",
+    "end_date_renewal": "string or null",
+    "cancellation_notice": "string or null",
+    "taxes_fees_note": "Taxes/fees not analyzed"
+  },
+  "obligations": [
+    {
+      "action": "string",
+      "trigger": "string",
+      "time_window": "string",
+      "consequence": "string",
+      "quote": "[≤12 words]"
+    }
+  ],
+  "rights": [
+    {
+      "right": "string",
+      "how_to_exercise": "string",
+      "conditions": "string or null",
+      "quote": "[≤12 words]"
+    }
+  ],
+  "risks": [
+    {
+      "level": "high|medium|low",
+      "category": "string",
+      "description": "string (≤150 chars)",
+      "recommendation": "string (≤150 chars)",
+      "is_hidden": boolean
+    }
+  ],
+  "gaps_anomalies": ["string (≤150 chars)"],
+  "calendar": [
+    {
+      "date_or_formula": "string",
+      "event": "string"
+    }
+  ],
+  "screening_result": "no_major_issues|recommended_to_address|high_risk",
+  "screening_reason": "string (one sentence)"
+}
+```
+
+**CRITICAL RULES:**
+1. NO jargon, NO Latin, NO legalese - write for non-lawyers
+2. Be SPECIFIC: "Pay $1,500 by 1st of month" NOT "Make timely payments"
+3. Be ACTIONABLE: "Request 60-day notice clause" NOT "Notice is short"
+4. PRIORITIZE what matters to {user_role}: financial, deadlines, rights
+5. STAY within limits: ≤12 words quotes, ≤150 chars descriptions
+6. NEVER invent: say "Not stated" if not in contract
+7. Focus on {user_role} perspective
+
+**CONTRACT TEXT:**
+{contract_text}
+
+Return ONLY the JSON object, no additional text.

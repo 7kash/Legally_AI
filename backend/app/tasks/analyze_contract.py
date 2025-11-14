@@ -23,6 +23,14 @@ from ..services.document_parser import extract_text
 from ..config import settings
 from pathlib import Path
 
+# Import LLM analysis modules from prototype
+from ..services.llm_analysis.llm_router import LLMRouter
+from ..services.llm_analysis.step1_preparation import run_step1_preparation
+from ..services.llm_analysis.step2_analysis import run_step2_analysis
+from ..services.llm_analysis.language import detect_language
+from ..services.llm_analysis.parsers import extract_text as extract_text_with_quality
+from ..services.llm_analysis.quality import compute_quality_score, compute_confidence_level
+
 
 class DatabaseTask(Task):
     """Base task class that handles database sessions"""
@@ -161,21 +169,57 @@ def analyze_contract_task(
             db,
             analysis.id,
             event_type="progress",
-            message="Starting document preparation",
+            message="Starting document preparation with LLM",
             data={"step": "preparation", "progress": 25}
         )
 
-        # TODO: Import and use actual analysis modules from prototype
-        # from prototype.src.step1_preparation import run_preparation
-        # preparation_result = run_preparation(contract.extracted_text, output_language)
+        try:
+            # Initialize LLM router
+            llm_router = LLMRouter()
 
-        # Placeholder for now
-        preparation_result = {
-            "agreement_type": "Unknown",
-            "parties": [],
-            "jurisdiction": contract.jurisdiction or "Unknown",
-            "negotiability": "medium"
-        }
+            # Detect language of contract text
+            detected_language, lang_confidence = detect_language(contract.extracted_text or "")
+            logger.info(f"Detected language: {detected_language} (confidence: {lang_confidence})")
+
+            create_event(
+                db,
+                analysis.id,
+                event_type="progress",
+                message=f"Detected language: {detected_language}",
+                data={"step": "preparation", "progress": 30}
+            )
+
+            # Compute quality score
+            # For simplicity, assume high quality for now (can enhance later)
+            quality_score = 0.9
+
+            # Run Step 1 preparation analysis with LLM
+            preparation_result = run_step1_preparation(
+                contract_text=contract.extracted_text or "",
+                detected_language=detected_language,
+                quality_score=quality_score,
+                llm_router=llm_router
+            )
+
+            logger.info(f"Step 1 completed: {preparation_result.get('agreement_type', 'Unknown')}")
+
+        except Exception as e:
+            logger.error(f"Step 1 preparation failed: {e}", exc_info=True)
+            # Fall back to placeholder if LLM fails
+            preparation_result = {
+                "agreement_type": "Error: Could not analyze",
+                "parties": [],
+                "jurisdiction": contract.jurisdiction or "Unknown",
+                "negotiability": "medium",
+                "error": str(e)
+            }
+            create_event(
+                db,
+                analysis.id,
+                event_type="progress",
+                message=f"Warning: LLM preparation failed, using fallback: {str(e)}",
+                data={"step": "preparation", "progress": 35, "error": str(e)}
+            )
 
         # Store directly as dict (JSON column)
         analysis.preparation_result = preparation_result
@@ -194,22 +238,40 @@ def analyze_contract_task(
             db,
             analysis.id,
             event_type="progress",
-            message="Starting contract analysis",
+            message="Starting detailed contract analysis with LLM",
             data={"step": "analysis", "progress": 45}
         )
 
-        # TODO: Import and use actual analysis modules from prototype
-        # from prototype.src.step2_analysis import run_analysis
-        # analysis_result = run_analysis(contract.extracted_text, preparation_result, output_language)
+        try:
+            # Run Step 2 analysis with LLM (reuse llm_router from Step 1)
+            if 'llm_router' not in locals():
+                llm_router = LLMRouter()
 
-        # Placeholder for now
-        analysis_result = {
-            "obligations": [],
-            "rights": [],
-            "risks": [],
-            "payment_terms": {},
-            "key_dates": []
-        }
+            analysis_result = run_step2_analysis(
+                contract_text=contract.extracted_text or "",
+                preparation_data=preparation_result,
+                llm_router=llm_router
+            )
+
+            logger.info(f"Step 2 completed: Found {len(analysis_result.get('obligations', []))} obligations, {len(analysis_result.get('risks', []))} risks")
+
+        except Exception as e:
+            logger.error(f"Step 2 analysis failed: {e}", exc_info=True)
+            # Fall back to placeholder if LLM fails
+            analysis_result = {
+                "obligations": [],
+                "rights": [],
+                "risks": [{"description": f"Error during analysis: {str(e)}", "recommendation": "Please try again"}],
+                "payment_terms": {},
+                "key_dates": []
+            }
+            create_event(
+                db,
+                analysis.id,
+                event_type="progress",
+                message=f"Warning: LLM analysis failed, using fallback: {str(e)}",
+                data={"step": "analysis", "progress": 60, "error": str(e)}
+            )
 
         # Store directly as dict (JSON column)
         analysis.analysis_result = analysis_result
