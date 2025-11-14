@@ -36,6 +36,7 @@ class AnalysisResponse(BaseModel):
     status: str
     output_language: str
     formatted_output: Optional[Dict[str, Any]] = None
+    confidence_score: Optional[int] = None
     created_at: datetime
     started_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None
@@ -219,7 +220,7 @@ async def stream_analysis_events(
             if analysis.status in ["succeeded", "failed"]:
                 # Send final status event
                 final_event = {
-                    "kind": analysis.status,  # "succeeded" or "failed"
+                    "kind": "status_change",
                     "payload": {
                         "message": f"Analysis {analysis.status}",
                         "status": analysis.status
