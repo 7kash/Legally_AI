@@ -122,7 +122,7 @@ async def list_contracts(
     # Get contracts
     contracts = db.query(Contract)\
         .filter(Contract.user_id == current_user.id)\
-        .order_by(Contract.created_at.desc())\
+        .order_by(Contract.uploaded_at.desc())\
         .offset(offset)\
         .limit(page_size)\
         .all()
