@@ -202,10 +202,13 @@ async def stream_analysis_events(
 
             # Send events to client
             for event in events:
+                # Format event data to match frontend expectations
                 event_data = {
-                    "type": event.event_type,
-                    "message": event.message,
-                    "data": event.data,
+                    "kind": event.event_type,  # Frontend expects "kind"
+                    "payload": {
+                        "message": event.message,
+                        **(event.data or {})  # Spread event.data into payload
+                    },
                     "timestamp": event.created_at.isoformat()
                 }
                 yield f"data: {json.dumps(event_data)}\n\n"
@@ -216,9 +219,11 @@ async def stream_analysis_events(
             if analysis.status in ["succeeded", "failed"]:
                 # Send final status event
                 final_event = {
-                    "type": "status_change",
-                    "message": f"Analysis {analysis.status}",
-                    "data": {"status": analysis.status},
+                    "kind": analysis.status,  # "succeeded" or "failed"
+                    "payload": {
+                        "message": f"Analysis {analysis.status}",
+                        "status": analysis.status
+                    },
                     "timestamp": datetime.utcnow().isoformat()
                 }
                 yield f"data: {json.dumps(final_event)}\n\n"
@@ -231,9 +236,11 @@ async def stream_analysis_events(
         # Timeout reached
         if iteration >= max_iterations:
             timeout_event = {
-                "type": "error",
-                "message": "Stream timeout reached",
-                "data": {"status": "timeout"},
+                "kind": "error",
+                "payload": {
+                    "message": "Stream timeout reached",
+                    "status": "timeout"
+                },
                 "timestamp": datetime.utcnow().isoformat()
             }
             yield f"data: {json.dumps(timeout_event)}\n\n"
