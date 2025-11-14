@@ -70,27 +70,31 @@ This document details all features to be implemented in the MVP, with acceptance
 
 ---
 
-### CF-003: Contract Analysis (Step 1: Preparation)
+### CF-003: Contract Analysis (Step 1: Preparation) ✅ INTEGRATED
 
 **User Story**: As a user, I want the system to analyze my contract's structure and quality.
 
+**Status**: ✅ **Integrated with GROQ LLM** (2025-11-14)
+
 **Requirements** (from specification):
-- [ ] Count files; classify as agreement/context/unsupported
-- [ ] If no agreement → stop, request one
-- [ ] If >1 agreement → choose primary, mark others as context
-- [ ] Normalize text (fix order/encoding, detect language)
-- [ ] Governing language check (original vs translation)
-- [ ] Timezone/jurisdiction hints detection
-- [ ] Coverage discovery (referenced annexes/policies/schedules)
-- [ ] Mark which annexes are present vs missing
-- [ ] Quality & completeness score (0-1)
-- [ ] Rate scan legibility, coverage, reasons (scan, OCR, partial, translation)
-- [ ] Version & status (draft vs signed, effective date, version stamp)
-- [ ] Deduplicate near-duplicates, keep latest
-- [ ] Agreement type classification (lease, ToS, NDA, employment, etc.)
-- [ ] User role identification (tenant/customer/buyer, with confidence)
-- [ ] Negotiability assessment (high/medium/low with rationale)
-- [ ] Select analysis mode (Full review / Check-only / Preliminary)
+- [x] ✅ Count files; classify as agreement/context/unsupported
+- [x] ✅ If no agreement → stop, request one
+- [x] ✅ If >1 agreement → choose primary, mark others as context
+- [x] ✅ Normalize text (fix order/encoding, detect language)
+- [x] ✅ Governing language check (original vs translation)
+- [x] ✅ Timezone/jurisdiction hints detection
+- [x] ✅ Coverage discovery (referenced annexes/policies/schedules)
+- [x] ✅ Mark which annexes are present vs missing
+- [x] ✅ Quality & completeness score (0-1)
+- [x] ✅ Rate scan legibility, coverage, reasons (scan, OCR, partial, translation)
+- [x] ✅ Version & status (draft vs signed, effective date, version stamp)
+- [x] ✅ Deduplicate near-duplicates, keep latest
+- [x] ✅ Agreement type classification (lease, ToS, NDA, employment, etc.)
+- [x] ✅ User role identification (tenant/customer/buyer, with confidence)
+- [x] ✅ Negotiability assessment (high/medium/low with rationale)
+- [x] ✅ Select analysis mode (Full review / Check-only / Preliminary)
+
+**Implementation**: Integrated from prototype at `backend/app/services/llm_analysis/step1_preparation.py`
 
 **Output Fields**:
 ```json
@@ -127,13 +131,15 @@ This document details all features to be implemented in the MVP, with acceptance
 
 ---
 
-### CF-004: Contract Analysis (Step 2: Text Analysis)
+### CF-004: Contract Analysis (Step 2: Text Analysis) ✅ INTEGRATED
 
 **User Story**: As a user, I want detailed analysis of terms, obligations, rights, and risks.
 
+**Status**: ✅ **Integrated with GROQ LLM** (2025-11-14)
+
 **Requirements** (from specification):
-- [ ] Map structure (headings/themes: term, payments, exit, duties, rights, law)
-- [ ] Extract core fields:
+- [x] ✅ Map structure (headings/themes: term, payments, exit, duties, rights, law)
+- [x] ✅ Extract core fields:
   - Parties (names, roles)
   - What you get/provide
   - Amounts (money, quantities)
@@ -143,38 +149,40 @@ This document details all features to be implemented in the MVP, with acceptance
   - Entry (access rights)
   - Repairs (who's responsible)
   - Law/forum (governing law, jurisdiction)
-- [ ] Normalize values (format dates, money; deadline formulas)
-- [ ] User obligations list:
+- [x] ✅ Normalize values (format dates, money; deadline formulas)
+- [x] ✅ User obligations list:
   - Action required
   - Trigger condition
   - Time window/formula
   - Consequence of non-compliance
   - Short quote (≤12 words)
-- [ ] User rights list:
+- [x] ✅ User rights list:
   - Right description
   - How to exercise
   - Any window/condition
   - Short quote (≤12 words)
-- [ ] Expectations check (compare to typical for this type)
-- [ ] Mark gaps and anomalies
-- [ ] Risk detection (high/medium/low signals):
+- [x] ✅ Expectations check (compare to typical for this type)
+- [x] ✅ Mark gaps and anomalies
+- [x] ✅ Risk detection (high/medium/low signals):
   - Unilateral change clauses
   - Short notice periods
   - Data privacy risks
   - Liability issues
   - Unusual terms
-- [ ] Risk scoring (priority = severity × likelihood × duration)
-- [ ] Note hidden/forgettable risks
-- [ ] Calendar build (derive dates or formulas):
+- [x] ✅ Risk scoring (priority = severity × likelihood × duration)
+- [x] ✅ Note hidden/forgettable risks
+- [x] ✅ Calendar build (derive dates or formulas):
   - Renewal/notice windows
   - Payment schedules
   - Activation windows
-- [ ] Screening result (one of 4 variants):
+- [x] ✅ Screening result (one of 4 variants):
   - "No major issues detected"
   - "Recommended to address flagged items"
   - "High risk as drafted — do not proceed without legal review"
   - "Preliminary review (low confidence)"
-- [ ] Confidence update (keep Medium/Low with reason if applicable)
+- [x] ✅ Confidence update (keep Medium/Low with reason if applicable)
+
+**Implementation**: Integrated from prototype at `backend/app/services/llm_analysis/step2_analysis.py`
 
 **Output Fields**:
 ```json

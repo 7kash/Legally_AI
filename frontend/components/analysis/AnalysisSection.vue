@@ -54,13 +54,13 @@
     <!-- Section Content -->
     <div class="prose prose-sm max-w-none">
       <!-- Render as list if array -->
-      <ul v-if="Array.isArray(content)" class="space-y-2 list-disc list-inside">
+      <ul v-if="Array.isArray(content)" class="space-y-3 list-none pl-0">
         <li
           v-for="(item, index) in content"
           :key="index"
-          class="text-gray-700"
+          class="text-gray-700 border-l-4 border-blue-200 pl-4 py-2"
         >
-          {{ item }}
+          <component :is="renderItem(item)" />
         </li>
       </ul>
 
@@ -83,16 +83,7 @@
             {{ formatKey(key) }}
           </dt>
           <dd class="mt-1 text-gray-700">
-            <!-- Recursive rendering for nested objects/arrays -->
-            <ul v-if="Array.isArray(value)" class="mt-1 space-y-1 list-disc list-inside">
-              <li
-                v-for="(item, idx) in value"
-                :key="idx"
-              >
-                {{ item }}
-              </li>
-            </ul>
-            <span v-else>{{ value }}</span>
+            <component :is="renderValue(value)" />
           </dd>
         </div>
       </dl>
@@ -139,7 +130,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, h } from 'vue'
 
 /**
  * AnalysisSection Component
@@ -197,6 +188,93 @@ function formatKey(key: string | number): string {
     .split('_')
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ')
+}
+
+// Render functions for smart formatting
+function renderItem(item: any) {
+  if (typeof item === 'string') {
+    return () => h('span', item)
+  }
+
+  if (typeof item === 'object' && item !== null) {
+    // Party object: {name, role}
+    if ('name' in item && 'role' in item) {
+      return () => h('div', { class: 'space-y-1' }, [
+        h('div', { class: 'font-semibold text-gray-900' }, item.name),
+        h('div', { class: 'text-sm text-gray-600' }, `Role: ${item.role}`)
+      ])
+    }
+
+    // Obligation object: {action, trigger, time_window, consequence, quote}
+    if ('action' in item) {
+      return () => h('div', { class: 'space-y-1' }, [
+        h('div', { class: 'font-semibold text-gray-900' }, item.action),
+        item.time_window && h('div', { class: 'text-sm text-gray-600' }, `When: ${item.time_window}`),
+        item.trigger && h('div', { class: 'text-sm text-gray-600' }, `Trigger: ${item.trigger}`),
+        item.consequence && h('div', { class: 'text-sm text-gray-600' }, `If not done: ${item.consequence}`),
+        item.quote && h('div', { class: 'text-xs text-gray-500 italic mt-1' }, item.quote)
+      ].filter(Boolean))
+    }
+
+    // Right object: {right, how_to_exercise, conditions, quote}
+    if ('right' in item) {
+      return () => h('div', { class: 'space-y-1' }, [
+        h('div', { class: 'font-semibold text-gray-900' }, item.right),
+        item.how_to_exercise && h('div', { class: 'text-sm text-gray-600' }, `How: ${item.how_to_exercise}`),
+        item.conditions && h('div', { class: 'text-sm text-gray-600' }, `Conditions: ${item.conditions}`),
+        item.quote && h('div', { class: 'text-xs text-gray-500 italic mt-1' }, item.quote)
+      ].filter(Boolean))
+    }
+
+    // Risk object: {level, category, description, recommendation}
+    if ('level' in item && 'description' in item) {
+      const levelColors: Record<string, string> = {
+        high: 'bg-red-100 text-red-800',
+        medium: 'bg-yellow-100 text-yellow-800',
+        low: 'bg-green-100 text-green-800'
+      }
+      return () => h('div', { class: 'space-y-2' }, [
+        h('div', { class: 'flex items-center gap-2' }, [
+          h('span', {
+            class: `px-2 py-1 rounded text-xs font-medium ${levelColors[item.level] || 'bg-gray-100 text-gray-800'}`
+          }, (item.level || 'unknown').toUpperCase()),
+          item.category && h('span', { class: 'text-sm text-gray-600' }, item.category)
+        ]),
+        h('div', { class: 'text-gray-900' }, item.description),
+        item.recommendation && h('div', { class: 'text-sm text-blue-700 bg-blue-50 p-2 rounded' }, `→ ${item.recommendation}`)
+      ])
+    }
+
+    // Generic object - show as key-value pairs
+    return () => h('dl', { class: 'space-y-1' },
+      Object.entries(item).map(([key, value]) =>
+        h('div', {}, [
+          h('dt', { class: 'inline font-medium text-gray-900' }, `${formatKey(key)}: `),
+          h('dd', { class: 'inline text-gray-700' }, String(value))
+        ])
+      )
+    )
+  }
+
+  return () => h('span', String(item))
+}
+
+function renderValue(value: any) {
+  if (Array.isArray(value)) {
+    return () => h('ul', { class: 'mt-1 space-y-2 list-none' },
+      value.map((item, idx) =>
+        h('li', { key: idx, class: 'border-l-2 border-gray-300 pl-3' }, [
+          h(renderItem(item))
+        ])
+      )
+    )
+  }
+
+  if (typeof value === 'object' && value !== null) {
+    return renderItem(value)
+  }
+
+  return () => h('span', String(value))
 }
 </script>
 
