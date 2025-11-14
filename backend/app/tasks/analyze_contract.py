@@ -12,13 +12,14 @@ from typing import Dict, Any
 import uuid
 from datetime import datetime
 import traceback
-from pathlib import Path
+import logging
+
+logger = logging.getLogger(__name__)
 
 from ..celery_app import celery_app
 from ..database import SessionLocal
 from ..models import Contract, Analysis, AnalysisEvent
-from ..services.document_parser import extract_text
-from ..config import settings
+from ..services.document_parser import extract_text_from_document, validate_document_exists
 
 
 class DatabaseTask(Task):
@@ -107,50 +108,50 @@ def analyze_contract_task(
             data={"status": "running"}
         )
 
-        # ===== STEP 0: Extract Text from Document (if not already extracted) =====
-        if not contract.extracted_text:
+        # ===== STEP 0: Text Extraction (if needed) =====
+        if not contract.extracted_text or len(contract.extracted_text.strip()) == 0:
             create_event(
                 db,
                 analysis.id,
                 event_type="progress",
                 message="Extracting text from document",
-                data={"step": "extraction", "progress": 10}
+                data={"step": "extraction", "progress": 0}
             )
 
-            try:
-                # Build full file path
-                file_path = Path(settings.UPLOAD_DIR) / contract.file_path
+            # Check if file exists
+            if not validate_document_exists(contract.file_path):
+                raise FileNotFoundError(
+                    f"Document file not found at: {contract.file_path}. "
+                    "Please ensure the file was uploaded correctly and the uploads directory is properly mounted."
+                )
 
-                # Extract text using document parser
-                extraction_result = extract_text(str(file_path))
+            try:
+                # Extract text from document
+                extracted_text, char_count = extract_text_from_document(contract.file_path)
 
                 # Update contract with extracted text
-                contract.extracted_text = extraction_result['text']
-                if 'page_count' in extraction_result:
-                    contract.page_count = extraction_result['page_count']
-                elif 'paragraph_count' in extraction_result:
-                    contract.page_count = extraction_result['paragraph_count'] // 20  # Rough estimate
-
+                contract.extracted_text = extracted_text
                 db.commit()
 
                 create_event(
                     db,
                     analysis.id,
                     event_type="progress",
-                    message=f"Extracted {len(extraction_result['text'])} characters from document",
-                    data={"step": "extraction", "progress": 20}
+                    message=f"Extracted {char_count} characters from document",
+                    data={"step": "extraction", "progress": 20, "char_count": char_count}
                 )
             except Exception as e:
-                # Log error but continue with empty text
+                logger.error(f"Text extraction failed: {e}")
+                # Continue with empty text rather than failing completely
+                contract.extracted_text = ""
+                db.commit()
                 create_event(
                     db,
                     analysis.id,
                     event_type="progress",
-                    message=f"Text extraction failed: {str(e)}. Continuing with empty text.",
+                    message=f"Warning: Text extraction failed: {str(e)}",
                     data={"step": "extraction", "progress": 20, "error": str(e)}
                 )
-                contract.extracted_text = ""
-                db.commit()
 
         # ===== STEP 1: Document Preparation =====
         create_event(
@@ -158,43 +159,19 @@ def analyze_contract_task(
             analysis.id,
             event_type="progress",
             message="Starting document preparation",
-            data={"step": "preparation", "progress": 0}
+            data={"step": "preparation", "progress": 25}
         )
 
         # TODO: Import and use actual analysis modules from prototype
         # from prototype.src.step1_preparation import run_preparation
         # preparation_result = run_preparation(contract.extracted_text, output_language)
 
-        # Basic placeholder analysis using extracted text
-        extracted_text = contract.extracted_text or ""
-        text_lower = extracted_text.lower()
-
-        # Try to detect agreement type
-        agreement_type = "Contract"
-        if "employment" in text_lower or "employee" in text_lower:
-            agreement_type = "Employment Agreement"
-        elif "service" in text_lower or "services" in text_lower:
-            agreement_type = "Service Agreement"
-        elif "lease" in text_lower or "rental" in text_lower:
-            agreement_type = "Lease Agreement"
-        elif "sale" in text_lower or "purchase" in text_lower:
-            agreement_type = "Sales Agreement"
-        elif "license" in text_lower or "licensing" in text_lower:
-            agreement_type = "License Agreement"
-
-        # Try to extract some basic parties (very simplified)
-        parties = []
-        if "between" in text_lower:
-            # This is a very basic extraction - production would use NER
-            parties = ["Party A", "Party B"]
-
+        # Placeholder for now
         preparation_result = {
-            "agreement_type": agreement_type,
-            "parties": parties,
-            "jurisdiction": contract.jurisdiction or "Not specified",
-            "negotiability": "medium",
-            "document_length": len(extracted_text),
-            "has_content": len(extracted_text) > 100
+            "agreement_type": "Unknown",
+            "parties": [],
+            "jurisdiction": contract.jurisdiction or "Unknown",
+            "negotiability": "medium"
         }
 
         analysis.preparation_result = preparation_result
@@ -205,7 +182,7 @@ def analyze_contract_task(
             analysis.id,
             event_type="progress",
             message="Document preparation completed",
-            data={"step": "preparation", "progress": 50, "result": preparation_result}
+            data={"step": "preparation", "progress": 40, "result": preparation_result}
         )
 
         # ===== STEP 2: Contract Analysis =====
@@ -214,47 +191,20 @@ def analyze_contract_task(
             analysis.id,
             event_type="progress",
             message="Starting contract analysis",
-            data={"step": "analysis", "progress": 50}
+            data={"step": "analysis", "progress": 45}
         )
 
         # TODO: Import and use actual analysis modules from prototype
         # from prototype.src.step2_analysis import run_analysis
         # analysis_result = run_analysis(contract.extracted_text, preparation_result, output_language)
 
-        # Basic content analysis
-        obligations = []
-        rights = []
-        risks = []
-
-        # Look for obligation keywords
-        if "shall" in text_lower or "must" in text_lower or "required" in text_lower:
-            obligations.append("Contractual obligations identified (detailed analysis pending)")
-
-        # Look for rights keywords
-        if "right" in text_lower or "entitled" in text_lower or "may" in text_lower:
-            rights.append("Contractual rights identified (detailed analysis pending)")
-
-        # Look for risk keywords
-        if "terminate" in text_lower or "liability" in text_lower or "damages" in text_lower:
-            risks.append("Potential risk areas identified (detailed analysis pending)")
-
-        # Look for payment terms
-        payment_terms = {}
-        if "$" in extracted_text or "payment" in text_lower or "fee" in text_lower:
-            payment_terms = {"note": "Payment terms present - detailed extraction pending"}
-
-        # Look for dates
-        key_dates = []
-        if any(word in text_lower for word in ["date", "term", "duration", "expire"]):
-            key_dates.append("Important dates identified in document")
-
+        # Placeholder for now
         analysis_result = {
-            "obligations": obligations,
-            "rights": rights,
-            "risks": risks,
-            "payment_terms": payment_terms,
-            "key_dates": key_dates,
-            "text_analyzed": len(extracted_text) > 0
+            "obligations": [],
+            "rights": [],
+            "risks": [],
+            "payment_terms": {},
+            "key_dates": []
         }
 
         analysis.analysis_result = analysis_result
@@ -265,7 +215,7 @@ def analyze_contract_task(
             analysis.id,
             event_type="progress",
             message="Contract analysis completed",
-            data={"step": "analysis", "progress": 75, "result": analysis_result}
+            data={"step": "analysis", "progress": 65, "result": analysis_result}
         )
 
         # ===== STEP 3: Format Output =====
@@ -274,14 +224,14 @@ def analyze_contract_task(
             analysis.id,
             event_type="progress",
             message="Formatting results",
-            data={"step": "formatting", "progress": 80}
+            data={"step": "formatting", "progress": 85}
         )
 
         # TODO: Import and use formatter from prototype
         # from prototype.src.formatter import format_analysis
         # formatted_output = format_analysis(preparation_result, analysis_result, output_language)
 
-        # Format output as JSON structure for frontend
+        # Create structured JSON output
         formatted_output = {
             "agreement_type": {
                 "title": "Agreement Type",
@@ -289,7 +239,7 @@ def analyze_contract_task(
             },
             "parties": {
                 "title": "Parties",
-                "content": ', '.join(preparation_result['parties']) if preparation_result['parties'] else 'Not specified'
+                "content": preparation_result['parties'] if preparation_result['parties'] else ["Not specified"]
             },
             "jurisdiction": {
                 "title": "Jurisdiction",
@@ -297,23 +247,23 @@ def analyze_contract_task(
             },
             "obligations": {
                 "title": "Obligations",
-                "content": f"Found {len(analysis_result['obligations'])} obligations in the contract."
+                "content": analysis_result['obligations'] if analysis_result['obligations'] else ["No obligations identified"]
             },
             "rights": {
                 "title": "Rights",
-                "content": f"Found {len(analysis_result['rights'])} rights in the contract."
+                "content": analysis_result['rights'] if analysis_result['rights'] else ["No rights identified"]
             },
             "risks": {
-                "title": "Risks",
-                "content": f"Found {len(analysis_result['risks'])} potential risks in the contract."
+                "title": "Risks & Concerns",
+                "content": analysis_result['risks'] if analysis_result['risks'] else ["No risks identified"]
             },
             "payment_terms": {
                 "title": "Payment Terms",
-                "content": str(analysis_result['payment_terms']) if analysis_result['payment_terms'] else 'No payment terms specified.'
+                "content": analysis_result.get('payment_terms', {})
             },
             "key_dates": {
                 "title": "Key Dates",
-                "content": ', '.join(str(date) for date in analysis_result['key_dates']) if analysis_result['key_dates'] else 'No key dates identified.'
+                "content": analysis_result.get('key_dates', [])
             }
         }
 
@@ -331,7 +281,7 @@ def analyze_contract_task(
             data={
                 "status": "succeeded",
                 "progress": 100,
-                "has_results": True
+                "formatted_output": formatted_output
             }
         )
 
