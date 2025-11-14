@@ -35,6 +35,7 @@ class AnalysisResponse(BaseModel):
     contract_id: str
     status: str
     output_language: str
+    formatted_output: Optional[str] = None
     created_at: datetime
     started_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None
@@ -97,6 +98,7 @@ def create_analysis(
         contract_id=str(analysis.contract_id),
         status=analysis.status,
         output_language=analysis.output_language,
+        formatted_output=analysis.formatted_output,
         created_at=analysis.created_at,
         started_at=analysis.started_at,
         completed_at=analysis.completed_at
@@ -129,6 +131,7 @@ def get_analysis(
         contract_id=str(analysis.contract_id),
         status=analysis.status,
         output_language=analysis.output_language,
+        formatted_output=analysis.formatted_output,
         created_at=analysis.created_at,
         started_at=analysis.started_at,
         completed_at=analysis.completed_at
@@ -194,7 +197,7 @@ async def stream_analysis_events(
 
             # Check if analysis is complete
             db.refresh(analysis)
-            if analysis.status in ["completed", "failed"]:
+            if analysis.status in ["succeeded", "failed"]:
                 # Send final status event
                 final_event = {
                     "type": "status_change",
