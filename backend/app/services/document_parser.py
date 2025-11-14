@@ -93,6 +93,14 @@ def extract_text(file_path: str) -> Dict[str, Any]:
     Returns:
         dict with extracted text and metadata
     """
+    # Check if file exists
+    path = Path(file_path)
+    if not path.exists():
+        raise ValueError(f"File not found: {file_path}")
+
+    if not path.is_file():
+        raise ValueError(f"Path is not a file: {file_path}")
+
     file_path_lower = file_path.lower()
 
     if file_path_lower.endswith('.pdf'):
