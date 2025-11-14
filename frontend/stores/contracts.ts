@@ -9,11 +9,15 @@ import { useAuthStore } from './auth'
 
 export interface Contract {
   id: string
+  user_id: string
   filename: string
   file_size: number
+  file_path: string
   mime_type: string
-  status: 'pending' | 'processed' | 'failed'
-  language: string | null
+  extracted_text: string | null
+  page_count: number | null
+  detected_language: string | null
+  jurisdiction: string | null
   uploaded_at: string
   updated_at: string
 }
@@ -22,7 +26,7 @@ export interface ContractListResponse {
   contracts: Contract[]
   total: number
   page: number
-  per_page: number
+  page_size: number
 }
 
 export interface UploadResponse {
@@ -118,7 +122,7 @@ export const useContractsStore = defineStore('contracts', () => {
         },
         query: {
           page,
-          per_page: perPage.value,
+          page_size: perPage.value,
         },
       })
 
