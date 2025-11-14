@@ -49,10 +49,49 @@ def create_contract():
     """Create a test contract in the database"""
     print_step(1, "Creating test contract...")
 
-    # For now, we'll just use a UUID since the contracts endpoint might not exist
-    contract_id = str(uuid.uuid4())
-    print_success(f"Using contract ID: {contract_id}")
-    return contract_id
+    # Create contract directly in database using SQLAlchemy
+    try:
+        # Import inside function to avoid issues if modules aren't available
+        import sys
+        import os
+        sys.path.insert(0, '/app')
+
+        from app.database import SessionLocal
+        from app.models import Contract
+        from datetime import datetime
+
+        db = SessionLocal()
+
+        contract = Contract(
+            id=uuid.uuid4(),
+            user_id=uuid.uuid4(),
+            filename="test-contract.pdf",
+            file_path="/tmp/test-contract.pdf",
+            file_size=102400,
+            mime_type="application/pdf",
+            extracted_text="This is a test contract for bug fix verification.",
+            detected_language="english",
+            jurisdiction="Test Jurisdiction",
+            uploaded_at=datetime.utcnow()
+        )
+
+        db.add(contract)
+        db.commit()
+        db.refresh(contract)
+
+        contract_id = str(contract.id)
+        db.close()
+
+        print_success(f"Contract created in database: {contract_id}")
+        return contract_id
+
+    except Exception as e:
+        print_error(f"Failed to create contract: {e}")
+        # Fallback: just use a random UUID and expect failure
+        # This helps diagnose if the database connection is the issue
+        contract_id = str(uuid.uuid4())
+        print(f"   Using random UUID as fallback: {contract_id}")
+        return contract_id
 
 def create_analysis(contract_id):
     """Create an analysis"""
