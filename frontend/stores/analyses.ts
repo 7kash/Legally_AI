@@ -99,11 +99,13 @@ export const useAnalysesStore = defineStore('analyses', () => {
 
         // Update current analysis status based on event
         if (currentAnalysis.value) {
-          if (data.kind === 'status_update' && data.payload.status) {
+          if (data.kind === 'status_change' && data.payload.status) {
             currentAnalysis.value.status = data.payload.status
-          } else if (data.kind === 'succeeded' || data.kind === 'failed') {
-            // Fetch full analysis to get final results
-            fetchAnalysis(analysisId)
+
+            // Fetch full analysis when status changes to succeeded or failed
+            if (data.payload.status === 'succeeded' || data.payload.status === 'failed') {
+              fetchAnalysis(analysisId)
+            }
           }
         }
       } catch (err) {

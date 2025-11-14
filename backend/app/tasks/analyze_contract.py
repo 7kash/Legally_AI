@@ -19,7 +19,9 @@ logger = logging.getLogger(__name__)
 from ..celery_app import celery_app
 from ..database import SessionLocal
 from ..models import Contract, Analysis, AnalysisEvent
-from ..services.document_parser import extract_text_from_document, validate_document_exists
+from ..services.document_parser import extract_text
+from ..config import settings
+from pathlib import Path
 
 
 class DatabaseTask(Task):
@@ -109,42 +111,41 @@ def analyze_contract_task(
         )
 
         # ===== STEP 0: Text Extraction (if needed) =====
-        if not contract.extracted_text or len(contract.extracted_text.strip()) == 0:
+        if not contract.extracted_text:
             create_event(
                 db,
                 analysis.id,
                 event_type="progress",
                 message="Extracting text from document",
-                data={"step": "extraction", "progress": 0}
+                data={"step": "extraction", "progress": 10}
             )
 
-            # Check if file exists
-            if not validate_document_exists(contract.file_path):
-                raise FileNotFoundError(
-                    f"Document file not found at: {contract.file_path}. "
-                    "Please ensure the file was uploaded correctly and the uploads directory is properly mounted."
-                )
-
             try:
-                # Extract text from document
-                extracted_text, char_count = extract_text_from_document(contract.file_path)
+                # Build full file path
+                file_path = Path(settings.UPLOAD_DIR) / contract.file_path
+
+                # Extract text using document parser
+                extraction_result = extract_text(str(file_path))
 
                 # Update contract with extracted text
-                contract.extracted_text = extracted_text
+                contract.extracted_text = extraction_result['text']
+                if 'page_count' in extraction_result:
+                    contract.page_count = extraction_result['page_count']
+                elif 'paragraph_count' in extraction_result:
+                    contract.page_count = extraction_result['paragraph_count'] // 20  # Rough estimate
+
                 db.commit()
 
                 create_event(
                     db,
                     analysis.id,
                     event_type="progress",
-                    message=f"Extracted {char_count} characters from document",
-                    data={"step": "extraction", "progress": 20, "char_count": char_count}
+                    message=f"Extracted {len(extraction_result['text'])} characters from document",
+                    data={"step": "extraction", "progress": 20}
                 )
             except Exception as e:
                 logger.error(f"Text extraction failed: {e}")
-                # Continue with empty text rather than failing completely
-                contract.extracted_text = ""
-                db.commit()
+                # Log error but continue with empty text
                 create_event(
                     db,
                     analysis.id,
@@ -152,6 +153,8 @@ def analyze_contract_task(
                     message=f"Warning: Text extraction failed: {str(e)}",
                     data={"step": "extraction", "progress": 20, "error": str(e)}
                 )
+                contract.extracted_text = ""
+                db.commit()
 
         # ===== STEP 1: Document Preparation =====
         create_event(
@@ -174,6 +177,7 @@ def analyze_contract_task(
             "negotiability": "medium"
         }
 
+        # Store directly as dict (JSON column)
         analysis.preparation_result = preparation_result
         db.commit()
 
@@ -207,6 +211,7 @@ def analyze_contract_task(
             "key_dates": []
         }
 
+        # Store directly as dict (JSON column)
         analysis.analysis_result = analysis_result
         db.commit()
 
@@ -267,6 +272,7 @@ def analyze_contract_task(
             }
         }
 
+        # Store directly as dict (JSON column)
         analysis.formatted_output = formatted_output
         analysis.status = "succeeded"
         analysis.completed_at = datetime.utcnow()
