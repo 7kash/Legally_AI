@@ -223,6 +223,7 @@ definePageMeta({
 })
 
 const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
 
 // Form state
