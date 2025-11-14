@@ -93,12 +93,20 @@ def create_analysis(
         output_language=data.output_language
     )
 
+    # Handle formatted_output conversion (TEXT to JSON)
+    formatted_output = analysis.formatted_output
+    if formatted_output and isinstance(formatted_output, str):
+        try:
+            formatted_output = json.loads(formatted_output)
+        except json.JSONDecodeError:
+            formatted_output = None
+
     return AnalysisResponse(
         id=str(analysis.id),
         contract_id=str(analysis.contract_id),
         status=analysis.status,
         output_language=analysis.output_language,
-        formatted_output=analysis.formatted_output,
+        formatted_output=formatted_output,
         created_at=analysis.created_at,
         started_at=analysis.started_at,
         completed_at=analysis.completed_at
@@ -126,12 +134,20 @@ def get_analysis(
             detail=f"Analysis {analysis_id} not found"
         )
 
+    # Handle formatted_output conversion (TEXT to JSON)
+    formatted_output = analysis.formatted_output
+    if formatted_output and isinstance(formatted_output, str):
+        try:
+            formatted_output = json.loads(formatted_output)
+        except json.JSONDecodeError:
+            formatted_output = None
+
     return AnalysisResponse(
         id=str(analysis.id),
         contract_id=str(analysis.contract_id),
         status=analysis.status,
         output_language=analysis.output_language,
-        formatted_output=analysis.formatted_output,
+        formatted_output=formatted_output,
         created_at=analysis.created_at,
         started_at=analysis.started_at,
         completed_at=analysis.completed_at
