@@ -202,7 +202,7 @@ def analyze_contract_task(
 """
 
         analysis.formatted_output = formatted_output
-        analysis.status = "completed"
+        analysis.status = "succeeded"
         analysis.completed_at = datetime.utcnow()
         db.commit()
 
@@ -213,7 +213,7 @@ def analyze_contract_task(
             event_type="status_change",
             message="Analysis completed successfully",
             data={
-                "status": "completed",
+                "status": "succeeded",
                 "progress": 100,
                 "formatted_output": formatted_output
             }
@@ -221,7 +221,7 @@ def analyze_contract_task(
 
         return {
             "analysis_id": str(analysis.id),
-            "status": "completed",
+            "status": "succeeded",
             "preparation_result": preparation_result,
             "analysis_result": analysis_result
         }
@@ -267,7 +267,7 @@ def cleanup_old_analyses():
 
         deleted_count = db.query(Analysis).filter(
             Analysis.created_at < cutoff_date,
-            Analysis.status.in_(["completed", "failed"])
+            Analysis.status.in_(["succeeded", "failed"])
         ).delete()
 
         db.commit()

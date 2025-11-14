@@ -13,7 +13,7 @@ class Analysis(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     contract_id = Column(UUID(as_uuid=True), ForeignKey("contracts.id", ondelete="CASCADE"), nullable=False, index=True)
 
-    # Status: queued, running, completed, failed
+    # Status: queued, running, succeeded, failed
     status = Column(String(50), nullable=False, default="queued", index=True)
 
     # Output language
