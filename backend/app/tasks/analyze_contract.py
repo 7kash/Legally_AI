@@ -13,7 +13,6 @@ import uuid
 from datetime import datetime
 import traceback
 import logging
-import json
 
 logger = logging.getLogger(__name__)
 
@@ -178,8 +177,8 @@ def analyze_contract_task(
             "negotiability": "medium"
         }
 
-        # Store as JSON string
-        analysis.preparation_result = json.dumps(preparation_result)
+        # Store directly as dict (JSON column)
+        analysis.preparation_result = preparation_result
         db.commit()
 
         create_event(
@@ -212,8 +211,8 @@ def analyze_contract_task(
             "key_dates": []
         }
 
-        # Store as JSON string
-        analysis.analysis_result = json.dumps(analysis_result)
+        # Store directly as dict (JSON column)
+        analysis.analysis_result = analysis_result
         db.commit()
 
         create_event(
@@ -273,8 +272,8 @@ def analyze_contract_task(
             }
         }
 
-        # Store as JSON string
-        analysis.formatted_output = json.dumps(formatted_output)
+        # Store directly as dict (JSON column)
+        analysis.formatted_output = formatted_output
         analysis.status = "succeeded"
         analysis.completed_at = datetime.utcnow()
         db.commit()

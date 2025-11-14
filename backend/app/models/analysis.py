@@ -19,10 +19,10 @@ class Analysis(Base):
     # Output language
     output_language = Column(String(50), nullable=False, default="english")
 
-    # Results - stored as TEXT, converted to/from JSON in API layer
-    preparation_result = Column(Text, nullable=True)  # Step 1 results (JSON as text)
-    analysis_result = Column(Text, nullable=True)     # Step 2 results (JSON as text)
-    formatted_output = Column(Text, nullable=True)    # Final formatted output (JSON as text)
+    # Results - stored as JSON
+    preparation_result = Column(JSON, nullable=True)  # Step 1 results
+    analysis_result = Column(JSON, nullable=True)     # Step 2 results
+    formatted_output = Column(JSON, nullable=True)    # Final formatted output
 
     # Quality metrics
     quality_score = Column(Integer, nullable=True)
