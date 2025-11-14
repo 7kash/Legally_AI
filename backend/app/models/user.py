@@ -8,7 +8,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
 import uuid
 
-from ..db.base import Base
+from ..database import Base
 
 
 class User(Base):

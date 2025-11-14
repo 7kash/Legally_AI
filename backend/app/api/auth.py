@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 import uuid
 
-from ..db.base import get_db
+from ..database import get_db
 from ..models.user import User
 from ..schemas.user import UserCreate, UserLogin, UserResponse, TokenResponse
 from ..core.security import verify_password, get_password_hash, create_access_token

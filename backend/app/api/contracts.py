@@ -10,7 +10,7 @@ import uuid
 import aiofiles
 import os
 
-from ..db.base import get_db
+from ..database import get_db
 from ..models.user import User
 from ..models.contract import Contract
 from ..schemas.contract import ContractResponse, ContractList, ContractUpload

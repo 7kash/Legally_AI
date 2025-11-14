@@ -10,7 +10,7 @@ from sqlalchemy import func
 from datetime import datetime
 from typing import Optional
 
-from ..db.base import get_db
+from ..database import get_db
 from ..models.user import User
 from ..models.contract import Contract
 from ..models.analysis import Analysis
