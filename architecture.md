@@ -196,18 +196,22 @@ backend/
 │   │   ├── analysis.py
 │   │   └── ...
 │   ├── services/
-│   │   ├── llm_router.py       # Multi-provider LLM
-│   │   ├── parsers.py          # PDF/DOCX parsing
-│   │   ├── language.py         # Detection, translation
-│   │   ├── quality.py          # Confidence scoring
-│   │   ├── step1_preparation.py
-│   │   ├── step2_analysis.py
-│   │   ├── formatter.py
+│   │   ├── document_parser.py  # PDF/DOCX text extraction
+│   │   ├── llm_analysis/       # ✅ LLM analysis modules (INTEGRATED)
+│   │   │   ├── llm_router.py       # GROQ API client
+│   │   │   ├── step1_preparation.py # Document preparation
+│   │   │   ├── step2_analysis.py   # Contract analysis
+│   │   │   ├── language.py         # Language detection
+│   │   │   ├── parsers.py          # Document structure
+│   │   │   ├── quality.py          # Confidence scoring
+│   │   │   ├── constants.py        # Model settings, UI strings
+│   │   │   ├── formatter.py        # Output formatting
+│   │   │   └── prompts/            # LLM prompt templates
 │   │   ├── deadline_extractor.py
 │   │   ├── conflict_detector.py
 │   │   └── ...
 │   ├── tasks/
-│   │   └── analyze.py          # Celery tasks
+│   │   └── analyze_contract.py # ✅ Celery tasks with LLM integration
 │   ├── db/
 │   │   ├── base.py
 │   │   └── session.py
@@ -676,4 +680,4 @@ Stored in `analyses` table for analytics.
 
 ---
 
-**Last Updated**: 2025-11-06
+**Last Updated**: 2025-11-14
