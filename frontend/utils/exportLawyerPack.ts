@@ -16,9 +16,35 @@ interface LawyerPackOptions {
   analysisData?: any
 }
 
+// Helper function to load image as base64
+async function loadImageAsBase64(url: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.crossOrigin = 'anonymous'
+    img.onload = () => {
+      const canvas = document.createElement('canvas')
+      canvas.width = img.width
+      canvas.height = img.height
+      const ctx = canvas.getContext('2d')
+      ctx?.drawImage(img, 0, 0)
+      resolve(canvas.toDataURL('image/png'))
+    }
+    img.onerror = reject
+    img.src = url
+  })
+}
+
 export async function exportLawyerPackToPDF(options: LawyerPackOptions): Promise<void> {
   const { title, content, metadata, analysisData } = options
   const doc = new jsPDF()
+
+  // Load logo
+  let logoDataUrl: string | null = null
+  try {
+    logoDataUrl = await loadImageAsBase64('/logo.png')
+  } catch (error) {
+    console.warn('Failed to load logo for PDF:', error)
+  }
 
   let yPosition = 20
   const pageWidth = doc.internal.pageSize.getWidth()
@@ -54,10 +80,25 @@ export async function exportLawyerPackToPDF(options: LawyerPackOptions): Promise
   // COVER PAGE
   // ============================================
 
-  // Logo placeholder (centered)
-  doc.setFillColor(79, 70, 229) // primary-600
-  doc.rect(pageWidth / 2 - 15, yPosition, 30, 30, 'F')
-  yPosition += 40
+  // Logo (centered)
+  if (logoDataUrl) {
+    try {
+      const logoWidth = 30
+      const logoHeight = 30
+      doc.addImage(logoDataUrl, 'PNG', pageWidth / 2 - logoWidth / 2, yPosition, logoWidth, logoHeight)
+      yPosition += 40
+    } catch (error) {
+      // Fallback to colored rectangle if adding image fails
+      doc.setFillColor(79, 70, 229) // primary-600
+      doc.rect(pageWidth / 2 - 15, yPosition, 30, 30, 'F')
+      yPosition += 40
+    }
+  } else {
+    // Fallback to colored rectangle if logo didn't load
+    doc.setFillColor(79, 70, 229) // primary-600
+    doc.rect(pageWidth / 2 - 15, yPosition, 30, 30, 'F')
+    yPosition += 40
+  }
 
   // Title
   doc.setFontSize(24)
