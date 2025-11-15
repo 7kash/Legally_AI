@@ -146,11 +146,48 @@
 
             <!-- Actions -->
             <div class="flex flex-col gap-2">
+              <!-- View existing analysis if available -->
               <button
+                v-if="contract.latest_analysis_id"
                 type="button"
                 class="btn btn--primary btn-sm"
-                @click="viewAnalysis(contract.id)"
+                @click="viewExistingAnalysis(contract.latest_analysis_id)"
               >
+                <svg
+                  class="h-4 w-4 -ml-1 mr-1"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                  <path
+                    fill-rule="evenodd"
+                    d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+                View Results
+              </button>
+
+              <!-- Analyze again if no analysis exists -->
+              <button
+                v-else
+                type="button"
+                class="btn btn--primary btn-sm"
+                @click="analyzeContract(contract.id)"
+              >
+                <svg
+                  class="h-4 w-4 -ml-1 mr-1"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
                 Analyze Contract
               </button>
 
@@ -429,10 +466,26 @@ async function loadPage(page: number): Promise<void> {
   }
 }
 
-function viewAnalysis(contractId: string): void {
-  // Navigate to the first analysis for this contract
-  // In a real app, you'd fetch the analysis ID from the API
-  router.push(`/analysis/${contractId}`)
+function viewExistingAnalysis(analysisId: string): void {
+  // Navigate to existing analysis results (no re-analysis needed)
+  router.push(`/analysis/${analysisId}`)
+}
+
+async function analyzeContract(contractId: string): Promise<void> {
+  // Create new analysis for this contract
+  try {
+    const { success } = useNotifications()
+
+    // TODO: Call API to create new analysis
+    // For now, navigate to analysis page (it will handle creation)
+    router.push(`/analysis/${contractId}`)
+
+    success('Analysis started', 'Your contract is being analyzed...')
+  } catch (error) {
+    console.error('Failed to start analysis:', error)
+    const { error: showError } = useNotifications()
+    showError('Analysis failed', 'Please try again later.')
+  }
 }
 
 function confirmDelete(contractId: string, filename: string): void {

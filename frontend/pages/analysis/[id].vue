@@ -114,15 +114,36 @@
 
         <!-- Analysis Results -->
         <div v-else-if="analysesStore.hasResults" class="space-y-6">
-          <!-- Confidence Score -->
+          <!-- Screening Result Badge -->
+          <ScreeningBadge
+            v-if="screeningResult"
+            :variant="screeningResult"
+          />
+
+          <!-- Important Limits Disclaimer -->
+          <ImportantLimits />
+
+          <!-- Confidence Level -->
           <div
             v-if="analysesStore.currentAnalysis.confidence_score !== null"
             class="bg-white rounded-lg border border-gray-200 p-6"
           >
-            <h2 class="text-lg font-semibold text-gray-900 mb-3">
-              Confidence Score
-            </h2>
-            <div class="flex items-center gap-4">
+            <div class="flex items-center justify-between mb-3">
+              <h2 class="text-lg font-semibold text-gray-900">
+                Confidence Level
+              </h2>
+              <span
+                class="px-3 py-1 rounded-full text-sm font-semibold"
+                :class="{
+                  'bg-green-100 text-green-800': analysesStore.currentAnalysis.confidence_score >= 0.8,
+                  'bg-yellow-100 text-yellow-800': analysesStore.currentAnalysis.confidence_score >= 0.6 && analysesStore.currentAnalysis.confidence_score < 0.8,
+                  'bg-red-100 text-red-800': analysesStore.currentAnalysis.confidence_score < 0.6,
+                }"
+              >
+                {{ confidenceLevel }}
+              </span>
+            </div>
+            <div class="flex items-center gap-4 mb-3">
               <div class="flex-1 bg-gray-200 rounded-full h-3">
                 <div
                   class="h-3 rounded-full transition-all"
@@ -142,17 +163,141 @@
                 {{ Math.round(analysesStore.currentAnalysis.confidence_score * 100) }}%
               </span>
             </div>
+            <p v-if="confidenceReason" class="text-sm text-gray-600">
+              {{ confidenceReason }}
+            </p>
           </div>
 
-          <!-- Analysis Sections -->
-          <AnalysisSection
-            v-for="(section, key) in formattedOutput"
-            :key="key"
-            :title="formatSectionTitle(key)"
-            :content="section"
-            :section-key="key"
-            @feedback="handleFeedback"
-          />
+          <!-- About the Contract -->
+          <div v-if="formattedOutput.about" class="bg-white rounded-lg border border-gray-200 p-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">
+              About the Contract
+            </h2>
+            <div class="prose prose-sm max-w-none">
+              <p v-if="formattedOutput.about.description" class="text-gray-700 mb-4">
+                {{ formattedOutput.about.description }}
+              </p>
+
+              <!-- What you pay and when -->
+              <div v-if="formattedOutput.payment_terms" class="mb-4">
+                <h3 class="text-sm font-semibold text-gray-900 mb-2">
+                  What you pay and when:
+                </h3>
+                <ExpandableList
+                  :items="formatPaymentTerms(formattedOutput.payment_terms)"
+                  :initial-count="5"
+                >
+                  <template #item="{ item }">
+                    <p class="text-sm text-gray-700">{{ item }}</p>
+                  </template>
+                </ExpandableList>
+              </div>
+
+              <!-- What you agree to do -->
+              <div v-if="formattedOutput.obligations" class="mb-4">
+                <h3 class="text-sm font-semibold text-gray-900 mb-2">
+                  What you agree to do:
+                </h3>
+                <ExpandableList
+                  :items="formattedOutput.obligations"
+                  :initial-count="5"
+                >
+                  <template #item="{ item }">
+                    <div class="text-sm">
+                      <p class="font-semibold text-gray-900">{{ item.action }}</p>
+                      <p v-if="item.time_window" class="text-gray-600 mt-1">
+                        When: {{ item.time_window }}
+                      </p>
+                      <p v-if="item.consequence" class="text-red-600 mt-1">
+                        If not done: {{ item.consequence }}
+                      </p>
+                    </div>
+                  </template>
+                </ExpandableList>
+              </div>
+            </div>
+          </div>
+
+          <!-- Suggestions -->
+          <div v-if="formattedOutput.risks || formattedOutput.rights" class="bg-white rounded-lg border border-gray-200 p-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">
+              Suggestions
+            </h2>
+
+            <!-- Check these terms (Risks) -->
+            <div v-if="formattedOutput.risks" class="mb-6">
+              <h3 class="text-sm font-semibold text-gray-900 mb-3">
+                Check these terms:
+              </h3>
+              <ExpandableList
+                :items="formattedOutput.risks"
+                :initial-count="5"
+              >
+                <template #item="{ item }">
+                  <div class="text-sm">
+                    <div class="flex items-center gap-2 mb-1">
+                      <span
+                        class="px-2 py-1 rounded text-xs font-semibold"
+                        :class="{
+                          'bg-red-100 text-red-800': item.level === 'high',
+                          'bg-yellow-100 text-yellow-800': item.level === 'medium',
+                          'bg-green-100 text-green-800': item.level === 'low',
+                        }"
+                      >
+                        {{ item.level?.toUpperCase() }}
+                      </span>
+                      <span v-if="item.category" class="text-gray-600">{{ item.category }}</span>
+                    </div>
+                    <p class="text-gray-900 mb-1">{{ item.description }}</p>
+                    <p v-if="item.recommendation" class="text-blue-700 text-sm">
+                      → {{ item.recommendation }}
+                    </p>
+                  </div>
+                </template>
+              </ExpandableList>
+            </div>
+
+            <!-- Your rights -->
+            <div v-if="formattedOutput.rights" class="mb-6">
+              <h3 class="text-sm font-semibold text-gray-900 mb-3">
+                Your rights:
+              </h3>
+              <ExpandableList
+                :items="formattedOutput.rights"
+                :initial-count="5"
+              >
+                <template #item="{ item }">
+                  <div class="text-sm">
+                    <p class="font-semibold text-gray-900">{{ item.right }}</p>
+                    <p v-if="item.how_to_exercise" class="text-gray-600 mt-1">
+                      How: {{ item.how_to_exercise }}
+                    </p>
+                    <p v-if="item.conditions" class="text-gray-600 mt-1">
+                      Conditions: {{ item.conditions }}
+                    </p>
+                  </div>
+                </template>
+              </ExpandableList>
+            </div>
+          </div>
+
+          <!-- All Key Terms (Collapsed by default) -->
+          <CollapsibleSection
+            title="All Key Terms"
+            subtitle="Click to view complete analysis"
+            :default-open="false"
+          >
+            <div class="space-y-4">
+              <AnalysisSection
+                v-for="(section, key) in formattedOutput"
+                :key="key"
+                :title="formatSectionTitle(key)"
+                :content="section"
+                :section-key="key"
+                @feedback="handleFeedback"
+              />
+            </div>
+          </CollapsibleSection>
 
           <!-- Actions -->
           <div class="flex flex-wrap gap-3">
@@ -227,16 +372,23 @@
           </div>
         </div>
       </template>
+
+      <!-- Export Modal -->
+      <ExportModal
+        v-model="showExportModal"
+        @export="handleExportFormat"
+      />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, computed } from 'vue'
+import { onMounted, onUnmounted, computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAnalysesStore } from '~/stores/analyses'
 import type { AnalysisEvent } from '~/stores/analyses'
 import { exportAnalysisToPDF } from '~/utils/exportToPDF'
+import { exportAnalysisToDOCX } from '~/utils/exportToDOCX'
 
 /**
  * Analysis Results Page
@@ -251,9 +403,42 @@ const route = useRoute()
 const analysesStore = useAnalysesStore()
 
 const analysisId = computed(() => route.params.id as string)
+const showExportModal = ref(false)
 
 const formattedOutput = computed(() => {
   return analysesStore.currentAnalysis?.formatted_output || {}
+})
+
+const screeningResult = computed(() => {
+  // Get screening result from analysis (could be in preparation_result or analysis_result)
+  const prepResult = analysesStore.currentAnalysis?.preparation_result
+  const analysisResult = analysesStore.currentAnalysis?.analysis_result
+
+  return (
+    prepResult?.screening_result ||
+    analysisResult?.screening_result ||
+    formattedOutput.value.screening_result ||
+    'preliminary_review'
+  )
+})
+
+const confidenceLevel = computed(() => {
+  const score = analysesStore.currentAnalysis?.confidence_score
+  if (!score) return 'Unknown'
+  if (score >= 0.8) return 'High'
+  if (score >= 0.6) return 'Medium'
+  return 'Low'
+})
+
+const confidenceReason = computed(() => {
+  const prepResult = analysesStore.currentAnalysis?.preparation_result
+  const analysisResult = analysesStore.currentAnalysis?.analysis_result
+
+  return (
+    prepResult?.confidence?.reason ||
+    analysisResult?.confidence?.reason ||
+    formattedOutput.value.confidence_reason
+  )
 })
 
 // Lifecycle
@@ -308,6 +493,43 @@ function formatSectionTitle(key: string): string {
     .join(' ')
 }
 
+function formatPaymentTerms(paymentTerms: any): string[] {
+  if (Array.isArray(paymentTerms)) {
+    return paymentTerms
+  }
+
+  if (typeof paymentTerms === 'object' && paymentTerms !== null) {
+    const terms: string[] = []
+
+    if (paymentTerms.main_amount) {
+      terms.push(`${paymentTerms.main_amount}${paymentTerms.frequency ? ` ${paymentTerms.frequency}` : ''}`)
+    }
+
+    if (paymentTerms.deposit_upfront) {
+      terms.push(`Deposit: ${paymentTerms.deposit_upfront}`)
+    }
+
+    if (paymentTerms.first_due_date) {
+      terms.push(`First payment due: ${paymentTerms.first_due_date}`)
+    }
+
+    if (paymentTerms.payment_method) {
+      terms.push(`Payment method: ${paymentTerms.payment_method}`)
+    }
+
+    // Add any other fields
+    for (const [key, value] of Object.entries(paymentTerms)) {
+      if (!['main_amount', 'deposit_upfront', 'first_due_date', 'payment_method', 'frequency'].includes(key)) {
+        terms.push(`${formatSectionTitle(key)}: ${value}`)
+      }
+    }
+
+    return terms
+  }
+
+  return [String(paymentTerms)]
+}
+
 async function handleFeedback(data: {
   sectionKey: string
   isCorrect: boolean
@@ -331,21 +553,51 @@ async function handleFeedback(data: {
   }
 }
 
-async function handleExport(): Promise<void> {
+function handleExport(): void {
+  showExportModal.value = true
+}
+
+async function handleExportFormat(format: 'pdf' | 'docx' | 'json'): Promise<void> {
   try {
     const { success } = useNotifications()
+    const metadata = {
+      contractName: `Analysis ${analysisId.value}`,
+      analysisDate: new Date(analysesStore.currentAnalysis?.created_at || '').toLocaleDateString(),
+      confidenceScore: analysesStore.currentAnalysis?.confidence_score || undefined,
+    }
 
-    await exportAnalysisToPDF({
-      title: 'Contract Analysis',
-      content: formattedOutput.value,
-      metadata: {
-        contractName: `Analysis ${analysisId.value}`,
-        analysisDate: new Date(analysesStore.currentAnalysis?.created_at || '').toLocaleDateString(),
-        confidenceScore: analysesStore.currentAnalysis?.confidence_score || undefined,
-      },
-    })
-
-    success('Export successful', 'Analysis results have been downloaded.')
+    if (format === 'pdf') {
+      await exportAnalysisToPDF({
+        title: 'Contract Analysis',
+        content: formattedOutput.value,
+        metadata,
+      })
+      success('PDF exported successfully', 'Your analysis has been downloaded as a PDF.')
+    } else if (format === 'docx') {
+      await exportAnalysisToDOCX({
+        title: 'Contract Analysis',
+        content: formattedOutput.value,
+        metadata,
+      })
+      success('DOCX exported successfully', 'Your analysis has been downloaded as a Word document.')
+    } else if (format === 'json') {
+      // Export as JSON
+      const data = {
+        analysisId: analysisId.value,
+        metadata,
+        analysis: analysesStore.currentAnalysis,
+      }
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `analysis_${analysisId.value}.json`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+      success('JSON exported successfully', 'Your analysis data has been downloaded.')
+    }
   } catch (error) {
     console.error('Failed to export analysis:', error)
     const { error: showError } = useNotifications()
