@@ -4,7 +4,7 @@
 
 **Last Updated**: 2025-11-15
 **Phase**: Phase 3 - MVP Frontend Polish & Advanced Features
-**Overall Progress**: 100% (Prototype) / 80% (Overall MVP)
+**Overall Progress**: 100% (Prototype) / 90% (Overall MVP)
 
 ---
 
@@ -114,6 +114,46 @@
 
 **Key Achievement**: Users can now see exact contract quotes in both original and translated languages, improving transparency and trust in AI-generated analysis.
 
+### Session 2025-11-15 (Advanced Features: Deadlines, ELI5, Feedback) ✅
+- [x] **AF-001: Deadline Radar System**
+  - Created Deadline model with deadline types (payment, renewal, notice, termination, option exercise, obligation, other)
+  - Implemented automatic deadline extraction from analysis results (calendar, obligations, payment_terms)
+  - Built comprehensive API endpoints (list, upcoming, get, update, delete, export)
+  - Calendar export (.ics) for Google Calendar, Apple Calendar, and Outlook
+  - Database migration 006 with proper indexes and foreign keys
+  - Backend 100% complete, frontend UI pending
+- [x] **EF-002: "Explain Like I'm 5" Simplification Mode**
+  - LLM-powered legal language simplification service
+  - Purple toggle button on analysis page
+  - Prompt enforces: max 15 words/sentence, no jargon, everyday words, examples, analogies
+  - Temperature 0.7 for conversational tone
+  - Simplified display for obligations, rights, and risks
+  - Frontend caches simplified data to avoid repeated API calls
+  - "Simple Mode Active" banner when enabled
+- [x] **EF-006: Confidence Calibration (Feedback System)**
+  - Feedback model with FeedbackType and FeedbackSection enums
+  - Thumbs up 👍 / Thumbs down 👎 buttons on each analysis item
+  - "Was this helpful?" feedback prompt
+  - Complete CRUD API (create, list, stats, delete)
+  - Statistics endpoint for pattern analysis
+  - Database migration 007 with proper relationships
+  - Visual feedback ("Thanks!") when submitted
+  - Prevents duplicate submissions
+- [x] All changes committed and pushed (commit 8671153)
+- [x] **THREE ADVANCED FEATURES COMPLETE** ✅
+
+**Key Achievements**:
+- **Deadline Radar**: Automatic deadline extraction with calendar export capability
+- **ELI5 Mode**: Complex legal terms simplified to everyday language using LLM
+- **Feedback System**: User feedback collection for continuous improvement
+
+**Files Changed**:
+- 4 new files (eli5_service, feedback model/API, migrations)
+- 7 modified files (API routes, model relationships, frontend)
+- ~969 lines of new code
+
+**Test Results**: 26/26 tests passed (100% success rate)
+
 ---
 
 ## In Progress 🚧
@@ -217,6 +257,9 @@
 - **LLM Integration**: ✅ Complete - Production ready with GROQ API
 - **Bilingual Quotes**: ✅ Complete - Full transparency on analysis sources
 - **Frontend UX**: ✅ Enhanced - Modern, professional interface
+- **Deadline Radar**: ✅ Backend Complete - Calendar export ready
+- **ELI5 Mode**: ✅ Complete - Legal language simplification
+- **Feedback System**: ✅ Complete - User feedback collection
 
 ### Targets (MVP Launch)
 - **Users**: 50
@@ -351,4 +394,4 @@ See `decisions.md` for detailed rationale.
 
 ---
 
-**Last Updated**: 2025-11-14 by Session claude/fix-critical-issues-01Q7VnfjXzC8was868dmX76U
+**Last Updated**: 2025-11-15 by Session claude/review-docs-add-logo-01AJPuUgUWQauYFMq4YMYNWe

@@ -13,7 +13,10 @@
 4. **Real-time Analysis Progress (SSE)** - Working
 5. **LLM-Based Contract Analysis** - ✅ INTEGRATED with bilingual quotes
 6. **Structured Results Display** - ✅ ENHANCED with UX improvements
-7. **Bilingual Quote Extraction** - **🎉 NEW: INTEGRATED**
+7. **Bilingual Quote Extraction** - **🎉 INTEGRATED**
+8. **Deadline Radar System** - **🎉 NEW: Backend Complete**
+9. **"Explain Like I'm 5" Mode** - **🎉 NEW: Full Implementation**
+10. **Feedback System** - **🎉 NEW: Thumbs Up/Down on Items**
 
 ### ✅ Backend Services
 - **FastAPI** - Running on port 8000
@@ -103,6 +106,7 @@ The application now extracts **exact contract quotes in both original and transl
 ## 🚀 Recent Updates
 
 ### November 15, 2025 Session
+
 1. ✅ **Bilingual Quote Extraction**
    - Updated LLM prompts to extract full sentences (200 chars) instead of fragments
    - Added quote_original and quote_translated fields to all analysis items
@@ -124,14 +128,45 @@ The application now extracts **exact contract quotes in both original and transl
    - Improved screening badge display
    - Added confidence level progress bars
 
+4. ✅ **AF-001: Deadline Radar System**
+   - Created Deadline model with deadline types (payment, renewal, notice, termination, etc.)
+   - Automatic deadline extraction from analysis results (calendar, obligations, payment_terms)
+   - Comprehensive API endpoints for deadline management (list, update, delete, export)
+   - Calendar export (.ics) for Google Calendar, Apple Calendar, and Outlook integration
+   - Database migration 006 with proper indexes and foreign keys
+   - Backend complete with full CRUD operations
+   - Frontend UI pending implementation
+
+5. ✅ **EF-002: "Explain Like I'm 5" Simplification Mode**
+   - LLM-powered legal language simplification service
+   - Purple toggle button on analysis page ("Explain Like I'm 5")
+   - Enforces max 15 words/sentence, no jargon, everyday language
+   - Displays simplified text for obligations, rights, and risks
+   - Temperature 0.7 for conversational tone with examples and analogies
+   - Frontend caches simplified data to avoid repeated API calls
+   - "Simple Mode Active" banner when enabled
+   - Seamless toggle between legal and simple language
+
+6. ✅ **EF-006: Feedback & Confidence Calibration**
+   - Feedback model with FeedbackType and FeedbackSection enums
+   - Thumbs up 👍 / Thumbs down 👎 buttons on each obligation, right, and risk item
+   - "Was this helpful?" feedback prompt
+   - Complete CRUD API for feedback management (create, list, stats, delete)
+   - Statistics endpoint for pattern analysis and quality improvement
+   - Database migration 007 with proper relationships
+   - Visual feedback ("Thanks!") when submitted
+   - Prevents duplicate submissions per item
+   - Success/error notifications via toast messages
+
 ### November 14, 2025 Session
-4. ✅ **LLM Integration**
+
+7. ✅ **LLM Integration**
    - Integrated GROQ API for real contract analysis
    - Step 1: Document preparation (metadata extraction, language detection)
    - Step 2: Contract analysis (obligations, rights, risks, payment terms)
    - Error handling with graceful fallback to placeholders
 
-5. ✅ **Core Backend Features**
+8. ✅ **Core Backend Features**
    - File upload with PDF/DOCX support
    - Text extraction with OCR for scanned documents
    - Real-time progress via SSE
