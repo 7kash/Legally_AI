@@ -34,6 +34,7 @@ class Contract(Base):
     # Relationships
     analyses = relationship("Analysis", back_populates="contract", cascade="all, delete-orphan")
     deadlines = relationship("Deadline", back_populates="contract", cascade="all, delete-orphan")
+    feedback = relationship("Feedback", back_populates="contract", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<Contract(id={self.id}, filename={self.filename})>"

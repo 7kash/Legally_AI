@@ -89,6 +89,41 @@
 
         <!-- Analysis Results -->
         <div v-else-if="analysesStore.hasResults" class="space-y-6">
+          <!-- ELI5 Mode Toggle -->
+          <div class="flex items-center justify-center mb-4">
+            <button
+              type="button"
+              class="inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all"
+              :class="{
+                'bg-purple-600 text-white hover:bg-purple-700': eli5Enabled,
+                'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50': !eli5Enabled
+              }"
+              :disabled="eli5Loading"
+              @click="toggleELI5Mode"
+            >
+              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              <span v-if="eli5Loading">Simplifying...</span>
+              <span v-else-if="eli5Enabled">Simple Mode (ON)</span>
+              <span v-else>Explain Like I'm 5</span>
+            </button>
+          </div>
+
+          <!-- ELI5 Info Banner -->
+          <div
+            v-if="eli5Enabled"
+            class="bg-purple-50 border border-purple-200 rounded-lg p-4 flex items-start gap-3"
+          >
+            <svg class="h-5 w-5 text-purple-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>
+              <p class="text-sm font-medium text-purple-900">Simple Mode Active</p>
+              <p class="text-sm text-purple-700">Legal terms are now explained in everyday language that's easy to understand.</p>
+            </div>
+          </div>
+
           <!-- 1. Important Limits Disclaimer -->
           <ImportantLimits />
 
@@ -172,18 +207,23 @@
                 :key="index"
                 class="border-l-4 border-blue-500 pl-4 py-3 bg-blue-50 rounded-r-lg"
               >
-                <p class="font-semibold text-gray-900">{{ item.action }}</p>
-                <div v-if="item.time_window || item.trigger" class="mt-2 space-y-1">
-                  <p v-if="item.trigger" class="text-sm text-gray-700">
-                    <span class="font-medium">When:</span> {{ item.trigger }}
+                <!-- Show simplified text in ELI5 mode -->
+                <p v-if="eli5Enabled && item.action_simple" class="text-gray-800 leading-relaxed">{{ item.action_simple }}</p>
+                <!-- Show normal text otherwise -->
+                <template v-else>
+                  <p class="font-semibold text-gray-900">{{ item.action }}</p>
+                  <div v-if="item.time_window || item.trigger" class="mt-2 space-y-1">
+                    <p v-if="item.trigger" class="text-sm text-gray-700">
+                      <span class="font-medium">When:</span> {{ item.trigger }}
+                    </p>
+                    <p v-if="item.time_window" class="text-sm text-gray-700">
+                      <span class="font-medium">Deadline:</span> {{ item.time_window }}
+                    </p>
+                  </div>
+                  <p v-if="item.consequence" class="mt-2 text-sm text-red-700 bg-red-50 p-2 rounded">
+                    <span class="font-medium">⚠️ If not done:</span> {{ item.consequence }}
                   </p>
-                  <p v-if="item.time_window" class="text-sm text-gray-700">
-                    <span class="font-medium">Deadline:</span> {{ item.time_window }}
-                  </p>
-                </div>
-                <p v-if="item.consequence" class="mt-2 text-sm text-red-700 bg-red-50 p-2 rounded">
-                  <span class="font-medium">⚠️ If not done:</span> {{ item.consequence }}
-                </p>
+                </template>
                 <button
                   v-if="item.quote_original || item.quote"
                   type="button"
@@ -218,6 +258,43 @@
                     <p class="text-gray-700 bg-blue-50 p-3 rounded border-l-2 border-blue-600">"{{ item.quote_translated }}"</p>
                   </div>
                 </div>
+
+                <!-- Feedback buttons -->
+                <div class="mt-3 pt-3 border-t border-blue-200 flex items-center gap-2">
+                  <span class="text-xs text-gray-600">Was this helpful?</span>
+                  <div class="flex gap-2">
+                    <button
+                      type="button"
+                      class="flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors"
+                      :class="{
+                        'bg-green-100 text-green-700': feedbackSubmitted['obligations-' + index],
+                        'bg-gray-100 text-gray-600 hover:bg-green-50 hover:text-green-600': !feedbackSubmitted['obligations-' + index]
+                      }"
+                      :disabled="feedbackSubmitted['obligations-' + index] || feedbackLoading['obligations-' + index]"
+                      @click="submitFeedback('obligations', index, true)"
+                    >
+                      <svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.2-6A2 2 0 0015.56 8H12V4a2 2 0 00-2-2 1 1 0 00-1 1v.667a4 4 0 01-.8 2.4L6.8 7.933a4 4 0 00-.8 2.4z" />
+                      </svg>
+                      {{ feedbackSubmitted['obligations-' + index] ? 'Thanks!' : 'Yes' }}
+                    </button>
+                    <button
+                      type="button"
+                      class="flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors"
+                      :class="{
+                        'bg-red-100 text-red-700': feedbackSubmitted['obligations-' + index],
+                        'bg-gray-100 text-gray-600 hover:bg-red-50 hover:text-red-600': !feedbackSubmitted['obligations-' + index]
+                      }"
+                      :disabled="feedbackSubmitted['obligations-' + index] || feedbackLoading['obligations-' + index]"
+                      @click="submitFeedback('obligations', index, false)"
+                    >
+                      <svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M18 9.5a1.5 1.5 0 11-3 0v-6a1.5 1.5 0 013 0v6zM14 9.667v-5.43a2 2 0 00-1.105-1.79l-.05-.025A4 4 0 0011.055 2H5.64a2 2 0 00-1.962 1.608l-1.2 6A2 2 0 004.44 12H8v4a2 2 0 002 2 1 1 0 001-1v-.667a4 4 0 01.8-2.4l1.4-1.866a4 4 0 00.8-2.4z" />
+                      </svg>
+                      No
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </WidgetCard>
@@ -230,13 +307,18 @@
                 :key="index"
                 class="border-l-4 border-green-500 pl-4 py-3 bg-green-50 rounded-r-lg"
               >
-                <p class="font-semibold text-gray-900">{{ item.right }}</p>
-                <p v-if="item.how_to_exercise" class="mt-2 text-sm text-gray-700">
-                  <span class="font-medium">How to exercise:</span> {{ item.how_to_exercise }}
-                </p>
-                <p v-if="item.conditions" class="mt-1 text-sm text-gray-600">
-                  <span class="font-medium">Conditions:</span> {{ item.conditions }}
-                </p>
+                <!-- Show simplified text in ELI5 mode -->
+                <p v-if="eli5Enabled && item.right_simple" class="text-gray-800 leading-relaxed">{{ item.right_simple }}</p>
+                <!-- Show normal text otherwise -->
+                <template v-else>
+                  <p class="font-semibold text-gray-900">{{ item.right }}</p>
+                  <p v-if="item.how_to_exercise" class="mt-2 text-sm text-gray-700">
+                    <span class="font-medium">How to exercise:</span> {{ item.how_to_exercise }}
+                  </p>
+                  <p v-if="item.conditions" class="mt-1 text-sm text-gray-600">
+                    <span class="font-medium">Conditions:</span> {{ item.conditions }}
+                  </p>
+                </template>
                 <button
                   v-if="item.quote_original || item.quote"
                   type="button"
@@ -332,10 +414,15 @@
                   </span>
                   <span v-if="item.category" class="text-xs text-gray-600 uppercase tracking-wide">{{ item.category }}</span>
                 </div>
-                <p class="font-semibold text-gray-900">{{ item.description }}</p>
-                <p v-if="item.recommendation" class="mt-2 text-sm text-blue-700 bg-blue-50 p-2 rounded">
-                  <span class="font-medium">💡 Recommendation:</span> {{ item.recommendation }}
-                </p>
+                <!-- Show simplified text in ELI5 mode -->
+                <p v-if="eli5Enabled && item.description_simple" class="text-gray-800 leading-relaxed">{{ item.description_simple }}</p>
+                <!-- Show normal text otherwise -->
+                <template v-else>
+                  <p class="font-semibold text-gray-900">{{ item.description }}</p>
+                  <p v-if="item.recommendation" class="mt-2 text-sm text-blue-700 bg-blue-50 p-2 rounded">
+                    <span class="font-medium">💡 Recommendation:</span> {{ item.recommendation }}
+                  </p>
+                </template>
                 <button
                   v-if="item.quote_original || item.quote"
                   type="button"
@@ -511,6 +598,16 @@ const analysisId = computed(() => route.params.id as string)
 const showExportModal = ref(false)
 const expandedQuotes = ref<Record<string, boolean>>({})
 
+// ELI5 Mode state
+const eli5Enabled = ref(false)
+const eli5Data = ref<any>(null)
+const eli5Loading = ref(false)
+const eli5Error = ref<string | null>(null)
+
+// Feedback state
+const feedbackSubmitted = ref<Record<string, boolean>>({})
+const feedbackLoading = ref<Record<string, boolean>>({})
+
 const formattedOutput = computed(() => {
   return analysesStore.currentAnalysis?.formatted_output || {}
 })
@@ -594,7 +691,17 @@ function getJurisdiction(): string {
 }
 
 function getObligations(): any[] {
-  const data = formattedOutput.value.obligations
+  const currentData = getCurrentData()
+
+  // Check for simplified data first
+  if (eli5Enabled.value && currentData.obligations_simplified) {
+    return Array.isArray(currentData.obligations_simplified)
+      ? currentData.obligations_simplified
+      : []
+  }
+
+  // Fall back to normal obligations
+  const data = currentData.obligations
   if (!data) return []
   if (Array.isArray(data)) return data
   if (data.content && Array.isArray(data.content)) return data.content
@@ -602,7 +709,17 @@ function getObligations(): any[] {
 }
 
 function getRights(): any[] {
-  const data = formattedOutput.value.rights
+  const currentData = getCurrentData()
+
+  // Check for simplified data first
+  if (eli5Enabled.value && currentData.rights_simplified) {
+    return Array.isArray(currentData.rights_simplified)
+      ? currentData.rights_simplified
+      : []
+  }
+
+  // Fall back to normal rights
+  const data = currentData.rights
   if (!data) return []
   if (Array.isArray(data)) return data
   if (data.content && Array.isArray(data.content)) return data.content
@@ -630,7 +747,17 @@ function getPaymentTerms(): string[] {
 }
 
 function getRisks(): any[] {
-  const data = formattedOutput.value.risks
+  const currentData = getCurrentData()
+
+  // Check for simplified data first
+  if (eli5Enabled.value && currentData.risks_simplified) {
+    return Array.isArray(currentData.risks_simplified)
+      ? currentData.risks_simplified
+      : []
+  }
+
+  // Fall back to normal risks
+  const data = currentData.risks
   if (!data) return []
   if (Array.isArray(data)) return data
   if (data.content && Array.isArray(data.content)) return data.content
@@ -655,6 +782,122 @@ function getMitigations(): any[] {
 
 function toggleQuote(key: string): void {
   expandedQuotes.value[key] = !expandedQuotes.value[key]
+}
+
+// ELI5 Mode functions
+async function toggleELI5Mode(): Promise<void> {
+  if (eli5Enabled.value) {
+    // Turn off ELI5 mode
+    eli5Enabled.value = false
+    return
+  }
+
+  // Turn on ELI5 mode
+  if (eli5Data.value) {
+    // Already have simplified data, just enable it
+    eli5Enabled.value = true
+    return
+  }
+
+  // Fetch simplified data
+  try {
+    eli5Loading.value = true
+    eli5Error.value = null
+
+    const config = useRuntimeConfig()
+    const response = await fetch(
+      `${config.public.apiBaseUrl}/api/v1/analyses/${analysisId.value}/simplify`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      }
+    )
+
+    if (!response.ok) {
+      throw new Error('Failed to simplify analysis')
+    }
+
+    const data = await response.json()
+    eli5Data.value = data.simplified_analysis
+    eli5Enabled.value = true
+  } catch (error: any) {
+    console.error('Failed to simplify analysis:', error)
+    eli5Error.value = error.message || 'Failed to simplify analysis'
+    const { error: showError } = useNotifications()
+    showError('Simplification failed', 'Please try again later.')
+  } finally {
+    eli5Loading.value = false
+  }
+}
+
+// Get data based on ELI5 mode
+function getCurrentData(): any {
+  if (eli5Enabled.value && eli5Data.value) {
+    return eli5Data.value
+  }
+  return formattedOutput.value
+}
+
+// Feedback functions
+async function submitFeedback(
+  section: string,
+  itemIndex: number,
+  isAccurate: boolean
+): Promise<void> {
+  const feedbackKey = `${section}-${itemIndex}`
+
+  // Prevent duplicate submissions
+  if (feedbackSubmitted.value[feedbackKey]) {
+    return
+  }
+
+  const contractId = analysesStore.currentAnalysis?.contract_id
+  if (!contractId) {
+    const { error } = useNotifications()
+    error('Cannot submit feedback', 'Analysis data is missing')
+    return
+  }
+
+  try {
+    feedbackLoading.value[feedbackKey] = true
+
+    const config = useRuntimeConfig()
+    const response = await fetch(
+      `${config.public.apiBaseUrl}/api/v1/feedback`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          analysis_id: analysisId.value,
+          contract_id: contractId,
+          feedback_type: 'accuracy',
+          section: section,
+          item_index: itemIndex,
+          is_accurate: isAccurate,
+        }),
+      }
+    )
+
+    if (!response.ok) {
+      throw new Error('Failed to submit feedback')
+    }
+
+    feedbackSubmitted.value[feedbackKey] = true
+    const { success } = useNotifications()
+    success('Thank you!', 'Your feedback helps us improve our analysis.')
+  } catch (error: any) {
+    console.error('Failed to submit feedback:', error)
+    const { error: showError } = useNotifications()
+    showError('Feedback failed', 'Please try again later.')
+  } finally {
+    feedbackLoading.value[feedbackKey] = false
+  }
 }
 
 // Lifecycle

@@ -42,6 +42,7 @@ class Analysis(Base):
     contract = relationship("Contract", back_populates="analyses")
     events = relationship("AnalysisEvent", back_populates="analysis", cascade="all, delete-orphan", order_by="AnalysisEvent.created_at")
     deadlines = relationship("Deadline", back_populates="analysis", cascade="all, delete-orphan")
+    feedback = relationship("Feedback", back_populates="analysis", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<Analysis(id={self.id}, status={self.status})>"

@@ -43,6 +43,7 @@ class User(Base):
     contracts = relationship("Contract", backref="user", cascade="all, delete-orphan")
     analyses = relationship("Analysis", backref="user", cascade="all, delete-orphan")
     deadlines = relationship("Deadline", back_populates="user", cascade="all, delete-orphan")
+    feedback = relationship("Feedback", back_populates="user", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<User(id={self.id}, email={self.email}, tier={self.tier})>"
