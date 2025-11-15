@@ -194,26 +194,43 @@
               </div>
 
               <!-- What you agree to do -->
-              <div v-if="formattedOutput.obligations?.content && formattedOutput.obligations.content.length > 0" class="mb-4">
+              <div v-if="getObligations().length > 0" class="mb-4">
                 <h3 class="text-sm font-semibold text-gray-900 mb-2">
                   What you agree to do:
                 </h3>
-                <ExpandableList
-                  :items="formattedOutput.obligations.content"
-                  :initial-count="5"
-                >
-                  <template #item="{ item }">
-                    <div class="text-sm">
-                      <p class="font-semibold text-gray-900">{{ item.action }}</p>
-                      <p v-if="item.time_window" class="text-gray-600 mt-1">
-                        When: {{ item.time_window }}
-                      </p>
-                      <p v-if="item.consequence" class="text-red-600 mt-1">
-                        If not done: {{ item.consequence }}
-                      </p>
+                <div class="space-y-3">
+                  <div
+                    v-for="(item, index) in getObligations().slice(0, 5)"
+                    :key="index"
+                    class="border-l-2 border-blue-500 pl-3 py-2"
+                  >
+                    <p class="font-semibold text-gray-900 text-sm">{{ item.action }}</p>
+                    <p v-if="item.time_window" class="text-gray-600 mt-1 text-sm">
+                      <span class="font-medium">When:</span> {{ item.time_window }}
+                    </p>
+                    <p v-if="item.consequence" class="text-red-600 mt-1 text-sm">
+                      <span class="font-medium">If not done:</span> {{ item.consequence }}
+                    </p>
+                    <button
+                      v-if="item.quote"
+                      type="button"
+                      class="mt-2 text-xs text-primary-600 hover:text-primary-700 font-medium"
+                      @click="toggleQuote('obligation-' + index)"
+                    >
+                      {{ expandedQuotes['obligation-' + index] ? '▼ Hide source' : '▶ Tell me more about it' }}
+                    </button>
+                    <div
+                      v-if="expandedQuotes['obligation-' + index] && item.quote"
+                      class="mt-2 bg-gray-50 border border-gray-200 rounded p-2 text-xs text-gray-700"
+                    >
+                      <p class="font-medium text-gray-900 mb-1">From the contract:</p>
+                      <p class="italic">"{{ item.quote }}"</p>
                     </div>
-                  </template>
-                </ExpandableList>
+                  </div>
+                  <p v-if="getObligations().length > 5" class="text-sm text-gray-500 italic">
+                    +{{ getObligations().length - 5 }} more in "All Key Terms" below
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -225,125 +242,172 @@
             </h2>
 
             <!-- Check these terms (Risks) -->
-            <div v-if="formattedOutput.risks?.content && formattedOutput.risks.content.length > 0" class="mb-6">
+            <div v-if="getRisks().length > 0" class="mb-6">
               <h3 class="text-sm font-semibold text-gray-900 mb-3">
                 Check these terms:
               </h3>
-              <ExpandableList
-                :items="formattedOutput.risks.content"
-                :initial-count="5"
-              >
-                <template #item="{ item }">
-                  <div class="text-sm">
-                    <div class="flex items-center gap-2 mb-1">
-                      <span
-                        class="px-2 py-1 rounded text-xs font-semibold"
-                        :class="{
-                          'bg-red-100 text-red-800': item.level === 'high',
-                          'bg-yellow-100 text-yellow-800': item.level === 'medium',
-                          'bg-green-100 text-green-800': item.level === 'low',
-                        }"
-                      >
-                        {{ item.level?.toUpperCase() }}
-                      </span>
-                      <span v-if="item.category" class="text-gray-600">{{ item.category }}</span>
-                    </div>
-                    <p class="text-gray-900 mb-1">{{ item.description }}</p>
-                    <p v-if="item.recommendation" class="text-blue-700 text-sm">
-                      → {{ item.recommendation }}
-                    </p>
+              <div class="space-y-3">
+                <div
+                  v-for="(item, index) in getRisks().slice(0, 5)"
+                  :key="index"
+                  class="border-l-2 pl-3 py-2"
+                  :class="{
+                    'border-red-500': item.level === 'high',
+                    'border-yellow-500': item.level === 'medium',
+                    'border-green-500': item.level === 'low',
+                  }"
+                >
+                  <div class="flex items-center gap-2 mb-1">
+                    <span
+                      class="px-2 py-1 rounded text-xs font-semibold"
+                      :class="{
+                        'bg-red-100 text-red-800': item.level === 'high',
+                        'bg-yellow-100 text-yellow-800': item.level === 'medium',
+                        'bg-green-100 text-green-800': item.level === 'low',
+                      }"
+                    >
+                      {{ item.level?.toUpperCase() }}
+                    </span>
+                    <span v-if="item.category" class="text-gray-600 text-xs">{{ item.category }}</span>
                   </div>
-                </template>
-              </ExpandableList>
+                  <p class="text-gray-900 mb-1 text-sm">{{ item.description }}</p>
+                  <p v-if="item.recommendation" class="text-blue-700 text-sm">
+                    → {{ item.recommendation }}
+                  </p>
+                  <button
+                    v-if="item.quote"
+                    type="button"
+                    class="mt-2 text-xs text-primary-600 hover:text-primary-700 font-medium"
+                    @click="toggleQuote('risk-' + index)"
+                  >
+                    {{ expandedQuotes['risk-' + index] ? '▼ Hide source' : '▶ Tell me more about it' }}
+                  </button>
+                  <div
+                    v-if="expandedQuotes['risk-' + index] && item.quote"
+                    class="mt-2 bg-gray-50 border border-gray-200 rounded p-2 text-xs text-gray-700"
+                  >
+                    <p class="font-medium text-gray-900 mb-1">From the contract:</p>
+                    <p class="italic">"{{ item.quote }}"</p>
+                  </div>
+                </div>
+                <p v-if="getRisks().length > 5" class="text-sm text-gray-500 italic">
+                  +{{ getRisks().length - 5 }} more in "All Key Terms" below
+                </p>
+              </div>
             </div>
 
             <!-- Your rights -->
-            <div v-if="formattedOutput.rights?.content && formattedOutput.rights.content.length > 0" class="mb-6">
+            <div v-if="getRights().length > 0" class="mb-6">
               <h3 class="text-sm font-semibold text-gray-900 mb-3">
                 Your rights:
               </h3>
-              <ExpandableList
-                :items="formattedOutput.rights.content"
-                :initial-count="5"
-              >
-                <template #item="{ item }">
-                  <div class="text-sm">
-                    <p class="font-semibold text-gray-900">{{ item.right }}</p>
-                    <p v-if="item.how_to_exercise" class="text-gray-600 mt-1">
-                      How: {{ item.how_to_exercise }}
-                    </p>
-                    <p v-if="item.conditions" class="text-gray-600 mt-1">
-                      Conditions: {{ item.conditions }}
-                    </p>
+              <div class="space-y-3">
+                <div
+                  v-for="(item, index) in getRights().slice(0, 5)"
+                  :key="index"
+                  class="border-l-2 border-green-500 pl-3 py-2"
+                >
+                  <p class="font-semibold text-gray-900 text-sm">{{ item.right }}</p>
+                  <p v-if="item.how_to_exercise" class="text-gray-600 mt-1 text-sm">
+                    <span class="font-medium">How:</span> {{ item.how_to_exercise }}
+                  </p>
+                  <p v-if="item.conditions" class="text-gray-600 mt-1 text-sm">
+                    <span class="font-medium">Conditions:</span> {{ item.conditions }}
+                  </p>
+                  <button
+                    v-if="item.quote"
+                    type="button"
+                    class="mt-2 text-xs text-primary-600 hover:text-primary-700 font-medium"
+                    @click="toggleQuote('right-' + index)"
+                  >
+                    {{ expandedQuotes['right-' + index] ? '▼ Hide source' : '▶ Tell me more about it' }}
+                  </button>
+                  <div
+                    v-if="expandedQuotes['right-' + index] && item.quote"
+                    class="mt-2 bg-gray-50 border border-gray-200 rounded p-2 text-xs text-gray-700"
+                  >
+                    <p class="font-medium text-gray-900 mb-1">From the contract:</p>
+                    <p class="italic">"{{ item.quote }}"</p>
                   </div>
-                </template>
-              </ExpandableList>
+                </div>
+                <p v-if="getRights().length > 5" class="text-sm text-gray-500 italic">
+                  +{{ getRights().length - 5 }} more in "All Key Terms" below
+                </p>
+              </div>
             </div>
           </div>
 
           <!-- Suggested Changes -->
-          <div v-if="formattedOutput.suggestions?.content && formattedOutput.suggestions.content.length > 0" class="bg-white rounded-lg border border-blue-200 p-6">
+          <div v-if="getSuggestions().length > 0" class="bg-white rounded-lg border border-blue-200 p-6">
             <h2 class="text-xl font-semibold text-gray-900 mb-4">
-              💡 {{ formattedOutput.suggestions.title || 'Suggested Changes' }}
+              💡 Suggested Changes
             </h2>
             <p class="text-sm text-gray-600 mb-4">
               These are specific changes you could request during negotiation:
             </p>
-            <ExpandableList
-              :items="formattedOutput.suggestions.content"
-              :initial-count="5"
-            >
-              <template #item="{ item }">
-                <div class="text-sm">
-                  <p class="text-gray-900">{{ typeof item === 'string' ? item : item.text || item.description }}</p>
-                </div>
-              </template>
-            </ExpandableList>
+            <div class="space-y-3">
+              <div
+                v-for="(item, index) in getSuggestions().slice(0, 5)"
+                :key="index"
+                class="border-l-2 border-blue-500 pl-3 py-2"
+              >
+                <p class="text-gray-900 text-sm">{{ typeof item === 'string' ? item : item.text || item.description }}</p>
+              </div>
+              <p v-if="getSuggestions().length > 5" class="text-sm text-gray-500 italic">
+                +{{ getSuggestions().length - 5 }} more in "All Key Terms" below
+              </p>
+            </div>
           </div>
 
           <!-- Mitigations (If Signing As-Is) -->
-          <div v-if="formattedOutput.mitigations?.content && formattedOutput.mitigations.content.length > 0" class="bg-white rounded-lg border border-yellow-200 p-6">
+          <div v-if="getMitigations().length > 0" class="bg-white rounded-lg border border-yellow-200 p-6">
             <h2 class="text-xl font-semibold text-gray-900 mb-4">
-              🛡️ {{ formattedOutput.mitigations.title || 'Mitigations (If Signing As-Is)' }}
+              🛡️ Mitigations (If Signing As-Is)
             </h2>
             <p class="text-sm text-gray-600 mb-4">
               If you must sign without changes, take these steps to reduce risks:
             </p>
-            <ExpandableList
-              :items="formattedOutput.mitigations.content"
-              :initial-count="5"
-            >
-              <template #item="{ item }">
-                <div class="text-sm">
-                  <p class="text-gray-900">{{ typeof item === 'string' ? item : item.text || item.description }}</p>
-                </div>
-              </template>
-            </ExpandableList>
+            <div class="space-y-3">
+              <div
+                v-for="(item, index) in getMitigations().slice(0, 5)"
+                :key="index"
+                class="border-l-2 border-yellow-500 pl-3 py-2"
+              >
+                <p class="text-gray-900 text-sm">{{ typeof item === 'string' ? item : item.text || item.description }}</p>
+              </div>
+              <p v-if="getMitigations().length > 5" class="text-sm text-gray-500 italic">
+                +{{ getMitigations().length - 5 }} more in "All Key Terms" below
+              </p>
+            </div>
           </div>
 
           <!-- Key Dates & Deadlines -->
-          <div v-if="formattedOutput.calendar?.content && formattedOutput.calendar.content.length > 0" class="bg-white rounded-lg border border-purple-200 p-6">
+          <div v-if="getCalendar().length > 0" class="bg-white rounded-lg border border-purple-200 p-6">
             <h2 class="text-xl font-semibold text-gray-900 mb-4">
-              📅 {{ formattedOutput.calendar.title || 'Key Dates & Deadlines' }}
+              📅 Key Dates & Deadlines
             </h2>
             <p class="text-sm text-gray-600 mb-4">
               Important dates and deadlines from the contract:
             </p>
-            <ExpandableList
-              :items="formattedOutput.calendar.content"
-              :initial-count="10"
-            >
-              <template #item="{ item }">
-                <div class="text-sm flex items-start gap-3">
-                  <div class="flex-shrink-0 w-32 font-semibold text-purple-700">
+            <div class="space-y-3">
+              <div
+                v-for="(item, index) in getCalendar().slice(0, 10)"
+                :key="index"
+                class="border-l-2 border-purple-500 pl-3 py-2"
+              >
+                <div class="flex items-start gap-3">
+                  <div class="flex-shrink-0 w-32 font-semibold text-purple-700 text-sm">
                     {{ item.date_or_formula || item.date }}
                   </div>
-                  <div class="flex-1 text-gray-900">
+                  <div class="flex-1 text-gray-900 text-sm">
                     {{ item.event || item.description }}
                   </div>
                 </div>
-              </template>
-            </ExpandableList>
+              </div>
+              <p v-if="getCalendar().length > 10" class="text-sm text-gray-500 italic">
+                +{{ getCalendar().length - 10 }} more in "All Key Terms" below
+              </p>
+            </div>
           </div>
 
           <!-- All Key Terms (Collapsed by default) -->
@@ -470,6 +534,7 @@ const analysesStore = useAnalysesStore()
 
 const analysisId = computed(() => route.params.id as string)
 const showExportModal = ref(false)
+const expandedQuotes = ref<Record<string, boolean>>({})
 
 const formattedOutput = computed(() => {
   return analysesStore.currentAnalysis?.formatted_output || {}
@@ -506,6 +571,59 @@ const confidenceReason = computed(() => {
     formattedOutput.value.confidence_reason
   )
 })
+
+// Helper functions to get data from either new structure (.content) or old structure (direct array)
+function getObligations(): any[] {
+  const data = formattedOutput.value.obligations
+  if (!data) return []
+  if (Array.isArray(data)) return data
+  if (data.content && Array.isArray(data.content)) return data.content
+  return []
+}
+
+function getRisks(): any[] {
+  const data = formattedOutput.value.risks
+  if (!data) return []
+  if (Array.isArray(data)) return data
+  if (data.content && Array.isArray(data.content)) return data.content
+  return []
+}
+
+function getRights(): any[] {
+  const data = formattedOutput.value.rights
+  if (!data) return []
+  if (Array.isArray(data)) return data
+  if (data.content && Array.isArray(data.content)) return data.content
+  return []
+}
+
+function getSuggestions(): any[] {
+  const data = formattedOutput.value.suggestions
+  if (!data) return []
+  if (Array.isArray(data)) return data
+  if (data.content && Array.isArray(data.content)) return data.content
+  return []
+}
+
+function getMitigations(): any[] {
+  const data = formattedOutput.value.mitigations
+  if (!data) return []
+  if (Array.isArray(data)) return data
+  if (data.content && Array.isArray(data.content)) return data.content
+  return []
+}
+
+function getCalendar(): any[] {
+  const data = formattedOutput.value.calendar
+  if (!data) return []
+  if (Array.isArray(data)) return data
+  if (data.content && Array.isArray(data.content)) return data.content
+  return []
+}
+
+function toggleQuote(key: string): void {
+  expandedQuotes.value[key] = !expandedQuotes.value[key]
+}
 
 // Lifecycle
 onMounted(async () => {
