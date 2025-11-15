@@ -3,7 +3,7 @@ Contracts API
 Endpoints for contract upload and management
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Request
 from sqlalchemy.orm import Session
 from pathlib import Path
 import uuid
@@ -16,6 +16,7 @@ from ..models.contract import Contract
 from ..schemas.contract import ContractResponse, ContractList, ContractUpload
 from ..core.deps import get_current_user, check_analysis_limit
 from ..config import settings
+from ..services.audit_logger import get_audit_logger
 
 router = APIRouter()
 
@@ -23,6 +24,7 @@ router = APIRouter()
 @router.post("/upload", response_model=ContractUpload, status_code=status.HTTP_201_CREATED)
 async def upload_contract(
     file: UploadFile = File(...),
+    request: Request = None,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -31,6 +33,7 @@ async def upload_contract(
 
     Args:
         file: Uploaded file (PDF or DOCX)
+        request: FastAPI request object (for audit logging)
         current_user: Current authenticated user
         db: Database session
 
@@ -40,6 +43,14 @@ async def upload_contract(
     Raises:
         HTTPException: If file type not allowed or size exceeds limit
     """
+    # Create audit logger
+    audit = get_audit_logger(
+        db,
+        user_id=current_user.id,
+        ip_address=request.client.host if request else None,
+        user_agent=request.headers.get("user-agent") if request else None
+    )
+
     # Check analysis limit for free tier
     check_analysis_limit(current_user)
 
@@ -88,6 +99,14 @@ async def upload_contract(
     db.commit()
     db.refresh(contract)
 
+    # ✅ AUDIT LOG: Contract upload
+    audit.log_contract_upload(
+        contract_id=contract.id,
+        filename=contract.filename,
+        file_size=file_size,
+        status="success"
+    )
+
     return ContractUpload(
         contract_id=contract.id,
         filename=contract.filename,
@@ -130,11 +149,35 @@ async def list_contracts(
     # Get total count
     total = db.query(Contract).filter(Contract.user_id == current_user.id).count()
 
-    # Build response - use model_validate to automatically map fields
-    contract_responses = [
-        ContractResponse.model_validate(contract)
-        for contract in contracts
-    ]
+    # Build response with latest analysis info
+    contract_responses = []
+    for contract in contracts:
+        # Get latest completed analysis for this contract
+        latest_analysis = db.query(Analysis)\
+            .filter(
+                Analysis.contract_id == contract.id,
+                Analysis.status == "succeeded"
+            )\
+            .order_by(Analysis.completed_at.desc())\
+            .first()
+
+        # Convert contract to dict and add latest_analysis_id
+        contract_data = {
+            "id": contract.id,
+            "user_id": contract.user_id,
+            "filename": contract.filename,
+            "mime_type": contract.mime_type,
+            "file_size": contract.file_size,
+            "file_path": contract.file_path,
+            "page_count": contract.page_count,
+            "extracted_text": contract.extracted_text,
+            "detected_language": contract.detected_language,
+            "jurisdiction": contract.jurisdiction,
+            "uploaded_at": contract.uploaded_at,
+            "updated_at": contract.updated_at,
+            "latest_analysis_id": latest_analysis.id if latest_analysis else None
+        }
+        contract_responses.append(ContractResponse(**contract_data))
 
     return ContractList(
         contracts=contract_responses,
@@ -181,30 +224,50 @@ async def get_contract(
 @router.delete("/{contract_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_contract(
     contract_id: uuid.UUID,
+    request: Request = None,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """
-    Delete a contract
+    Delete a contract (GDPR Right to Erasure - Article 17)
 
     Args:
         contract_id: Contract ID
+        request: FastAPI request object (for audit logging)
         current_user: Current authenticated user
         db: Database session
 
     Raises:
         HTTPException: If contract not found or access denied
     """
+    # Create audit logger
+    audit = get_audit_logger(
+        db,
+        user_id=current_user.id,
+        ip_address=request.client.host if request else None,
+        user_agent=request.headers.get("user-agent") if request else None
+    )
+
     contract = db.query(Contract).filter(
         Contract.id == contract_id,
         Contract.user_id == current_user.id
     ).first()
 
     if not contract:
+        # ✅ AUDIT LOG: Unauthorized deletion attempt
+        audit.log_unauthorized_access(
+            resource_type="contract",
+            resource_id=contract_id,
+            attempted_action="contract_delete",
+            reason="Contract not found or access denied"
+        )
+
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Contract not found"
         )
+
+    filename = contract.filename  # Store for audit log
 
     # Delete file from disk
     file_path = Path(settings.UPLOAD_DIR) / contract.file_path
@@ -214,5 +277,12 @@ async def delete_contract(
     # Delete contract from database (cascade deletes analyses)
     db.delete(contract)
     db.commit()
+
+    # ✅ AUDIT LOG: Contract deletion (GDPR Right to Erasure)
+    audit.log_contract_delete(
+        contract_id=contract_id,
+        filename=filename,
+        status="success"
+    )
 
     return None

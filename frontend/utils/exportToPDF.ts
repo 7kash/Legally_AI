@@ -1,7 +1,9 @@
 /**
  * PDF Export Utility
- * Export analysis results to PDF
+ * Export analysis results to PDF using jsPDF
  */
+
+import { jsPDF } from 'jspdf'
 
 export interface PDFExportOptions {
   title: string
@@ -14,62 +16,179 @@ export interface PDFExportOptions {
 }
 
 /**
- * Export analysis to PDF
- * Note: This is a placeholder implementation
- * In production, you would use a library like jsPDF or pdfmake
+ * Export analysis to professionally formatted PDF
  */
 export async function exportAnalysisToPDF(options: PDFExportOptions): Promise<void> {
   const { title, content, metadata } = options
 
-  // Create a formatted text version of the analysis
-  let pdfContent = `${title}\n`
-  pdfContent += `${'='.repeat(title.length)}\n\n`
+  // Create new PDF document (A4 size)
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'a4',
+  })
 
-  if (metadata) {
-    if (metadata.contractName) {
-      pdfContent += `Contract: ${metadata.contractName}\n`
+  const pageWidth = doc.internal.pageSize.getWidth()
+  const pageHeight = doc.internal.pageSize.getHeight()
+  const margin = 20
+  const maxLineWidth = pageWidth - margin * 2
+  let yPosition = margin
+
+  // Helper function to check if we need a new page
+  const checkPageBreak = (additionalHeight: number = 10) => {
+    if (yPosition + additionalHeight > pageHeight - margin) {
+      doc.addPage()
+      yPosition = margin
+      return true
     }
-    if (metadata.analysisDate) {
-      pdfContent += `Analysis Date: ${metadata.analysisDate}\n`
-    }
-    if (metadata.confidenceScore !== undefined) {
-      pdfContent += `Confidence Score: ${Math.round(metadata.confidenceScore * 100)}%\n`
-    }
-    pdfContent += '\n'
+    return false
   }
 
-  // Format each section
+  // Helper function to add wrapped text
+  const addText = (text: string, fontSize: number, fontStyle: string = 'normal', color: [number, number, number] = [0, 0, 0]) => {
+    doc.setFontSize(fontSize)
+    doc.setFont('helvetica', fontStyle)
+    doc.setTextColor(...color)
+
+    const lines = doc.splitTextToSize(text, maxLineWidth)
+    lines.forEach((line: string) => {
+      checkPageBreak()
+      doc.text(line, margin, yPosition)
+      yPosition += fontSize * 0.5
+    })
+  }
+
+  // Title
+  addText(title, 20, 'bold', [31, 41, 55])
+  yPosition += 10
+
+  // Metadata section
+  if (metadata) {
+    doc.setFillColor(249, 250, 251)
+    checkPageBreak(25)
+    doc.rect(margin, yPosition - 5, maxLineWidth, 25, 'F')
+
+    if (metadata.contractName) {
+      addText(`Contract: ${metadata.contractName}`, 11, 'normal', [75, 85, 99])
+      yPosition += 2
+    }
+    if (metadata.analysisDate) {
+      addText(`Analysis Date: ${metadata.analysisDate}`, 11, 'normal', [75, 85, 99])
+      yPosition += 2
+    }
+    if (metadata.confidenceScore !== undefined) {
+      const scorePercent = Math.round(metadata.confidenceScore * 100)
+      const scoreColor: [number, number, number] = scorePercent >= 80 ? [34, 197, 94] : scorePercent >= 60 ? [234, 179, 8] : [239, 68, 68]
+      addText(`Confidence Score: ${scorePercent}%`, 11, 'bold', scoreColor)
+      yPosition += 2
+    }
+    yPosition += 10
+  }
+
+  // Disclaimer
+  checkPageBreak(20)
+  doc.setFillColor(254, 243, 199)
+  doc.rect(margin, yPosition - 5, maxLineWidth, 20, 'F')
+  addText('IMPORTANT: This is an AI-powered informational screening — not legal advice.', 9, 'italic', [146, 64, 14])
+  yPosition += 10
+
+  // Content sections
   for (const [key, value] of Object.entries(content)) {
     const sectionTitle = formatSectionTitle(key)
-    pdfContent += `\n${sectionTitle}\n`
-    pdfContent += `${'-'.repeat(sectionTitle.length)}\n\n`
 
+    checkPageBreak(15)
+    yPosition += 5
+
+    // Section header with background
+    doc.setFillColor(229, 231, 235)
+    doc.rect(margin, yPosition - 5, maxLineWidth, 10, 'F')
+    addText(sectionTitle, 14, 'bold', [31, 41, 55])
+    yPosition += 3
+
+    // Section content
     if (Array.isArray(value)) {
       value.forEach((item, index) => {
-        pdfContent += `${index + 1}. ${item}\n`
+        checkPageBreak(10)
+        const itemText = formatArrayItem(item, index + 1)
+        addText(itemText, 10, 'normal', [55, 65, 81])
+        yPosition += 2
       })
     } else if (typeof value === 'object' && value !== null) {
       for (const [subKey, subValue] of Object.entries(value)) {
-        pdfContent += `${formatKey(subKey)}: ${subValue}\n`
+        checkPageBreak(8)
+        const formattedKey = formatKey(subKey)
+        addText(`${formattedKey}:`, 10, 'bold', [75, 85, 99])
+        yPosition += 1
+
+        const valueText = formatObjectValue(subValue)
+        addText(valueText, 10, 'normal', [107, 114, 128])
+        yPosition += 2
       }
     } else {
-      pdfContent += `${value}\n`
+      checkPageBreak(10)
+      addText(String(value), 10, 'normal', [55, 65, 81])
+      yPosition += 2
     }
-    pdfContent += '\n'
+
+    yPosition += 3
   }
 
-  // Create a blob and download
-  const blob = new Blob([pdfContent], { type: 'text/plain;charset=utf-8' })
-  const url = URL.createObjectURL(blob)
+  // Footer on last page
+  const timestamp = new Date().toLocaleString()
+  doc.setFontSize(8)
+  doc.setTextColor(156, 163, 175)
+  doc.text(`Generated by Legally AI on ${timestamp}`, margin, pageHeight - 10)
 
-  const link = document.createElement('a')
-  link.href = url
-  link.download = `${sanitizeFilename(title)}.txt`
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
+  // Save the PDF
+  const filename = `${sanitizeFilename(metadata?.contractName || title)}_analysis.pdf`
+  doc.save(filename)
+}
 
-  URL.revokeObjectURL(url)
+/**
+ * Format array items for PDF
+ */
+function formatArrayItem(item: any, index: number): string {
+  if (typeof item === 'string') {
+    return `${index}. ${item}`
+  }
+
+  if (typeof item === 'object' && item !== null) {
+    // Handle obligation/right/risk objects
+    if ('action' in item) {
+      return `${index}. ${item.action}${item.time_window ? ` (${item.time_window})` : ''}`
+    }
+    if ('right' in item) {
+      return `${index}. ${item.right}${item.how_to_exercise ? ` - ${item.how_to_exercise}` : ''}`
+    }
+    if ('description' in item && 'level' in item) {
+      return `${index}. [${item.level.toUpperCase()}] ${item.description}`
+    }
+    if ('name' in item && 'role' in item) {
+      return `${index}. ${item.name} (${item.role})`
+    }
+
+    // Generic object
+    return `${index}. ${Object.entries(item).map(([k, v]) => `${k}: ${v}`).join(', ')}`
+  }
+
+  return `${index}. ${String(item)}`
+}
+
+/**
+ * Format object values for PDF
+ */
+function formatObjectValue(value: any): string {
+  if (Array.isArray(value)) {
+    return value.map((v, i) => formatArrayItem(v, i + 1)).join('; ')
+  }
+
+  if (typeof value === 'object' && value !== null) {
+    return Object.entries(value)
+      .map(([k, v]) => `${formatKey(k)}: ${v}`)
+      .join(', ')
+  }
+
+  return String(value)
 }
 
 function formatSectionTitle(key: string): string {
