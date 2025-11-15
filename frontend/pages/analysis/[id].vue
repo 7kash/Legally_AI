@@ -1,6 +1,6 @@
 <template>
-  <div class="min-h-screen bg-gray-50 py-8">
-    <div class="container-custom max-w-5xl">
+  <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8">
+    <div class="container-custom max-w-4xl">
       <!-- Loading State -->
       <div
         v-if="analysesStore.loading && !analysesStore.currentAnalysis"
@@ -23,7 +23,6 @@
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 20 20"
           fill="currentColor"
-          aria-hidden="true"
         >
           <path
             fill-rule="evenodd"
@@ -37,40 +36,22 @@
       <!-- Analysis Content -->
       <template v-else-if="analysesStore.currentAnalysis">
         <!-- Header -->
-        <div class="mb-6">
-          <div class="flex items-start justify-between">
-            <div>
-              <h1 class="text-3xl font-bold text-gray-900">
-                Contract Analysis
-              </h1>
-              <p class="mt-2 text-gray-600">
-                Analysis ID: {{ analysisId }}
-              </p>
-            </div>
-
-            <!-- Status Badge -->
-            <span
-              class="badge"
-              :class="{
-                'badge--info': analysesStore.currentAnalysis.status === 'queued',
-                'badge--warning': analysesStore.currentAnalysis.status === 'running',
-                'badge--success': analysesStore.currentAnalysis.status === 'succeeded',
-                'badge--error': analysesStore.currentAnalysis.status === 'failed',
-              }"
-              role="status"
-            >
-              {{ analysesStore.currentAnalysis.status }}
-            </span>
-          </div>
+        <div class="mb-8 text-center">
+          <h1 class="text-4xl font-bold text-gray-900 mb-2">
+            Contract Analysis
+          </h1>
+          <p class="text-gray-600">
+            AI-powered insights for your contract
+          </p>
         </div>
 
         <!-- Processing State -->
         <div
           v-if="analysesStore.isAnalyzing"
-          class="bg-white rounded-lg border border-gray-200 p-8"
+          class="bg-white rounded-xl shadow-lg border border-gray-200 p-8"
         >
           <div class="text-center">
-            <div class="spinner mx-auto h-12 w-12 mb-4" aria-hidden="true" />
+            <div class="spinner mx-auto h-12 w-12 mb-4" />
             <h2 class="text-xl font-semibold text-gray-900 mb-2">
               Analyzing your contract...
             </h2>
@@ -79,14 +60,9 @@
             </p>
 
             <!-- Progress Events -->
-            <div
-              v-if="analysesStore.events.length > 0"
-              class="mt-6 space-y-2"
-            >
-              <h3 class="text-sm font-medium text-gray-700 mb-3">
-                Progress:
-              </h3>
-              <div class="space-y-2 max-h-48 overflow-y-auto scrollbar-custom">
+            <div v-if="analysesStore.events.length > 0" class="mt-6 space-y-2">
+              <h3 class="text-sm font-medium text-gray-700 mb-3">Progress:</h3>
+              <div class="space-y-2 max-h-48 overflow-y-auto">
                 <div
                   v-for="(event, index) in analysesStore.events"
                   :key="index"
@@ -97,7 +73,6 @@
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 20 20"
                     fill="currentColor"
-                    aria-hidden="true"
                   >
                     <path
                       fill-rule="evenodd"
@@ -114,35 +89,23 @@
 
         <!-- Analysis Results -->
         <div v-else-if="analysesStore.hasResults" class="space-y-6">
-          <!-- Screening Result Badge -->
-          <ScreeningBadge
-            v-if="screeningResult"
-            :variant="screeningResult"
-          />
-
-          <!-- Important Limits Disclaimer -->
+          <!-- 1. Important Limits Disclaimer -->
           <ImportantLimits />
 
-          <!-- Confidence Level -->
+          <!-- 2. Screening Badge -->
+          <ScreeningBadge v-if="screeningResult" :variant="screeningResult" />
+
+          <!-- 3. Confidence Level -->
           <div
             v-if="analysesStore.currentAnalysis.confidence_score !== null"
-            class="bg-white rounded-lg border border-gray-200 p-6"
+            class="bg-white rounded-xl shadow-sm border border-gray-200 p-6"
           >
-            <div class="flex items-center justify-between mb-3">
-              <h2 class="text-lg font-semibold text-gray-900">
-                Confidence Level
-              </h2>
-              <span
-                class="px-3 py-1 rounded-full text-sm font-semibold"
-                :class="{
-                  'bg-green-100 text-green-800': analysesStore.currentAnalysis.confidence_score >= 0.8,
-                  'bg-yellow-100 text-yellow-800': analysesStore.currentAnalysis.confidence_score >= 0.6 && analysesStore.currentAnalysis.confidence_score < 0.8,
-                  'bg-red-100 text-red-800': analysesStore.currentAnalysis.confidence_score < 0.6,
-                }"
-              >
-                {{ confidenceLevel }}
-              </span>
-            </div>
+            <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <svg class="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Confidence Level
+            </h2>
             <div class="flex items-center gap-4 mb-3">
               <div class="flex-1 bg-gray-200 rounded-full h-3">
                 <div
@@ -153,13 +116,9 @@
                     'bg-red-500': analysesStore.currentAnalysis.confidence_score < 0.6,
                   }"
                   :style="{ width: `${analysesStore.currentAnalysis.confidence_score * 100}%` }"
-                  role="progressbar"
-                  :aria-valuenow="analysesStore.currentAnalysis.confidence_score * 100"
-                  aria-valuemin="0"
-                  aria-valuemax="100"
                 />
               </div>
-              <span class="text-lg font-semibold text-gray-900">
+              <span class="text-lg font-bold text-gray-900">
                 {{ Math.round(analysesStore.currentAnalysis.confidence_score * 100) }}%
               </span>
             </div>
@@ -168,298 +127,240 @@
             </p>
           </div>
 
-          <!-- About the Contract -->
-          <div v-if="formattedOutput.about || formattedOutput.payment_terms || formattedOutput.obligations" class="bg-white rounded-lg border border-gray-200 p-6">
-            <h2 class="text-xl font-semibold text-gray-900 mb-4">
+          <!-- 4. About the Contract (Summary only) -->
+          <div v-if="getAboutSummary()" class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl shadow-sm border border-blue-200 p-6">
+            <h2 class="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+              <svg class="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
               About the Contract
             </h2>
-            <div class="prose prose-sm max-w-none">
-              <p v-if="formattedOutput.about?.description" class="text-gray-700 mb-4">
-                {{ formattedOutput.about.description }}
-              </p>
-
-              <!-- What you pay and when -->
-              <div v-if="formattedOutput.payment_terms?.content" class="mb-4">
-                <h3 class="text-sm font-semibold text-gray-900 mb-2">
-                  What you pay and when:
-                </h3>
-                <ExpandableList
-                  :items="formatPaymentTerms(formattedOutput.payment_terms.content)"
-                  :initial-count="5"
-                >
-                  <template #item="{ item }">
-                    <p class="text-sm text-gray-700">{{ item }}</p>
-                  </template>
-                </ExpandableList>
-              </div>
-
-              <!-- What you agree to do -->
-              <div v-if="getObligations().length > 0" class="mb-4">
-                <h3 class="text-sm font-semibold text-gray-900 mb-2">
-                  What you agree to do:
-                </h3>
-                <div class="space-y-3">
-                  <div
-                    v-for="(item, index) in getObligations().slice(0, 5)"
-                    :key="index"
-                    class="border-l-2 border-blue-500 pl-3 py-2"
-                  >
-                    <p class="font-semibold text-gray-900 text-sm">{{ item.action }}</p>
-                    <p v-if="item.time_window" class="text-gray-600 mt-1 text-sm">
-                      <span class="font-medium">When:</span> {{ item.time_window }}
-                    </p>
-                    <p v-if="item.consequence" class="text-red-600 mt-1 text-sm">
-                      <span class="font-medium">If not done:</span> {{ item.consequence }}
-                    </p>
-                    <button
-                      v-if="item.quote"
-                      type="button"
-                      class="mt-2 text-xs text-primary-600 hover:text-primary-700 font-medium"
-                      @click="toggleQuote('obligation-' + index)"
-                    >
-                      {{ expandedQuotes['obligation-' + index] ? '▼ Hide source' : '▶ Tell me more about it' }}
-                    </button>
-                    <div
-                      v-if="expandedQuotes['obligation-' + index] && item.quote"
-                      class="mt-2 bg-gray-50 border border-gray-200 rounded p-2 text-xs text-gray-700"
-                    >
-                      <p class="font-medium text-gray-900 mb-1">From the contract:</p>
-                      <p class="italic">"{{ item.quote }}"</p>
-                    </div>
-                  </div>
-                  <p v-if="getObligations().length > 5" class="text-sm text-gray-500 italic">
-                    +{{ getObligations().length - 5 }} more in "All Key Terms" below
-                  </p>
-                </div>
-              </div>
-            </div>
+            <p class="text-gray-800 leading-relaxed">{{ getAboutSummary() }}</p>
           </div>
 
-          <!-- Risks & Rights -->
-          <div v-if="formattedOutput.risks || formattedOutput.rights" class="bg-white rounded-lg border border-gray-200 p-6">
-            <h2 class="text-xl font-semibold text-gray-900 mb-4">
-              Risks & Rights
-            </h2>
+          <!-- 5. Agreement Type -->
+          <WidgetCard v-if="getAgreementType()" title="Agreement Type" icon="document">
+            <p class="text-gray-800 font-medium">{{ getAgreementType() }}</p>
+          </WidgetCard>
 
-            <!-- Check these terms (Risks) -->
-            <div v-if="getRisks().length > 0" class="mb-6">
-              <h3 class="text-sm font-semibold text-gray-900 mb-3">
-                Check these terms:
-              </h3>
-              <div class="space-y-3">
-                <div
-                  v-for="(item, index) in getRisks().slice(0, 5)"
-                  :key="index"
-                  class="border-l-2 pl-3 py-2"
-                  :class="{
-                    'border-red-500': item.level === 'high',
-                    'border-yellow-500': item.level === 'medium',
-                    'border-green-500': item.level === 'low',
-                  }"
-                >
-                  <div class="flex items-center gap-2 mb-1">
-                    <span
-                      class="px-2 py-1 rounded text-xs font-semibold"
-                      :class="{
-                        'bg-red-100 text-red-800': item.level === 'high',
-                        'bg-yellow-100 text-yellow-800': item.level === 'medium',
-                        'bg-green-100 text-green-800': item.level === 'low',
-                      }"
-                    >
-                      {{ item.level?.toUpperCase() }}
-                    </span>
-                    <span v-if="item.category" class="text-gray-600 text-xs">{{ item.category }}</span>
-                  </div>
-                  <p class="text-gray-900 mb-1 text-sm">{{ item.description }}</p>
-                  <p v-if="item.recommendation" class="text-blue-700 text-sm">
-                    → {{ item.recommendation }}
-                  </p>
-                  <button
-                    v-if="item.quote"
-                    type="button"
-                    class="mt-2 text-xs text-primary-600 hover:text-primary-700 font-medium"
-                    @click="toggleQuote('risk-' + index)"
-                  >
-                    {{ expandedQuotes['risk-' + index] ? '▼ Hide source' : '▶ Tell me more about it' }}
-                  </button>
-                  <div
-                    v-if="expandedQuotes['risk-' + index] && item.quote"
-                    class="mt-2 bg-gray-50 border border-gray-200 rounded p-2 text-xs text-gray-700"
-                  >
-                    <p class="font-medium text-gray-900 mb-1">From the contract:</p>
-                    <p class="italic">"{{ item.quote }}"</p>
-                  </div>
-                </div>
-                <p v-if="getRisks().length > 5" class="text-sm text-gray-500 italic">
-                  +{{ getRisks().length - 5 }} more in "All Key Terms" below
-                </p>
-              </div>
-            </div>
-
-            <!-- Your rights -->
-            <div v-if="getRights().length > 0" class="mb-6">
-              <h3 class="text-sm font-semibold text-gray-900 mb-3">
-                Your rights:
-              </h3>
-              <div class="space-y-3">
-                <div
-                  v-for="(item, index) in getRights().slice(0, 5)"
-                  :key="index"
-                  class="border-l-2 border-green-500 pl-3 py-2"
-                >
-                  <p class="font-semibold text-gray-900 text-sm">{{ item.right }}</p>
-                  <p v-if="item.how_to_exercise" class="text-gray-600 mt-1 text-sm">
-                    <span class="font-medium">How:</span> {{ item.how_to_exercise }}
-                  </p>
-                  <p v-if="item.conditions" class="text-gray-600 mt-1 text-sm">
-                    <span class="font-medium">Conditions:</span> {{ item.conditions }}
-                  </p>
-                  <button
-                    v-if="item.quote"
-                    type="button"
-                    class="mt-2 text-xs text-primary-600 hover:text-primary-700 font-medium"
-                    @click="toggleQuote('right-' + index)"
-                  >
-                    {{ expandedQuotes['right-' + index] ? '▼ Hide source' : '▶ Tell me more about it' }}
-                  </button>
-                  <div
-                    v-if="expandedQuotes['right-' + index] && item.quote"
-                    class="mt-2 bg-gray-50 border border-gray-200 rounded p-2 text-xs text-gray-700"
-                  >
-                    <p class="font-medium text-gray-900 mb-1">From the contract:</p>
-                    <p class="italic">"{{ item.quote }}"</p>
-                  </div>
-                </div>
-                <p v-if="getRights().length > 5" class="text-sm text-gray-500 italic">
-                  +{{ getRights().length - 5 }} more in "All Key Terms" below
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Suggested Changes -->
-          <div v-if="getSuggestions().length > 0" class="bg-white rounded-lg border border-blue-200 p-6">
-            <h2 class="text-xl font-semibold text-gray-900 mb-4">
-              💡 Suggested Changes
-            </h2>
-            <p class="text-sm text-gray-600 mb-4">
-              These are specific changes you could request during negotiation:
-            </p>
+          <!-- 6. Parties -->
+          <WidgetCard v-if="getParties().length > 0" title="Parties" icon="users">
             <div class="space-y-3">
               <div
-                v-for="(item, index) in getSuggestions().slice(0, 5)"
+                v-for="(party, index) in getParties()"
                 :key="index"
-                class="border-l-2 border-blue-500 pl-3 py-2"
+                class="flex items-start gap-3 p-3 bg-gray-50 rounded-lg"
               >
-                <p class="text-gray-900 text-sm">{{ typeof item === 'string' ? item : item.text || item.description }}</p>
+                <div class="flex-1">
+                  <p class="font-semibold text-gray-900">{{ party.name || 'Party ' + (index + 1) }}</p>
+                  <p v-if="party.role" class="text-sm text-gray-600">{{ party.role }}</p>
+                </div>
               </div>
-              <p v-if="getSuggestions().length > 5" class="text-sm text-gray-500 italic">
-                +{{ getSuggestions().length - 5 }} more in "All Key Terms" below
-              </p>
             </div>
-          </div>
+          </WidgetCard>
 
-          <!-- Mitigations (If Signing As-Is) -->
-          <div v-if="getMitigations().length > 0" class="bg-white rounded-lg border border-yellow-200 p-6">
-            <h2 class="text-xl font-semibold text-gray-900 mb-4">
-              🛡️ Mitigations (If Signing As-Is)
-            </h2>
+          <!-- 7. Jurisdiction -->
+          <WidgetCard v-if="getJurisdiction()" title="Jurisdiction" icon="globe">
+            <p class="text-gray-800 font-medium">{{ getJurisdiction() }}</p>
+          </WidgetCard>
+
+          <!-- 8. Obligations -->
+          <WidgetCard v-if="getObligations().length > 0" title="Your Obligations" icon="clipboard" color="blue">
+            <div class="space-y-4">
+              <div
+                v-for="(item, index) in getObligations()"
+                :key="index"
+                class="border-l-4 border-blue-500 pl-4 py-3 bg-blue-50 rounded-r-lg"
+              >
+                <p class="font-semibold text-gray-900">{{ item.action }}</p>
+                <div v-if="item.time_window || item.trigger" class="mt-2 space-y-1">
+                  <p v-if="item.trigger" class="text-sm text-gray-700">
+                    <span class="font-medium">When:</span> {{ item.trigger }}
+                  </p>
+                  <p v-if="item.time_window" class="text-sm text-gray-700">
+                    <span class="font-medium">Deadline:</span> {{ item.time_window }}
+                  </p>
+                </div>
+                <p v-if="item.consequence" class="mt-2 text-sm text-red-700 bg-red-50 p-2 rounded">
+                  <span class="font-medium">⚠️ If not done:</span> {{ item.consequence }}
+                </p>
+                <button
+                  v-if="item.quote"
+                  type="button"
+                  class="mt-3 text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
+                  @click="toggleQuote('obligation-' + index)"
+                >
+                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  {{ expandedQuotes['obligation-' + index] ? 'Hide source' : 'Tell me more about it' }}
+                </button>
+                <div
+                  v-if="expandedQuotes['obligation-' + index] && item.quote"
+                  class="mt-2 bg-white border border-gray-300 rounded-lg p-3 text-sm"
+                >
+                  <p class="font-medium text-gray-900 mb-1">📄 From the contract:</p>
+                  <p class="italic text-gray-700">"{{ item.quote }}"</p>
+                </div>
+              </div>
+            </div>
+          </WidgetCard>
+
+          <!-- 9. Rights -->
+          <WidgetCard v-if="getRights().length > 0" title="Your Rights" icon="shield" color="green">
+            <div class="space-y-4">
+              <div
+                v-for="(item, index) in getRights()"
+                :key="index"
+                class="border-l-4 border-green-500 pl-4 py-3 bg-green-50 rounded-r-lg"
+              >
+                <p class="font-semibold text-gray-900">{{ item.right }}</p>
+                <p v-if="item.how_to_exercise" class="mt-2 text-sm text-gray-700">
+                  <span class="font-medium">How to exercise:</span> {{ item.how_to_exercise }}
+                </p>
+                <p v-if="item.conditions" class="mt-1 text-sm text-gray-600">
+                  <span class="font-medium">Conditions:</span> {{ item.conditions }}
+                </p>
+                <button
+                  v-if="item.quote"
+                  type="button"
+                  class="mt-3 text-xs text-green-600 hover:text-green-700 font-medium flex items-center gap-1"
+                  @click="toggleQuote('right-' + index)"
+                >
+                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  {{ expandedQuotes['right-' + index] ? 'Hide source' : 'Tell me more about it' }}
+                </button>
+                <div
+                  v-if="expandedQuotes['right-' + index] && item.quote"
+                  class="mt-2 bg-white border border-gray-300 rounded-lg p-3 text-sm"
+                >
+                  <p class="font-medium text-gray-900 mb-1">📄 From the contract:</p>
+                  <p class="italic text-gray-700">"{{ item.quote }}"</p>
+                </div>
+              </div>
+            </div>
+          </WidgetCard>
+
+          <!-- 10. Payment Terms -->
+          <WidgetCard v-if="getPaymentTerms().length > 0" title="Payment Terms" icon="currency" color="emerald">
+            <div class="space-y-3">
+              <div
+                v-for="(term, index) in getPaymentTerms()"
+                :key="index"
+                class="p-3 bg-emerald-50 border border-emerald-200 rounded-lg"
+              >
+                <p class="text-gray-800">{{ term }}</p>
+              </div>
+            </div>
+          </WidgetCard>
+
+          <!-- 11. Key Dates & Deadlines -->
+          <WidgetCard v-if="getCalendar().length > 0" title="Key Dates & Deadlines" icon="calendar" color="purple">
+            <div class="space-y-3">
+              <div
+                v-for="(item, index) in getCalendar()"
+                :key="index"
+                class="flex items-start gap-4 p-3 bg-purple-50 border border-purple-200 rounded-lg"
+              >
+                <div class="flex-shrink-0 w-28">
+                  <p class="font-bold text-purple-700 text-sm">{{ item.date_or_formula || item.date }}</p>
+                </div>
+                <div class="flex-1">
+                  <p class="text-gray-800">{{ item.event || item.description }}</p>
+                </div>
+              </div>
+            </div>
+          </WidgetCard>
+
+          <!-- 12. Risks -->
+          <WidgetCard v-if="getRisks().length > 0" title="Risks & Concerns" icon="warning" color="red">
+            <div class="space-y-4">
+              <div
+                v-for="(item, index) in getRisks()"
+                :key="index"
+                class="border-l-4 pl-4 py-3 rounded-r-lg"
+                :class="{
+                  'border-red-500 bg-red-50': item.level === 'high',
+                  'border-yellow-500 bg-yellow-50': item.level === 'medium',
+                  'border-green-500 bg-green-50': item.level === 'low',
+                }"
+              >
+                <div class="flex items-center gap-2 mb-2">
+                  <span
+                    class="px-2 py-1 rounded-full text-xs font-bold"
+                    :class="{
+                      'bg-red-600 text-white': item.level === 'high',
+                      'bg-yellow-600 text-white': item.level === 'medium',
+                      'bg-green-600 text-white': item.level === 'low',
+                    }"
+                  >
+                    {{ item.level?.toUpperCase() }}
+                  </span>
+                  <span v-if="item.category" class="text-xs text-gray-600 uppercase tracking-wide">{{ item.category }}</span>
+                </div>
+                <p class="font-semibold text-gray-900">{{ item.description }}</p>
+                <p v-if="item.recommendation" class="mt-2 text-sm text-blue-700 bg-blue-50 p-2 rounded">
+                  <span class="font-medium">💡 Recommendation:</span> {{ item.recommendation }}
+                </p>
+                <button
+                  v-if="item.quote"
+                  type="button"
+                  class="mt-3 text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
+                  @click="toggleQuote('risk-' + index)"
+                >
+                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  {{ expandedQuotes['risk-' + index] ? 'Hide source' : 'Tell me more about it' }}
+                </button>
+                <div
+                  v-if="expandedQuotes['risk-' + index] && item.quote"
+                  class="mt-2 bg-white border border-gray-300 rounded-lg p-3 text-sm"
+                >
+                  <p class="font-medium text-gray-900 mb-1">📄 From the contract:</p>
+                  <p class="italic text-gray-700">"{{ item.quote }}"</p>
+                </div>
+              </div>
+            </div>
+          </WidgetCard>
+
+          <!-- 13. Mitigations -->
+          <WidgetCard v-if="getMitigations().length > 0" title="Risk Mitigations" icon="shield-check" color="amber">
             <p class="text-sm text-gray-600 mb-4">
               If you must sign without changes, take these steps to reduce risks:
             </p>
             <div class="space-y-3">
               <div
-                v-for="(item, index) in getMitigations().slice(0, 5)"
+                v-for="(item, index) in getMitigations()"
                 :key="index"
-                class="border-l-2 border-yellow-500 pl-3 py-2"
+                class="flex items-start gap-3 p-3 bg-amber-50 border border-amber-200 rounded-lg"
               >
-                <p class="text-gray-900 text-sm">{{ typeof item === 'string' ? item : item.text || item.description }}</p>
+                <svg class="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p class="text-gray-800">{{ typeof item === 'string' ? item : item.text || item.description }}</p>
               </div>
-              <p v-if="getMitigations().length > 5" class="text-sm text-gray-500 italic">
-                +{{ getMitigations().length - 5 }} more in "All Key Terms" below
-              </p>
             </div>
-          </div>
-
-          <!-- Key Dates & Deadlines -->
-          <div v-if="getCalendar().length > 0" class="bg-white rounded-lg border border-purple-200 p-6">
-            <h2 class="text-xl font-semibold text-gray-900 mb-4">
-              📅 Key Dates & Deadlines
-            </h2>
-            <p class="text-sm text-gray-600 mb-4">
-              Important dates and deadlines from the contract:
-            </p>
-            <div class="space-y-3">
-              <div
-                v-for="(item, index) in getCalendar().slice(0, 10)"
-                :key="index"
-                class="border-l-2 border-purple-500 pl-3 py-2"
-              >
-                <div class="flex items-start gap-3">
-                  <div class="flex-shrink-0 w-32 font-semibold text-purple-700 text-sm">
-                    {{ item.date_or_formula || item.date }}
-                  </div>
-                  <div class="flex-1 text-gray-900 text-sm">
-                    {{ item.event || item.description }}
-                  </div>
-                </div>
-              </div>
-              <p v-if="getCalendar().length > 10" class="text-sm text-gray-500 italic">
-                +{{ getCalendar().length - 10 }} more in "All Key Terms" below
-              </p>
-            </div>
-          </div>
-
-          <!-- All Key Terms (Collapsed by default) -->
-          <CollapsibleSection
-            title="All Key Terms"
-            subtitle="Click to view complete analysis"
-            :default-open="false"
-          >
-            <div class="space-y-4">
-              <AnalysisSection
-                v-for="(section, key) in formattedOutput"
-                :key="key"
-                :title="formatSectionTitle(key)"
-                :content="section"
-                :section-key="key"
-                @feedback="handleFeedback"
-              />
-            </div>
-          </CollapsibleSection>
+          </WidgetCard>
 
           <!-- Actions -->
-          <div class="flex flex-wrap gap-3">
+          <div class="flex flex-wrap gap-3 pt-4">
             <button
               type="button"
-              class="btn btn--secondary"
+              class="btn btn--primary flex items-center gap-2"
               @click="handleExport"
             >
-              <svg
-                class="h-5 w-5 -ml-1"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                aria-hidden="true"
-              >
-                <path
-                  fill-rule="evenodd"
-                  d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
-                  clip-rule="evenodd"
-                />
+              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
               </svg>
               Export Results
             </button>
-            <NuxtLink
-              to="/upload"
-              class="btn btn--primary"
-            >
+            <NuxtLink to="/upload" class="btn btn--secondary">
               Analyze Another Contract
             </NuxtLink>
-            <NuxtLink
-              to="/history"
-              class="btn btn--secondary"
-            >
+            <NuxtLink to="/history" class="btn btn--secondary">
               View History
             </NuxtLink>
           </div>
@@ -468,16 +369,14 @@
         <!-- Failed State -->
         <div
           v-else-if="analysesStore.currentAnalysis.status === 'failed'"
-          class="bg-white rounded-lg border border-red-200 p-8"
+          class="bg-white rounded-xl shadow-lg border border-red-200 p-8"
         >
           <div class="text-center">
             <svg
               class="mx-auto h-12 w-12 text-red-500 mb-4"
-              xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
-              aria-hidden="true"
             >
               <path
                 stroke-linecap="round"
@@ -492,10 +391,7 @@
             <p class="text-gray-600 mb-6">
               We encountered an error while analyzing your contract. Please try again.
             </p>
-            <NuxtLink
-              to="/upload"
-              class="btn btn--primary"
-            >
+            <NuxtLink to="/upload" class="btn btn--primary">
               Upload New Contract
             </NuxtLink>
           </div>
@@ -520,13 +416,8 @@ import { exportAnalysisToPDF } from '~/utils/exportToPDF'
 import { exportAnalysisToDOCX } from '~/utils/exportToDOCX'
 import { exportLawyerPackToPDF } from '~/utils/exportLawyerPack'
 
-/**
- * Analysis Results Page
- * Displays analysis results with SSE real-time updates
- */
-
 definePageMeta({
-  middleware: 'auth', // TODO: Create auth middleware
+  middleware: 'auth',
 })
 
 const route = useRoute()
@@ -541,7 +432,6 @@ const formattedOutput = computed(() => {
 })
 
 const screeningResult = computed(() => {
-  // Get screening result from analysis (could be in preparation_result or analysis_result)
   const prepResult = analysesStore.currentAnalysis?.preparation_result
   const analysisResult = analysesStore.currentAnalysis?.analysis_result
 
@@ -572,17 +462,55 @@ const confidenceReason = computed(() => {
   )
 })
 
-// Helper functions to get data from either new structure (.content) or old structure (direct array)
-function getObligations(): any[] {
-  const data = formattedOutput.value.obligations
+// Helper functions
+function getAboutSummary(): string {
+  const prepResult = analysesStore.currentAnalysis?.preparation_result
+  const analysisResult = analysesStore.currentAnalysis?.analysis_result
+
+  return (
+    analysisResult?.about_summary ||
+    prepResult?.about ||
+    formattedOutput.value.about?.description ||
+    ''
+  )
+}
+
+function getAgreementType(): string {
+  const prepResult = analysesStore.currentAnalysis?.preparation_result
+  const data = formattedOutput.value.agreement_type
+
+  return (
+    prepResult?.agreement_type ||
+    (typeof data === 'string' ? data : data?.content || '')
+  )
+}
+
+function getParties(): any[] {
+  const prepResult = analysesStore.currentAnalysis?.preparation_result
+  const data = formattedOutput.value.parties
+
+  if (prepResult?.parties && Array.isArray(prepResult.parties)) {
+    return prepResult.parties
+  }
   if (!data) return []
   if (Array.isArray(data)) return data
   if (data.content && Array.isArray(data.content)) return data.content
   return []
 }
 
-function getRisks(): any[] {
-  const data = formattedOutput.value.risks
+function getJurisdiction(): string {
+  const prepResult = analysesStore.currentAnalysis?.preparation_result
+  const data = formattedOutput.value.jurisdiction
+
+  return (
+    prepResult?.detected_jurisdiction ||
+    prepResult?.jurisdiction ||
+    (typeof data === 'string' ? data : data?.content || '')
+  )
+}
+
+function getObligations(): any[] {
+  const data = formattedOutput.value.obligations
   if (!data) return []
   if (Array.isArray(data)) return data
   if (data.content && Array.isArray(data.content)) return data.content
@@ -597,16 +525,28 @@ function getRights(): any[] {
   return []
 }
 
-function getSuggestions(): any[] {
-  const data = formattedOutput.value.suggestions
+function getPaymentTerms(): string[] {
+  const data = formattedOutput.value.payment_terms
   if (!data) return []
+
   if (Array.isArray(data)) return data
-  if (data.content && Array.isArray(data.content)) return data.content
+  if (data.content) {
+    if (Array.isArray(data.content)) return data.content
+    if (typeof data.content === 'object') {
+      const terms: string[] = []
+      Object.entries(data.content).forEach(([key, value]) => {
+        if (value && typeof value === 'string') {
+          terms.push(`${key.replace(/_/g, ' ')}: ${value}`)
+        }
+      })
+      return terms
+    }
+  }
   return []
 }
 
-function getMitigations(): any[] {
-  const data = formattedOutput.value.mitigations
+function getRisks(): any[] {
+  const data = formattedOutput.value.risks
   if (!data) return []
   if (Array.isArray(data)) return data
   if (data.content && Array.isArray(data.content)) return data.content
@@ -621,6 +561,14 @@ function getCalendar(): any[] {
   return []
 }
 
+function getMitigations(): any[] {
+  const data = formattedOutput.value.mitigations
+  if (!data) return []
+  if (Array.isArray(data)) return data
+  if (data.content && Array.isArray(data.content)) return data.content
+  return []
+}
+
 function toggleQuote(key: string): void {
   expandedQuotes.value[key] = !expandedQuotes.value[key]
 }
@@ -628,10 +576,7 @@ function toggleQuote(key: string): void {
 // Lifecycle
 onMounted(async () => {
   try {
-    // Fetch initial analysis
     await analysesStore.fetchAnalysis(analysisId.value)
-
-    // Connect to SSE for real-time updates if still processing
     if (analysesStore.isAnalyzing) {
       analysesStore.connectSSE(analysisId.value)
     }
@@ -641,18 +586,15 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
-  // Clean up SSE connection
   analysesStore.disconnectSSE()
 })
 
 // Methods
 function formatEventMessage(event: AnalysisEvent): string {
-  // Use the message from the event payload if available
   if (event.payload?.message) {
     return event.payload.message
   }
 
-  // Fallback to event kind-based messages
   switch (event.kind) {
     case 'status_change':
       return event.payload?.status === 'running' ? 'Analysis started' : 'Status changed'
@@ -666,74 +608,6 @@ function formatEventMessage(event: AnalysisEvent): string {
       return 'An error occurred'
     default:
       return event.kind || 'Processing...'
-  }
-}
-
-function formatSectionTitle(key: string): string {
-  // Convert snake_case to Title Case
-  return key
-    .split('_')
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ')
-}
-
-function formatPaymentTerms(paymentTerms: any): string[] {
-  if (Array.isArray(paymentTerms)) {
-    return paymentTerms
-  }
-
-  if (typeof paymentTerms === 'object' && paymentTerms !== null) {
-    const terms: string[] = []
-
-    if (paymentTerms.main_amount) {
-      terms.push(`${paymentTerms.main_amount}${paymentTerms.frequency ? ` ${paymentTerms.frequency}` : ''}`)
-    }
-
-    if (paymentTerms.deposit_upfront) {
-      terms.push(`Deposit: ${paymentTerms.deposit_upfront}`)
-    }
-
-    if (paymentTerms.first_due_date) {
-      terms.push(`First payment due: ${paymentTerms.first_due_date}`)
-    }
-
-    if (paymentTerms.payment_method) {
-      terms.push(`Payment method: ${paymentTerms.payment_method}`)
-    }
-
-    // Add any other fields
-    for (const [key, value] of Object.entries(paymentTerms)) {
-      if (!['main_amount', 'deposit_upfront', 'first_due_date', 'payment_method', 'frequency'].includes(key)) {
-        terms.push(`${formatSectionTitle(key)}: ${value}`)
-      }
-    }
-
-    return terms
-  }
-
-  return [String(paymentTerms)]
-}
-
-async function handleFeedback(data: {
-  sectionKey: string
-  isCorrect: boolean
-  comment?: string
-}): Promise<void> {
-  try {
-    await analysesStore.submitFeedback(
-      analysisId.value,
-      data.sectionKey,
-      data.isCorrect,
-      data.comment
-    )
-
-    // Show success notification
-    const { success } = useNotifications()
-    success('Feedback submitted', 'Thank you for your feedback!')
-  } catch (error) {
-    console.error('Failed to submit feedback:', error)
-    const { error: showError } = useNotifications()
-    showError('Failed to submit feedback', 'Please try again later.')
   }
 }
 
@@ -765,7 +639,6 @@ async function handleExportFormat(format: 'pdf' | 'docx' | 'json' | 'lawyer-pack
       })
       success('DOCX exported successfully', 'Your analysis has been downloaded as a Word document.')
     } else if (format === 'lawyer-pack') {
-      // Export comprehensive lawyer handoff pack (AF-003)
       await exportLawyerPackToPDF({
         title: 'Lawyer Handoff Pack',
         content: formattedOutput.value,
@@ -778,7 +651,6 @@ async function handleExportFormat(format: 'pdf' | 'docx' | 'json' | 'lawyer-pack
       })
       success('Lawyer Pack exported!', 'Comprehensive report for legal counsel has been downloaded.')
     } else if (format === 'json') {
-      // Export as JSON
       const data = {
         analysisId: analysisId.value,
         metadata,
@@ -802,7 +674,6 @@ async function handleExportFormat(format: 'pdf' | 'docx' | 'json' | 'lawyer-pack
   }
 }
 
-// Set page title
 useHead({
   title: 'Analysis Results',
 })
