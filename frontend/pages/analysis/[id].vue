@@ -185,7 +185,7 @@
                   <span class="font-medium">⚠️ If not done:</span> {{ item.consequence }}
                 </p>
                 <button
-                  v-if="item.quote"
+                  v-if="item.quote_original || item.quote"
                   type="button"
                   class="mt-3 text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
                   @click="toggleQuote('obligation-' + index)"
@@ -196,11 +196,27 @@
                   {{ expandedQuotes['obligation-' + index] ? 'Hide source' : 'Tell me more about it' }}
                 </button>
                 <div
-                  v-if="expandedQuotes['obligation-' + index] && item.quote"
-                  class="mt-2 bg-white border border-gray-300 rounded-lg p-3 text-sm"
+                  v-if="expandedQuotes['obligation-' + index] && (item.quote_original || item.quote)"
+                  class="mt-2 bg-white border border-gray-300 rounded-lg p-4 text-sm space-y-3"
                 >
-                  <p class="font-medium text-gray-900 mb-1">📄 From the contract:</p>
-                  <p class="italic text-gray-700">"{{ item.quote }}"</p>
+                  <div>
+                    <p class="font-semibold text-gray-900 mb-2 flex items-center gap-1">
+                      <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      Original contract text:
+                    </p>
+                    <p class="italic text-gray-700 bg-gray-50 p-3 rounded border-l-2 border-blue-400">"{{ item.quote_original || item.quote }}"</p>
+                  </div>
+                  <div v-if="item.quote_translated && item.quote_translated !== item.quote_original">
+                    <p class="font-semibold text-gray-900 mb-2 flex items-center gap-1">
+                      <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+                      </svg>
+                      Translation:
+                    </p>
+                    <p class="text-gray-700 bg-blue-50 p-3 rounded border-l-2 border-blue-600">"{{ item.quote_translated }}"</p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -222,7 +238,7 @@
                   <span class="font-medium">Conditions:</span> {{ item.conditions }}
                 </p>
                 <button
-                  v-if="item.quote"
+                  v-if="item.quote_original || item.quote"
                   type="button"
                   class="mt-3 text-xs text-green-600 hover:text-green-700 font-medium flex items-center gap-1"
                   @click="toggleQuote('right-' + index)"
@@ -233,11 +249,27 @@
                   {{ expandedQuotes['right-' + index] ? 'Hide source' : 'Tell me more about it' }}
                 </button>
                 <div
-                  v-if="expandedQuotes['right-' + index] && item.quote"
-                  class="mt-2 bg-white border border-gray-300 rounded-lg p-3 text-sm"
+                  v-if="expandedQuotes['right-' + index] && (item.quote_original || item.quote)"
+                  class="mt-2 bg-white border border-gray-300 rounded-lg p-4 text-sm space-y-3"
                 >
-                  <p class="font-medium text-gray-900 mb-1">📄 From the contract:</p>
-                  <p class="italic text-gray-700">"{{ item.quote }}"</p>
+                  <div>
+                    <p class="font-semibold text-gray-900 mb-2 flex items-center gap-1">
+                      <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      Original contract text:
+                    </p>
+                    <p class="italic text-gray-700 bg-gray-50 p-3 rounded border-l-2 border-green-400">"{{ item.quote_original || item.quote }}"</p>
+                  </div>
+                  <div v-if="item.quote_translated && item.quote_translated !== item.quote_original">
+                    <p class="font-semibold text-gray-900 mb-2 flex items-center gap-1">
+                      <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+                      </svg>
+                      Translation:
+                    </p>
+                    <p class="text-gray-700 bg-green-50 p-3 rounded border-l-2 border-green-600">"{{ item.quote_translated }}"</p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -305,7 +337,7 @@
                   <span class="font-medium">💡 Recommendation:</span> {{ item.recommendation }}
                 </p>
                 <button
-                  v-if="item.quote"
+                  v-if="item.quote_original || item.quote"
                   type="button"
                   class="mt-3 text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
                   @click="toggleQuote('risk-' + index)"
@@ -316,11 +348,27 @@
                   {{ expandedQuotes['risk-' + index] ? 'Hide source' : 'Tell me more about it' }}
                 </button>
                 <div
-                  v-if="expandedQuotes['risk-' + index] && item.quote"
-                  class="mt-2 bg-white border border-gray-300 rounded-lg p-3 text-sm"
+                  v-if="expandedQuotes['risk-' + index] && (item.quote_original || item.quote)"
+                  class="mt-2 bg-white border border-gray-300 rounded-lg p-4 text-sm space-y-3"
                 >
-                  <p class="font-medium text-gray-900 mb-1">📄 From the contract:</p>
-                  <p class="italic text-gray-700">"{{ item.quote }}"</p>
+                  <div>
+                    <p class="font-semibold text-gray-900 mb-2 flex items-center gap-1">
+                      <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      Original contract text:
+                    </p>
+                    <p class="italic text-gray-700 bg-gray-50 p-3 rounded border-l-2 border-red-400">"{{ item.quote_original || item.quote }}"</p>
+                  </div>
+                  <div v-if="item.quote_translated && item.quote_translated !== item.quote_original">
+                    <p class="font-semibold text-gray-900 mb-2 flex items-center gap-1">
+                      <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+                      </svg>
+                      Translation:
+                    </p>
+                    <p class="text-gray-700 bg-red-50 p-3 rounded border-l-2 border-red-600">"{{ item.quote_translated }}"</p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -331,16 +379,52 @@
             <p class="text-sm text-gray-600 mb-4">
               If you must sign without changes, take these steps to reduce risks:
             </p>
-            <div class="space-y-3">
+            <div class="space-y-4">
               <div
                 v-for="(item, index) in getMitigations()"
                 :key="index"
-                class="flex items-start gap-3 p-3 bg-amber-50 border border-amber-200 rounded-lg"
+                class="border-l-4 border-amber-500 pl-4 py-3 bg-amber-50 rounded-r-lg"
               >
-                <svg class="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <p class="text-gray-800">{{ typeof item === 'string' ? item : item.text || item.description }}</p>
+                <div class="flex items-start gap-3">
+                  <svg class="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <p class="text-gray-800 font-medium">{{ typeof item === 'string' ? item : item.mitigation || item.text || item.description }}</p>
+                </div>
+                <button
+                  v-if="(typeof item === 'object') && (item.quote_original || item.related_risk_quote)"
+                  type="button"
+                  class="mt-3 ml-8 text-xs text-amber-600 hover:text-amber-700 font-medium flex items-center gap-1"
+                  @click="toggleQuote('mitigation-' + index)"
+                >
+                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  {{ expandedQuotes['mitigation-' + index] ? 'Hide related risk' : 'Tell me more about it' }}
+                </button>
+                <div
+                  v-if="expandedQuotes['mitigation-' + index] && (typeof item === 'object') && (item.quote_original || item.related_risk_quote)"
+                  class="mt-2 ml-8 bg-white border border-gray-300 rounded-lg p-4 text-sm space-y-3"
+                >
+                  <div>
+                    <p class="font-semibold text-gray-900 mb-2 flex items-center gap-1">
+                      <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      Original contract text (risky clause):
+                    </p>
+                    <p class="italic text-gray-700 bg-gray-50 p-3 rounded border-l-2 border-amber-400">"{{ item.quote_original || item.related_risk_quote }}"</p>
+                  </div>
+                  <div v-if="item.quote_translated && item.quote_translated !== item.quote_original">
+                    <p class="font-semibold text-gray-900 mb-2 flex items-center gap-1">
+                      <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+                      </svg>
+                      Translation:
+                    </p>
+                    <p class="text-gray-700 bg-amber-50 p-3 rounded border-l-2 border-amber-600">"{{ item.quote_translated }}"</p>
+                  </div>
+                </div>
               </div>
             </div>
           </WidgetCard>

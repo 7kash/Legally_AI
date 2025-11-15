@@ -30,7 +30,8 @@ Up to 5 MOST IMPORTANT obligations. For each:
 - Trigger: When does this apply? What causes it?
 - Time window: Deadline, frequency, or "ongoing"
 - Consequence: What happens if not done? Use "Not stated" if unclear
-- Quote: Short quote from contract (≤12 words, in [brackets])
+- Quote_original: Exact quote from contract in ORIGINAL language (full sentence(s), ≤200 chars)
+- Quote_translated: Same quote translated to {output_language} if different from original, or same as quote_original
 
 Prioritize: financial obligations, notice requirements, maintenance duties, restrictions, deadline-sensitive items.
 
@@ -39,7 +40,8 @@ Up to 5 MOST IMPORTANT rights. For each:
 - Right: What can the user do? Be clear and specific.
 - How to exercise: Concrete steps to use this right
 - Conditions: Time limits, requirements, or "None" if unconditional
-- Quote: Short quote from contract (≤12 words, in [brackets])
+- Quote_original: Exact quote from contract in ORIGINAL language (full sentence(s), ≤200 chars)
+- Quote_translated: Same quote translated to {output_language} if different from original, or same as quote_original
 
 Prioritize: termination rights, refund rights, access rights, change rights, dispute rights.
 
@@ -53,6 +55,8 @@ Up to 5 risks, ranked by severity. For each:
 - Description: Clear, plain language (≤150 chars) - what's the problem?
 - Recommendation: What to do (≤150 chars) - "Request...", "Clarify...", "Negotiate..."
 - is_hidden: true if buried in fine print, automatic triggers, easy to miss
+- Quote_original: Exact quote of risky clause in ORIGINAL language (full sentence(s), ≤200 chars)
+- Quote_translated: Same quote translated to {output_language} if different from original, or same as quote_original
 
 **Detect Gaps & Anomalies**:
 Up to 5 items, each ≤150 chars:
@@ -66,17 +70,19 @@ All deadline-related items:
 - event: What happens on this date
 
 **Generate Suggestions** (if negotiability is medium or high):
-Up to 5 specific changes to request, each ≤150 chars:
-- Focus on most impactful changes that reduce risk or improve fairness
-- Make concrete: "Add clause X" not "Improve section Y"
-- Prioritize: financial protections, deadline extensions, liability caps
+Up to 5 specific changes to request. For each:
+- Suggestion: What to request (≤150 chars) - be concrete: "Add clause X" not "Improve section Y"
+- Quote_original: Exact quote of problematic clause in ORIGINAL language (≤200 chars, or null if adding new clause)
+- Quote_translated: Same quote in {output_language} (or null if adding new clause)
+
+Focus on most impactful changes that reduce risk or improve fairness.
+Prioritize: financial protections, deadline extensions, liability caps
 
 **Generate Mitigations** (if signing "as is"):
-Up to 5 practical steps to reduce risks without changing the contract, each ≤150 chars:
-- Document everything (photos, receipts, communications)
-- Get insurance or escrow protection
-- Set reminders for critical deadlines
-- Create paper trail for compliance
+Up to 5 practical steps to reduce risks without changing the contract. For each:
+- Mitigation: What to do (≤150 chars) - e.g., "Document everything", "Get insurance", "Set reminders"
+- Quote_original: Quote of risky clause this addresses in ORIGINAL language (≤200 chars, or null if general advice)
+- Quote_translated: Same quote in {output_language} (or null if general advice)
 
 **Screening Result** (choose exactly ONE):
 - "no_major_issues": No high risks, only minor/low concerns
@@ -105,7 +111,8 @@ Up to 5 practical steps to reduce risks without changing the contract, each ≤1
       "trigger": "string",
       "time_window": "string",
       "consequence": "string",
-      "quote": "[≤12 words]"
+      "quote_original": "string (≤200 chars, full sentence(s) in original language)",
+      "quote_translated": "string (≤200 chars, translated to output language)"
     }
   ],
   "rights": [
@@ -113,7 +120,8 @@ Up to 5 practical steps to reduce risks without changing the contract, each ≤1
       "right": "string",
       "how_to_exercise": "string",
       "conditions": "string or null",
-      "quote": "[≤12 words]"
+      "quote_original": "string (≤200 chars, full sentence(s) in original language)",
+      "quote_translated": "string (≤200 chars, translated to output language)"
     }
   ],
   "risks": [
@@ -122,7 +130,9 @@ Up to 5 practical steps to reduce risks without changing the contract, each ≤1
       "category": "string",
       "description": "string (≤150 chars)",
       "recommendation": "string (≤150 chars)",
-      "is_hidden": boolean
+      "is_hidden": boolean,
+      "quote_original": "string (≤200 chars, full sentence(s) in original language)",
+      "quote_translated": "string (≤200 chars, translated to output language)"
     }
   ],
   "gaps_anomalies": ["string (≤150 chars)"],
@@ -132,8 +142,20 @@ Up to 5 practical steps to reduce risks without changing the contract, each ≤1
       "event": "string"
     }
   ],
-  "suggestions": ["string (≤150 chars, specific change to request)"],
-  "mitigations": ["string (≤150 chars, practical step if signing as-is)"],
+  "suggestions": [
+    {
+      "suggestion": "string (≤150 chars, specific change to request)",
+      "quote_original": "string or null (≤200 chars, problematic clause in original language)",
+      "quote_translated": "string or null (≤200 chars, translated to output language)"
+    }
+  ],
+  "mitigations": [
+    {
+      "mitigation": "string (≤150 chars, practical step if signing as-is)",
+      "quote_original": "string or null (≤200 chars, risky clause in original language)",
+      "quote_translated": "string or null (≤200 chars, translated to output language)"
+    }
+  ],
   "screening_result": "no_major_issues|recommended_to_address|high_risk",
   "screening_reason": "string (one sentence)"
 }
@@ -144,9 +166,11 @@ Up to 5 practical steps to reduce risks without changing the contract, each ≤1
 2. Be SPECIFIC: "Pay $1,500 by 1st of month" NOT "Make timely payments"
 3. Be ACTIONABLE: "Request 60-day notice clause" NOT "Notice is short"
 4. PRIORITIZE what matters to {user_role}: financial, deadlines, rights
-5. STAY within limits: ≤12 words quotes, ≤150 chars descriptions
+5. STAY within limits: ≤200 chars quotes (full sentences), ≤150 chars descriptions
 6. NEVER invent: say "Not stated" if not in contract
 7. Focus on {user_role} perspective
+8. ALWAYS provide both quote_original (exact text from contract) and quote_translated (in {output_language})
+9. Quotes must be EXACT text from contract, not paraphrased
 
 **CONTRACT TEXT:**
 {contract_text}

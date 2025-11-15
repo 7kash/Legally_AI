@@ -11,7 +11,8 @@ from .step1_preparation import load_prompt_template
 def run_step2_analysis(
     contract_text: str,
     preparation_data: Dict[str, Any],
-    llm_router: LLMRouter
+    llm_router: LLMRouter,
+    output_language: str = "english"
 ) -> Dict[str, Any]:
     """
     Run Step 2: Text Analysis
@@ -20,6 +21,7 @@ def run_step2_analysis(
         contract_text: Extracted contract text
         preparation_data: Results from Step 1
         llm_router: LLM router instance
+        output_language: Language for output (e.g., "english", "russian", "serbian")
 
     Returns:
         Dictionary with Step 2 analysis results
@@ -35,6 +37,7 @@ Negotiability: {preparation_data.get('negotiability', 'medium')}
 Jurisdiction: {preparation_data.get('detected_jurisdiction', 'unknown')}
 Quality Score: {preparation_data.get('quality_score', 0.5):.2f}
 Coverage: {preparation_data.get('coverage_score', 1.0):.2f}
+Governing Language: {preparation_data.get('governing_language', 'unknown')}
 """
 
     # Fill in the template
@@ -42,6 +45,7 @@ Coverage: {preparation_data.get('coverage_score', 1.0):.2f}
     prompt = prompt.replace("{contract_text}", contract_text[:15000])  # Limit to ~15k chars
     prompt = prompt.replace("{user_role}", preparation_data.get('user_role', 'user'))
     prompt = prompt.replace("{agreement_type}", preparation_data.get('agreement_type', 'agreement'))
+    prompt = prompt.replace("{output_language}", output_language.capitalize())
 
     # Call LLM
     try:

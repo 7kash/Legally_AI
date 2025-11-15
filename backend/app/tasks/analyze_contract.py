@@ -282,7 +282,8 @@ def analyze_contract_task(
             analysis_result = run_step2_analysis(
                 contract_text=contract_text_for_llm,  # ⚠️ IMPORTANT: Use redacted text, not original
                 preparation_data=preparation_result,
-                llm_router=llm_router
+                llm_router=llm_router,
+                output_language=output_language  # Pass output language for bilingual quotes
             )
 
             logger.info(f"Step 2 completed: Found {len(analysis_result.get('obligations', []))} obligations, {len(analysis_result.get('risks', []))} risks")
