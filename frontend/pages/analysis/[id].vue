@@ -169,22 +169,22 @@
           </div>
 
           <!-- About the Contract -->
-          <div v-if="formattedOutput.about" class="bg-white rounded-lg border border-gray-200 p-6">
+          <div v-if="formattedOutput.about || formattedOutput.payment_terms || formattedOutput.obligations" class="bg-white rounded-lg border border-gray-200 p-6">
             <h2 class="text-xl font-semibold text-gray-900 mb-4">
               About the Contract
             </h2>
             <div class="prose prose-sm max-w-none">
-              <p v-if="formattedOutput.about.description" class="text-gray-700 mb-4">
+              <p v-if="formattedOutput.about?.description" class="text-gray-700 mb-4">
                 {{ formattedOutput.about.description }}
               </p>
 
               <!-- What you pay and when -->
-              <div v-if="formattedOutput.payment_terms" class="mb-4">
+              <div v-if="formattedOutput.payment_terms?.content" class="mb-4">
                 <h3 class="text-sm font-semibold text-gray-900 mb-2">
                   What you pay and when:
                 </h3>
                 <ExpandableList
-                  :items="formatPaymentTerms(formattedOutput.payment_terms)"
+                  :items="formatPaymentTerms(formattedOutput.payment_terms.content)"
                   :initial-count="5"
                 >
                   <template #item="{ item }">
@@ -194,12 +194,12 @@
               </div>
 
               <!-- What you agree to do -->
-              <div v-if="formattedOutput.obligations" class="mb-4">
+              <div v-if="formattedOutput.obligations?.content && formattedOutput.obligations.content.length > 0" class="mb-4">
                 <h3 class="text-sm font-semibold text-gray-900 mb-2">
                   What you agree to do:
                 </h3>
                 <ExpandableList
-                  :items="formattedOutput.obligations"
+                  :items="formattedOutput.obligations.content"
                   :initial-count="5"
                 >
                   <template #item="{ item }">
@@ -218,19 +218,19 @@
             </div>
           </div>
 
-          <!-- Suggestions -->
+          <!-- Risks & Rights -->
           <div v-if="formattedOutput.risks || formattedOutput.rights" class="bg-white rounded-lg border border-gray-200 p-6">
             <h2 class="text-xl font-semibold text-gray-900 mb-4">
-              Suggestions
+              Risks & Rights
             </h2>
 
             <!-- Check these terms (Risks) -->
-            <div v-if="formattedOutput.risks" class="mb-6">
+            <div v-if="formattedOutput.risks?.content && formattedOutput.risks.content.length > 0" class="mb-6">
               <h3 class="text-sm font-semibold text-gray-900 mb-3">
                 Check these terms:
               </h3>
               <ExpandableList
-                :items="formattedOutput.risks"
+                :items="formattedOutput.risks.content"
                 :initial-count="5"
               >
                 <template #item="{ item }">
@@ -258,12 +258,12 @@
             </div>
 
             <!-- Your rights -->
-            <div v-if="formattedOutput.rights" class="mb-6">
+            <div v-if="formattedOutput.rights?.content && formattedOutput.rights.content.length > 0" class="mb-6">
               <h3 class="text-sm font-semibold text-gray-900 mb-3">
                 Your rights:
               </h3>
               <ExpandableList
-                :items="formattedOutput.rights"
+                :items="formattedOutput.rights.content"
                 :initial-count="5"
               >
                 <template #item="{ item }">
@@ -279,6 +279,71 @@
                 </template>
               </ExpandableList>
             </div>
+          </div>
+
+          <!-- Suggested Changes -->
+          <div v-if="formattedOutput.suggestions?.content && formattedOutput.suggestions.content.length > 0" class="bg-white rounded-lg border border-blue-200 p-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">
+              💡 {{ formattedOutput.suggestions.title || 'Suggested Changes' }}
+            </h2>
+            <p class="text-sm text-gray-600 mb-4">
+              These are specific changes you could request during negotiation:
+            </p>
+            <ExpandableList
+              :items="formattedOutput.suggestions.content"
+              :initial-count="5"
+            >
+              <template #item="{ item }">
+                <div class="text-sm">
+                  <p class="text-gray-900">{{ typeof item === 'string' ? item : item.text || item.description }}</p>
+                </div>
+              </template>
+            </ExpandableList>
+          </div>
+
+          <!-- Mitigations (If Signing As-Is) -->
+          <div v-if="formattedOutput.mitigations?.content && formattedOutput.mitigations.content.length > 0" class="bg-white rounded-lg border border-yellow-200 p-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">
+              🛡️ {{ formattedOutput.mitigations.title || 'Mitigations (If Signing As-Is)' }}
+            </h2>
+            <p class="text-sm text-gray-600 mb-4">
+              If you must sign without changes, take these steps to reduce risks:
+            </p>
+            <ExpandableList
+              :items="formattedOutput.mitigations.content"
+              :initial-count="5"
+            >
+              <template #item="{ item }">
+                <div class="text-sm">
+                  <p class="text-gray-900">{{ typeof item === 'string' ? item : item.text || item.description }}</p>
+                </div>
+              </template>
+            </ExpandableList>
+          </div>
+
+          <!-- Key Dates & Deadlines -->
+          <div v-if="formattedOutput.calendar?.content && formattedOutput.calendar.content.length > 0" class="bg-white rounded-lg border border-purple-200 p-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">
+              📅 {{ formattedOutput.calendar.title || 'Key Dates & Deadlines' }}
+            </h2>
+            <p class="text-sm text-gray-600 mb-4">
+              Important dates and deadlines from the contract:
+            </p>
+            <ExpandableList
+              :items="formattedOutput.calendar.content"
+              :initial-count="10"
+            >
+              <template #item="{ item }">
+                <div class="text-sm flex items-start gap-3">
+                  <div class="flex-shrink-0 w-32 font-semibold text-purple-700">
+                    {{ item.date_or_formula || item.date }}
+                  </div>
+                  <div class="flex-1 text-gray-900">
+                    {{ item.event || item.description }}
+                  </div>
+                </div>
+              </template>
+            </ExpandableList>
           </div>
 
           <!-- All Key Terms (Collapsed by default) -->
@@ -389,6 +454,7 @@ import { useAnalysesStore } from '~/stores/analyses'
 import type { AnalysisEvent } from '~/stores/analyses'
 import { exportAnalysisToPDF } from '~/utils/exportToPDF'
 import { exportAnalysisToDOCX } from '~/utils/exportToDOCX'
+import { exportLawyerPackToPDF } from '~/utils/exportLawyerPack'
 
 /**
  * Analysis Results Page
@@ -557,7 +623,7 @@ function handleExport(): void {
   showExportModal.value = true
 }
 
-async function handleExportFormat(format: 'pdf' | 'docx' | 'json'): Promise<void> {
+async function handleExportFormat(format: 'pdf' | 'docx' | 'json' | 'lawyer-pack'): Promise<void> {
   try {
     const { success } = useNotifications()
     const metadata = {
@@ -580,6 +646,19 @@ async function handleExportFormat(format: 'pdf' | 'docx' | 'json'): Promise<void
         metadata,
       })
       success('DOCX exported successfully', 'Your analysis has been downloaded as a Word document.')
+    } else if (format === 'lawyer-pack') {
+      // Export comprehensive lawyer handoff pack (AF-003)
+      await exportLawyerPackToPDF({
+        title: 'Lawyer Handoff Pack',
+        content: formattedOutput.value,
+        metadata,
+        analysisData: {
+          screening_result: screeningResult.value,
+          preparation_result: analysesStore.currentAnalysis?.preparation_result,
+          analysis_result: analysesStore.currentAnalysis?.analysis_result,
+        },
+      })
+      success('Lawyer Pack exported!', 'Comprehensive report for legal counsel has been downloaded.')
     } else if (format === 'json') {
       // Export as JSON
       const data = {

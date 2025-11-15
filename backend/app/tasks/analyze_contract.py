@@ -360,9 +360,17 @@ def analyze_contract_task(
                 "title": "Payment Terms",
                 "content": analysis_result.get('payment_terms', {})
             },
-            "key_dates": {
-                "title": "Key Dates",
-                "content": analysis_result.get('key_dates', [])
+            "suggestions": {
+                "title": "Suggested Changes",
+                "content": analysis_result.get('suggestions', [])
+            },
+            "mitigations": {
+                "title": "Mitigations (If Signing As-Is)",
+                "content": analysis_result.get('mitigations', [])
+            },
+            "calendar": {
+                "title": "Key Dates & Deadlines",
+                "content": analysis_result.get('calendar', [])
             }
         }
 

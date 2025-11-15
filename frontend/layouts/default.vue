@@ -242,19 +242,19 @@
             <h3 class="text-sm font-semibold text-gray-900">Resources</h3>
             <ul class="mt-2 space-y-2">
               <li>
-                <a href="#" class="text-sm text-gray-600 hover:text-primary-600">
+                <NuxtLink to="/documentation" class="text-sm text-gray-600 hover:text-primary-600">
                   Documentation
-                </a>
+                </NuxtLink>
               </li>
               <li>
-                <a href="#" class="text-sm text-gray-600 hover:text-primary-600">
+                <NuxtLink to="/api-reference" class="text-sm text-gray-600 hover:text-primary-600">
                   API Reference
-                </a>
+                </NuxtLink>
               </li>
               <li>
-                <a href="#" class="text-sm text-gray-600 hover:text-primary-600">
+                <NuxtLink to="/support" class="text-sm text-gray-600 hover:text-primary-600">
                   Support
-                </a>
+                </NuxtLink>
               </li>
             </ul>
           </div>
@@ -264,14 +264,14 @@
             <h3 class="text-sm font-semibold text-gray-900">Legal</h3>
             <ul class="mt-2 space-y-2">
               <li>
-                <a href="#" class="text-sm text-gray-600 hover:text-primary-600">
+                <NuxtLink to="/privacy" class="text-sm text-gray-600 hover:text-primary-600">
                   Privacy Policy
-                </a>
+                </NuxtLink>
               </li>
               <li>
-                <a href="#" class="text-sm text-gray-600 hover:text-primary-600">
+                <NuxtLink to="/terms" class="text-sm text-gray-600 hover:text-primary-600">
                   Terms of Service
-                </a>
+                </NuxtLink>
               </li>
             </ul>
           </div>
