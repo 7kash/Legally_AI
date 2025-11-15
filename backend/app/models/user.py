@@ -38,6 +38,12 @@ class User(Base):
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
+    # Relationships (imported at runtime to avoid circular imports)
+    from sqlalchemy.orm import relationship
+    contracts = relationship("Contract", backref="user", cascade="all, delete-orphan")
+    analyses = relationship("Analysis", backref="user", cascade="all, delete-orphan")
+    deadlines = relationship("Deadline", back_populates="user", cascade="all, delete-orphan")
+
     def __repr__(self):
         return f"<User(id={self.id}, email={self.email}, tier={self.tier})>"
 
