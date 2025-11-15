@@ -65,6 +65,19 @@ All deadline-related items:
 - date_or_formula: "YYYY-MM-DD" or formula like "Monthly on 20th", "30 days before lease end"
 - event: What happens on this date
 
+**Generate Suggestions** (if negotiability is medium or high):
+Up to 5 specific changes to request, each ≤150 chars:
+- Focus on most impactful changes that reduce risk or improve fairness
+- Make concrete: "Add clause X" not "Improve section Y"
+- Prioritize: financial protections, deadline extensions, liability caps
+
+**Generate Mitigations** (if signing "as is"):
+Up to 5 practical steps to reduce risks without changing the contract, each ≤150 chars:
+- Document everything (photos, receipts, communications)
+- Get insurance or escrow protection
+- Set reminders for critical deadlines
+- Create paper trail for compliance
+
 **Screening Result** (choose exactly ONE):
 - "no_major_issues": No high risks, only minor/low concerns
 - "recommended_to_address": Medium risks that should be fixed/clarified
@@ -119,6 +132,8 @@ All deadline-related items:
       "event": "string"
     }
   ],
+  "suggestions": ["string (≤150 chars, specific change to request)"],
+  "mitigations": ["string (≤150 chars, practical step if signing as-is)"],
   "screening_result": "no_major_issues|recommended_to_address|high_risk",
   "screening_reason": "string (one sentence)"
 }

@@ -12,7 +12,11 @@
           to="/"
           class="flex items-center gap-2 text-xl font-bold text-primary-600 transition-colors hover:text-primary-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
         >
-          <!-- Logo SVG would go here -->
+          <img
+            src="/logo.png"
+            alt="Legally AI Logo"
+            class="h-10 w-auto"
+          />
           <span>Legally AI</span>
         </NuxtLink>
 
@@ -220,7 +224,14 @@
         <div class="grid gap-8 md:grid-cols-3">
           <!-- Company info -->
           <div>
-            <h2 class="text-lg font-semibold text-gray-900">Legally AI</h2>
+            <div class="flex items-center gap-2 mb-2">
+              <img
+                src="/logo.png"
+                alt="Legally AI Logo"
+                class="h-8 w-auto"
+              />
+              <h2 class="text-lg font-semibold text-gray-900">Legally AI</h2>
+            </div>
             <p class="mt-2 text-sm text-gray-600">
               AI-powered contract analysis to help you understand legal documents.
             </p>

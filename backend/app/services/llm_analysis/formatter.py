@@ -126,12 +126,26 @@ def format_analysis_output(
     negotiability = preparation_data.get('negotiability', 'medium')
     if negotiability != 'low':
         output += f"## {strings['ask_changes']}\n\n"
-        output += "*Feature coming soon: Specific change recommendations based on your risks*\n\n"
-        output += "---\n\n"
+        suggestions = analysis_data.get('suggestions', [])
+        if suggestions:
+            for suggestion in suggestions[:5]:
+                output += f"- {suggestion}\n"
+            if len(suggestions) > 5:
+                output += f"\n*{strings['more_button']}* (showing top 5 of {len(suggestions)})\n"
+        else:
+            output += "*Based on the analysis, no specific changes to request were identified.*\n"
+        output += "\n---\n\n"
 
     output += f"## {strings['sign_as_is']}\n\n"
-    output += "*Feature coming soon: Practical mitigations if you sign without changes*\n\n"
-    output += "---\n\n"
+    mitigations = analysis_data.get('mitigations', [])
+    if mitigations:
+        for mitigation in mitigations[:5]:
+            output += f"- {mitigation}\n"
+        if len(mitigations) > 5:
+            output += f"\n*{strings['more_button']}* (showing top 5 of {len(mitigations)})\n"
+    else:
+        output += "*Based on the analysis, no specific mitigations were identified.*\n"
+    output += "\n---\n\n"
 
     output += f"## {strings['act_now']}\n\n"
 
@@ -140,8 +154,15 @@ def format_analysis_output(
     if calendar:
         output += "**Important dates:**\n\n"
         for item in calendar[:5]:
-            output += f"- {item.get('event', '')}: {item.get('date_or_formula', '')}\n"
+            date_str = item.get('date_or_formula', '')
+            event_str = item.get('event', '')
+            if date_str and event_str:
+                output += f"- **{date_str}**: {event_str}\n"
+        if len(calendar) > 5:
+            output += f"\n*{strings.get('more_button', 'More available')}* (showing top 5 of {len(calendar)})\n"
         output += "\n"
+    else:
+        output += "*No specific deadline dates were identified in this contract.*\n\n"
 
     output += "*Feature coming soon: Export to calendar, checklists, email templates*\n\n"
     output += "---\n\n"
