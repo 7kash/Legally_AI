@@ -20,6 +20,58 @@
             Upload New Contract
           </NuxtLink>
         </div>
+
+        <!-- Search and Filters -->
+        <div class="mt-6 grid gap-4 sm:grid-cols-3">
+          <!-- Search -->
+          <div class="sm:col-span-2">
+            <label for="search" class="sr-only">Search contracts</label>
+            <div class="relative">
+              <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                <svg
+                  class="h-5 w-5 text-gray-400"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+              </div>
+              <input
+                id="search"
+                v-model="searchQuery"
+                type="search"
+                name="search"
+                placeholder="Search by filename..."
+                class="input w-full pl-10"
+                @input="handleSearchInput"
+              />
+            </div>
+          </div>
+
+          <!-- Date Filter -->
+          <div>
+            <label for="date-filter" class="sr-only">Filter by date</label>
+            <select
+              id="date-filter"
+              v-model="dateFilter"
+              name="date-filter"
+              class="input w-full"
+              @change="applyFilters"
+            >
+              <option value="">All time</option>
+              <option value="today">Today</option>
+              <option value="week">Last 7 days</option>
+              <option value="month">Last 30 days</option>
+              <option value="year">Last year</option>
+            </select>
+          </div>
+        </div>
       </div>
 
       <!-- Loading State -->
@@ -89,10 +141,45 @@
         </NuxtLink>
       </div>
 
+      <!-- No Results State -->
+      <div
+        v-else-if="contractsStore.hasContracts && filteredContracts.length === 0"
+        class="bg-white rounded-lg border border-gray-200 p-12 text-center"
+      >
+        <svg
+          class="mx-auto h-12 w-12 text-gray-400 mb-4"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          aria-hidden="true"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+          />
+        </svg>
+        <h2 class="text-xl font-semibold text-gray-900 mb-2">
+          No contracts found
+        </h2>
+        <p class="text-gray-600 mb-6">
+          Try adjusting your search or filters
+        </p>
+        <button
+          type="button"
+          class="btn btn--secondary inline-flex"
+          @click="clearFilters"
+        >
+          Clear Filters
+        </button>
+      </div>
+
       <!-- Contracts List -->
       <div v-else class="space-y-4">
         <div
-          v-for="contract in contractsStore.contracts"
+          v-for="contract in filteredContracts"
           :key="contract.id"
           class="card hover:shadow-lg transition-shadow"
         >
@@ -384,6 +471,9 @@ const deleteConfirmation = ref({
   contractId: '',
   filename: '',
 })
+const searchQuery = ref('')
+const dateFilter = ref('')
+const searchTimeout = ref<NodeJS.Timeout | null>(null)
 
 // Computed
 const visiblePages = computed(() => {
@@ -407,6 +497,44 @@ const visiblePages = computed(() => {
   }
 
   return pages.sort((a, b) => a - b)
+})
+
+// Filter contracts based on search and date
+const filteredContracts = computed(() => {
+  let filtered = contractsStore.contracts
+
+  // Apply search filter
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase()
+    filtered = filtered.filter((contract: any) =>
+      contract.filename.toLowerCase().includes(query)
+    )
+  }
+
+  // Apply date filter
+  if (dateFilter.value) {
+    const now = new Date()
+    filtered = filtered.filter((contract: any) => {
+      const uploadDate = new Date(contract.uploaded_at)
+      const diffMs = now.getTime() - uploadDate.getTime()
+      const diffDays = diffMs / (1000 * 60 * 60 * 24)
+
+      switch (dateFilter.value) {
+        case 'today':
+          return diffDays < 1
+        case 'week':
+          return diffDays < 7
+        case 'month':
+          return diffDays < 30
+        case 'year':
+          return diffDays < 365
+        default:
+          return true
+      }
+    })
+  }
+
+  return filtered
 })
 
 // Lifecycle
@@ -495,6 +623,27 @@ function formatLanguage(lang: string): string {
     french: 'French',
   }
   return languages[lang] || lang
+}
+
+function handleSearchInput(): void {
+  // Debounce search
+  if (searchTimeout.value) {
+    clearTimeout(searchTimeout.value)
+  }
+  searchTimeout.value = setTimeout(() => {
+    applyFilters()
+  }, 300)
+}
+
+function applyFilters(): void {
+  // Filters are applied through the computed property
+  // This function can be used to track analytics or perform additional actions
+  console.log('Filters applied:', { search: searchQuery.value, date: dateFilter.value })
+}
+
+function clearFilters(): void {
+  searchQuery.value = ''
+  dateFilter.value = ''
 }
 
 // Set page title

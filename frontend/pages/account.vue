@@ -298,6 +298,36 @@
           </div>
         </section>
 
+        <!-- GDPR Data Management -->
+        <section class="card border-blue-200">
+          <h2 class="text-lg font-semibold text-gray-900 mb-4">
+            Your Data
+          </h2>
+
+          <div class="space-y-4">
+            <div>
+              <h3 class="text-sm font-medium text-gray-900 mb-1">
+                Export Your Data
+              </h3>
+              <p class="text-sm text-gray-600 mb-3">
+                Download all your account data including contracts, analyses, and settings in JSON format
+              </p>
+              <button
+                type="button"
+                class="btn btn--secondary"
+                :disabled="exportLoading"
+                @click="handleExportData"
+              >
+                <span v-if="!exportLoading">Download My Data</span>
+                <span v-else class="flex items-center gap-2">
+                  <span class="spinner h-4 w-4" aria-hidden="true" />
+                  <span>Preparing...</span>
+                </span>
+              </button>
+            </div>
+          </div>
+        </section>
+
         <!-- Danger Zone -->
         <section class="card border-red-200">
           <h2 class="text-lg font-semibold text-red-900 mb-4">
@@ -326,23 +356,124 @@
                 Delete Account
               </h3>
               <p class="text-sm text-gray-600 mb-3">
-                Permanently delete your account and all associated data
+                Permanently delete your account and all associated data. This action cannot be undone.
               </p>
               <button
                 type="button"
                 class="btn btn--danger"
-                disabled
+                @click="showDeleteConfirmation = true"
               >
                 Delete Account
               </button>
-              <p class="mt-2 text-xs text-gray-500">
-                Account deletion is currently unavailable. Contact support for assistance.
-              </p>
             </div>
           </div>
         </section>
       </div>
     </div>
+
+    <!-- Delete Account Confirmation Modal -->
+    <Teleport to="body">
+      <div
+        v-if="showDeleteConfirmation"
+        class="fixed inset-0 z-50 overflow-y-auto"
+        aria-labelledby="delete-modal-title"
+        role="dialog"
+        aria-modal="true"
+      >
+        <!-- Backdrop -->
+        <div
+          class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+          @click="cancelDelete"
+        />
+
+        <!-- Modal -->
+        <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+          <div
+            class="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6"
+          >
+            <div class="sm:flex sm:items-start">
+              <div
+                class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10"
+                aria-hidden="true"
+              >
+                <svg
+                  class="h-6 w-6 text-red-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke-width="1.5"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
+                  />
+                </svg>
+              </div>
+
+              <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
+                <h3
+                  id="delete-modal-title"
+                  class="text-base font-semibold leading-6 text-gray-900"
+                >
+                  Delete account permanently?
+                </h3>
+                <div class="mt-2">
+                  <p class="text-sm text-gray-500 mb-3">
+                    This will permanently delete your account and all associated data including:
+                  </p>
+                  <ul class="text-sm text-gray-500 list-disc list-inside space-y-1 mb-3">
+                    <li>All uploaded contracts</li>
+                    <li>All analysis results</li>
+                    <li>Your account settings</li>
+                    <li>Usage history</li>
+                  </ul>
+                  <p class="text-sm font-semibold text-red-600">
+                    This action cannot be undone.
+                  </p>
+                  <div class="mt-4">
+                    <label for="confirm-delete" class="block text-sm font-medium text-gray-700 mb-2">
+                      Type <span class="font-mono font-semibold">DELETE</span> to confirm:
+                    </label>
+                    <input
+                      id="confirm-delete"
+                      v-model="deleteConfirmText"
+                      type="text"
+                      class="input w-full"
+                      placeholder="DELETE"
+                      @keyup.enter="deleteConfirmText === 'DELETE' && handleDeleteAccount()"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse gap-3">
+              <button
+                type="button"
+                class="btn btn--danger w-full sm:w-auto"
+                :disabled="deleteConfirmText !== 'DELETE' || deleteLoading"
+                @click="handleDeleteAccount"
+              >
+                <span v-if="!deleteLoading">Delete My Account</span>
+                <span v-else class="flex items-center gap-2">
+                  <span class="spinner h-4 w-4" aria-hidden="true" />
+                  <span>Deleting...</span>
+                </span>
+              </button>
+              <button
+                type="button"
+                class="btn btn--secondary w-full sm:w-auto mt-3 sm:mt-0"
+                :disabled="deleteLoading"
+                @click="cancelDelete"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -350,6 +481,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '~/stores/auth'
+import { useNotifications } from '~/composables/useNotifications'
 
 /**
  * Account Page
@@ -362,9 +494,14 @@ definePageMeta({
 
 const router = useRouter()
 const authStore = useAuthStore()
+const { success: showSuccess, error: showError } = useNotifications()
 
 // State
 const showUpgradeInfo = ref(false)
+const exportLoading = ref(false)
+const showDeleteConfirmation = ref(false)
+const deleteConfirmText = ref('')
+const deleteLoading = ref(false)
 
 // Methods
 async function handleLogout(): Promise<void> {
@@ -383,6 +520,74 @@ function formatDate(dateString: string): string {
     day: 'numeric',
     year: 'numeric',
   })
+}
+
+async function handleExportData(): Promise<void> {
+  exportLoading.value = true
+  try {
+    const { token } = authStore
+    if (!token) throw new Error('Not authenticated')
+
+    const response = await $fetch('/account/export', {
+      method: 'GET',
+      baseURL: useRuntimeConfig().public.apiBase,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      responseType: 'blob',
+    })
+
+    // Create download link
+    const blob = new Blob([response as any], { type: 'application/json' })
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `legally-ai-data-${new Date().toISOString().split('T')[0]}.json`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
+
+    showSuccess('Data exported successfully')
+  } catch (error) {
+    console.error('Export error:', error)
+    showError('Failed to export data', 'Please try again.')
+  } finally {
+    exportLoading.value = false
+  }
+}
+
+async function handleDeleteAccount(): Promise<void> {
+  if (deleteConfirmText.value !== 'DELETE') return
+
+  deleteLoading.value = true
+  try {
+    const { token } = authStore
+    if (!token) throw new Error('Not authenticated')
+
+    await $fetch('/account', {
+      method: 'DELETE',
+      baseURL: useRuntimeConfig().public.apiBase,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+
+    // Clear auth and redirect
+    await authStore.logout()
+    showSuccess('Account deleted successfully')
+    await router.push('/')
+  } catch (error) {
+    console.error('Delete error:', error)
+    showError('Failed to delete account', 'Please try again.')
+    deleteLoading.value = false
+  }
+}
+
+function cancelDelete(): void {
+  showDeleteConfirmation.value = false
+  deleteConfirmText.value = ''
+  deleteLoading.value = false
 }
 
 // Set page title
