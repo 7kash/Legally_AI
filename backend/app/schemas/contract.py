@@ -40,6 +40,7 @@ class ContractResponse(ContractBase):
     jurisdiction: Optional[str]
     uploaded_at: datetime
     updated_at: datetime
+    latest_analysis_id: Optional[UUID4] = None  # ID of most recent completed analysis
 
     model_config = {"from_attributes": True}
 

@@ -31,6 +31,9 @@ from ..services.llm_analysis.language import detect_language
 from ..services.llm_analysis.parsers import extract_text as extract_text_with_quality
 from ..services.llm_analysis.quality import compute_quality_score, compute_confidence_level
 
+# Import PII redaction for GDPR compliance
+from ..utils.pii_redactor import redact_pii
+
 
 class DatabaseTask(Task):
     """Base task class that handles database sessions"""
@@ -164,6 +167,35 @@ def analyze_contract_task(
                 contract.extracted_text = ""
                 db.commit()
 
+        # ===== GDPR COMPLIANCE: PII REDACTION =====
+        # Redact personally identifiable information before sending to LLM
+        create_event(
+            db,
+            analysis.id,
+            event_type="progress",
+            message="Protecting personal data (GDPR compliance)",
+            data={"step": "pii_redaction", "progress": 22}
+        )
+
+        original_text = contract.extracted_text or ""
+        redacted_text, pii_summary = redact_pii(original_text)
+
+        # Log PII redaction summary
+        if pii_summary:
+            logger.info(f"PII redaction summary: {pii_summary}")
+            create_event(
+                db,
+                analysis.id,
+                event_type="progress",
+                message=f"Protected {sum(pii_summary.values())} personal data items",
+                data={"step": "pii_redaction", "progress": 24, "pii_summary": pii_summary}
+            )
+        else:
+            logger.info("No PII detected in contract text")
+
+        # Use redacted text for LLM analysis (NEVER send original text with PII)
+        contract_text_for_llm = redacted_text
+
         # ===== STEP 1: Document Preparation =====
         create_event(
             db,
@@ -177,8 +209,8 @@ def analyze_contract_task(
             # Initialize LLM router
             llm_router = LLMRouter()
 
-            # Detect language of contract text
-            detected_language, lang_confidence = detect_language(contract.extracted_text or "")
+            # Detect language of contract text (use redacted text)
+            detected_language, lang_confidence = detect_language(contract_text_for_llm)
             logger.info(f"Detected language: {detected_language} (confidence: {lang_confidence})")
 
             create_event(
@@ -193,9 +225,9 @@ def analyze_contract_task(
             # For simplicity, assume high quality for now (can enhance later)
             quality_score = 0.9
 
-            # Run Step 1 preparation analysis with LLM
+            # Run Step 1 preparation analysis with LLM (using redacted text)
             preparation_result = run_step1_preparation(
-                contract_text=contract.extracted_text or "",
+                contract_text=contract_text_for_llm,  # ⚠️ IMPORTANT: Use redacted text, not original
                 detected_language=detected_language,
                 quality_score=quality_score,
                 llm_router=llm_router
@@ -248,7 +280,7 @@ def analyze_contract_task(
                 llm_router = LLMRouter()
 
             analysis_result = run_step2_analysis(
-                contract_text=contract.extracted_text or "",
+                contract_text=contract_text_for_llm,  # ⚠️ IMPORTANT: Use redacted text, not original
                 preparation_data=preparation_result,
                 llm_router=llm_router
             )

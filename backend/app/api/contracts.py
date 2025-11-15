@@ -130,11 +130,35 @@ async def list_contracts(
     # Get total count
     total = db.query(Contract).filter(Contract.user_id == current_user.id).count()
 
-    # Build response - use model_validate to automatically map fields
-    contract_responses = [
-        ContractResponse.model_validate(contract)
-        for contract in contracts
-    ]
+    # Build response with latest analysis info
+    contract_responses = []
+    for contract in contracts:
+        # Get latest completed analysis for this contract
+        latest_analysis = db.query(Analysis)\
+            .filter(
+                Analysis.contract_id == contract.id,
+                Analysis.status == "succeeded"
+            )\
+            .order_by(Analysis.completed_at.desc())\
+            .first()
+
+        # Convert contract to dict and add latest_analysis_id
+        contract_data = {
+            "id": contract.id,
+            "user_id": contract.user_id,
+            "filename": contract.filename,
+            "mime_type": contract.mime_type,
+            "file_size": contract.file_size,
+            "file_path": contract.file_path,
+            "page_count": contract.page_count,
+            "extracted_text": contract.extracted_text,
+            "detected_language": contract.detected_language,
+            "jurisdiction": contract.jurisdiction,
+            "uploaded_at": contract.uploaded_at,
+            "updated_at": contract.updated_at,
+            "latest_analysis_id": latest_analysis.id if latest_analysis else None
+        }
+        contract_responses.append(ContractResponse(**contract_data))
 
     return ContractList(
         contracts=contract_responses,
