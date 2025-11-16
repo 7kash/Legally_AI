@@ -146,6 +146,11 @@
           </div>
 
           <!-- Dynamic Widget Rendering -->
+          <!-- Debug: Show what's in formattedOutput -->
+          <div class="bg-gray-100 p-4 rounded text-xs overflow-auto max-h-96">
+            <pre>{{ JSON.stringify(formattedOutput, null, 2) }}</pre>
+          </div>
+
           <component
             v-for="key in widgetOrder"
             :key="key"
