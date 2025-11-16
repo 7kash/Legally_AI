@@ -47,15 +47,7 @@ User reports NOT seeing the following components on analysis page:
    - `confidence_score`
    - `about_summary`
 
-2. **Backend not returning these fields** - Check API response:
-```javascript
-// In browser console on analysis page:
-console.log($nuxt.$store.state.analyses.currentAnalysis)
-// Check if these fields exist:
-// - confidence_score (should be 0-1)
-// - about_summary (should be string)
-// - screening_result (should be one of 4 values)
-```
+2. **Backend not returning these fields** - Check API response (see Step 4 below for how to inspect data)
 
 **Fixed in Code:**
 - Line 135: Better conditional check for `confidence_score`
@@ -120,17 +112,37 @@ For each obligation/right/risk:
 
 Open DevTools (F12) and check for errors:
 
-```javascript
-// 1. Check if analysis data loaded
-console.log($nuxt.$store.state.analyses.currentAnalysis)
+**Method 1: Using Vue DevTools (Recommended)**
+1. Install Vue DevTools browser extension
+2. Open DevTools → Vue tab
+3. Look for "Pinia" in the left sidebar
+4. Click "analyses" store
+5. Inspect `currentAnalysis` object
 
-// 2. Check specific fields
-const analysis = $nuxt.$store.state.analyses.currentAnalysis
-console.log('Confidence Score:', analysis.confidence_score)
-console.log('About Summary:', analysis.preparation_result?.about || analysis.analysis_result?.about_summary)
-console.log('Screening Result:', analysis.preparation_result?.screening_result || analysis.analysis_result?.screening_result)
-console.log('Formatted Output:', analysis.formatted_output)
+**Method 2: Using Browser Console**
+```javascript
+// For Nuxt 3 + Pinia, use this approach:
+// 1. In the browser console, type:
+window.$nuxt
+
+// 2. If that shows an object, try:
+const analysesStore = window.$nuxt.$pinia._s.get('analyses')
+console.log('Current Analysis:', analysesStore.currentAnalysis)
+
+// 3. Check specific fields:
+const analysis = analysesStore.currentAnalysis
+console.log('Confidence Score:', analysis?.confidence_score)
+console.log('About Summary:', analysis?.preparation_result?.about || analysis?.analysis_result?.about_summary)
+console.log('Screening Result:', analysis?.preparation_result?.screening_result || analysis?.analysis_result?.screening_result)
+console.log('Formatted Output:', analysis?.formatted_output)
 ```
+
+**Method 3: Network Tab (Most Reliable)**
+1. Open DevTools (F12) → Network tab
+2. Refresh the analysis page
+3. Look for request to `/api/v1/analyses/{id}`
+4. Click on it → Preview/Response tab
+5. Inspect the JSON response directly
 
 ## Backend Requirements
 
