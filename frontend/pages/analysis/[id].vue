@@ -315,21 +315,42 @@ const formattedOutput = computed(() => {
 
   // If ELI5 is enabled and we have simplified data, merge it
   if (eli5Enabled.value && eli5Data.value) {
+    console.log('[ELI5] Merging simplified data:', {
+      eli5Enabled: eli5Enabled.value,
+      eli5Data: eli5Data.value,
+      baseOutput
+    })
+
     const merged = { ...baseOutput }
 
     // Merge simplified sections
     const simplifiableSections = ['obligations', 'rights', 'risks']
     simplifiableSections.forEach(section => {
       const simplifiedSection = eli5Data.value[`${section}_simplified`]
-      if (simplifiedSection && merged[section]?.content) {
-        // Merge simplified data into the content
-        merged[section] = {
-          ...merged[section],
-          content: simplifiedSection
+      console.log(`[ELI5] Section ${section}:`, {
+        simplifiedSection,
+        hasContent: !!merged[section]?.content,
+        mergedSection: merged[section]
+      })
+
+      if (simplifiedSection && merged[section]) {
+        // Check if section has content property or is directly an array
+        if ('content' in merged[section]) {
+          // Merge simplified data into the content
+          merged[section] = {
+            ...merged[section],
+            content: simplifiedSection
+          }
+          console.log(`[ELI5] Merged ${section} with content structure`)
+        } else if (Array.isArray(merged[section])) {
+          // Direct array structure
+          merged[section] = simplifiedSection
+          console.log(`[ELI5] Merged ${section} as direct array`)
         }
       }
     })
 
+    console.log('[ELI5] Final merged output:', merged)
     return merged
   }
 
@@ -449,8 +470,11 @@ async function toggleELI5Mode(): Promise<void> {
     }
 
     const data = await response.json()
+    console.log('[ELI5] API Response:', data)
+    console.log('[ELI5] Simplified analysis:', data.simplified_analysis)
     eli5Data.value = data.simplified_analysis
     eli5Enabled.value = true
+    console.log('[ELI5] ELI5 mode enabled with data:', eli5Data.value)
   } catch (error: any) {
     const { error: showError } = useNotifications()
     showError('Failed to simplify', error.message || 'Please try again later.')
