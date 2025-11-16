@@ -14,6 +14,7 @@ Perform the following analyses:
 **Extract Core Summary** (about_summary):
 - What is this agreement for? (2-3 simple sentences, ≤300 chars, NO jargon, NO acronyms)
 - Plain language explanation suitable for someone unfamiliar with legal contracts
+- **WRITE IN {output_language}**
 
 **Extract Payment Terms** (payment_terms):
 - Main amount: price/rent/fee with currency and frequency
@@ -23,13 +24,14 @@ Perform the following analyses:
 - End date/renewal: when payments end or how renewal works
 - Cancellation notice: notice period required to cancel
 - Always include: "Taxes/fees not analyzed"
+- **WRITE ALL FIELDS IN {output_language}**
 
 **Extract User Obligations** (what the {user_role} MUST do or NOT do):
 Up to 5 MOST IMPORTANT obligations. For each:
-- Action: What must the user do (or not do)? Be specific.
-- Trigger: When does this apply? What causes it?
-- Time window: Deadline, frequency, or "ongoing"
-- Consequence: What happens if not done? Use "Not stated" if unclear
+- Action: What must the user do (or not do)? Be specific. **WRITE IN {output_language}**
+- Trigger: When does this apply? What causes it? **WRITE IN {output_language}**
+- Time window: Deadline, frequency, or "ongoing" **WRITE IN {output_language}**
+- Consequence: What happens if not done? Use "Not stated" if unclear. **WRITE IN {output_language}**
 - Quote_original: Exact quote from contract in ORIGINAL language (full sentence(s), ≤200 chars)
 - Quote_translated: Same quote translated to {output_language} if different from original, or same as quote_original
 
@@ -37,9 +39,9 @@ Prioritize: financial obligations, notice requirements, maintenance duties, rest
 
 **Extract User Rights** (what the {user_role} CAN do):
 Up to 5 MOST IMPORTANT rights. For each:
-- Right: What can the user do? Be clear and specific.
-- How to exercise: Concrete steps to use this right
-- Conditions: Time limits, requirements, or "None" if unconditional
+- Right: What can the user do? Be clear and specific. **WRITE IN {output_language}**
+- How to exercise: Concrete steps to use this right. **WRITE IN {output_language}**
+- Conditions: Time limits, requirements, or "None" if unconditional. **WRITE IN {output_language}**
 - Quote_original: Exact quote from contract in ORIGINAL language (full sentence(s), ≤200 chars)
 - Quote_translated: Same quote translated to {output_language} if different from original, or same as quote_original
 
@@ -52,8 +54,8 @@ Up to 5 risks, ranked by severity. For each:
   - MEDIUM: Unclear terms, missing protections, broad discretion, short notice, high penalties
   - LOW: Minor concerns, could be clearer, typical for this type
 - Category: payment|termination|liability|data|change|access|dispute|other
-- Description: Clear, plain language (≤150 chars) - what's the problem?
-- Recommendation: What to do (≤150 chars) - "Request...", "Clarify...", "Negotiate..."
+- Description: Clear, plain language (≤150 chars) - what's the problem? **WRITE IN {output_language}**
+- Recommendation: What to do (≤150 chars) - "Request...", "Clarify...", "Negotiate...". **WRITE IN {output_language}**
 - is_hidden: true if buried in fine print, automatic triggers, easy to miss
 - Quote_original: Exact quote of risky clause in ORIGINAL language (full sentence(s), ≤200 chars)
 - Quote_translated: Same quote translated to {output_language} if different from original, or same as quote_original
@@ -63,15 +65,16 @@ Up to 5 items, each ≤150 chars:
 - Missing standard clauses for this {agreement_type}
 - Unusual/atypical terms
 - Inconsistencies or contradictions
+- **WRITE IN {output_language}**
 
 **Build Calendar** (deadline items):
 All deadline-related items:
 - date_or_formula: "YYYY-MM-DD" or formula like "Monthly on 20th", "30 days before lease end"
-- event: What happens on this date
+- event: What happens on this date. **WRITE IN {output_language}**
 
 **Generate Suggestions** (if negotiability is medium or high):
 Up to 5 specific changes to request. For each:
-- Suggestion: What to request (≤150 chars) - be concrete: "Add clause X" not "Improve section Y"
+- Suggestion: What to request (≤150 chars) - be concrete: "Add clause X" not "Improve section Y". **WRITE IN {output_language}**
 - Quote_original: Exact quote of problematic clause in ORIGINAL language (≤200 chars, or null if adding new clause)
 - Quote_translated: Same quote in {output_language} (or null if adding new clause)
 
@@ -80,7 +83,7 @@ Prioritize: financial protections, deadline extensions, liability caps
 
 **Generate Mitigations** (if signing "as is"):
 Up to 5 practical steps to reduce risks without changing the contract. For each:
-- Mitigation: What to do (≤150 chars) - e.g., "Document everything", "Get insurance", "Set reminders"
+- Mitigation: What to do (≤150 chars) - e.g., "Document everything", "Get insurance", "Set reminders". **WRITE IN {output_language}**
 - Quote_original: Quote of risky clause this addresses in ORIGINAL language (≤200 chars, or null if general advice)
 - Quote_translated: Same quote in {output_language} (or null if general advice)
 
@@ -88,6 +91,7 @@ Up to 5 practical steps to reduce risks without changing the contract. For each:
 - "no_major_issues": No high risks, only minor/low concerns
 - "recommended_to_address": Medium risks that should be fixed/clarified
 - "high_risk": Critical issues - unlawful, severely one-sided, unconscionable
+- screening_reason: Brief explanation (one sentence). **WRITE IN {output_language}**
 
 ---
 
@@ -162,15 +166,16 @@ Up to 5 practical steps to reduce risks without changing the contract. For each:
 ```
 
 **CRITICAL RULES:**
-1. NO jargon, NO Latin, NO legalese - write for non-lawyers
-2. Be SPECIFIC: "Pay $1,500 by 1st of month" NOT "Make timely payments"
-3. Be ACTIONABLE: "Request 60-day notice clause" NOT "Notice is short"
-4. PRIORITIZE what matters to {user_role}: financial, deadlines, rights
-5. STAY within limits: ≤200 chars quotes (full sentences), ≤150 chars descriptions
-6. NEVER invent: say "Not stated" if not in contract
-7. Focus on {user_role} perspective
-8. ALWAYS provide both quote_original (exact text from contract) and quote_translated (in {output_language})
-9. Quotes must be EXACT text from contract, not paraphrased
+1. **WRITE ALL OUTPUT IN {output_language}** - ALL text fields (action, right, description, mitigation, suggestion, about_summary, payment_terms, etc.) must be written in {output_language}, NOT in the contract's original language
+2. NO jargon, NO Latin, NO legalese - write for non-lawyers
+3. Be SPECIFIC: "Pay $1,500 by 1st of month" NOT "Make timely payments"
+4. Be ACTIONABLE: "Request 60-day notice clause" NOT "Notice is short"
+5. PRIORITIZE what matters to {user_role}: financial, deadlines, rights
+6. STAY within limits: ≤200 chars quotes (full sentences), ≤150 chars descriptions
+7. NEVER invent: say "Not stated" if not in contract (translated to {output_language})
+8. Focus on {user_role} perspective
+9. ALWAYS provide both quote_original (exact text from contract in its original language) and quote_translated (exact same text translated to {output_language})
+10. Quotes must be EXACT text from contract, not paraphrased
 
 **CONTRACT TEXT:**
 {contract_text}
