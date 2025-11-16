@@ -6,6 +6,11 @@ import os
 from pydantic import Field
 from pydantic_settings import BaseSettings
 from typing import Optional
+from dotenv import load_dotenv
+
+# Load .env file at module import time
+# This ensures environment variables are available to os.getenv() calls
+load_dotenv()
 
 
 class Settings(BaseSettings):
