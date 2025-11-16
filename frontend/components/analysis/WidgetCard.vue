@@ -1,8 +1,8 @@
 <template>
-  <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6" :class="borderClass">
-    <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-      <component :is="iconComponent" class="h-5 w-5" :class="iconColor" />
-      {{ title }}
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow duration-200" :class="borderClass">
+    <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-3">
+      <component :is="iconComponent" class="h-6 w-6 flex-shrink-0" :class="iconColor" />
+      <span class="leading-tight">{{ title }}</span>
     </h2>
     <slot />
   </div>

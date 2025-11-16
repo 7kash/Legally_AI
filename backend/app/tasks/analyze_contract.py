@@ -346,11 +346,11 @@ def analyze_contract_task(
                 "content": preparation_result['jurisdiction']
             },
             "obligations": {
-                "title": "Obligations",
+                "title": "Your Obligations",
                 "content": analysis_result['obligations'] if analysis_result['obligations'] else ["No obligations identified"]
             },
             "rights": {
-                "title": "Rights",
+                "title": "Your Rights",
                 "content": analysis_result['rights'] if analysis_result['rights'] else ["No rights identified"]
             },
             "risks": {
@@ -366,7 +366,7 @@ def analyze_contract_task(
                 "content": analysis_result.get('suggestions', [])
             },
             "mitigations": {
-                "title": "Mitigations (If Signing As-Is)",
+                "title": "Risk Mitigations",
                 "content": analysis_result.get('mitigations', [])
             },
             "calendar": {

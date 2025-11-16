@@ -710,6 +710,28 @@ import { exportAnalysisToPDF } from '~/utils/exportToPDF'
 import { exportAnalysisToDOCX } from '~/utils/exportToDOCX'
 import { exportLawyerPackToPDF } from '~/utils/exportLawyerPack'
 
+// Type definitions for widget data structure
+interface WidgetSection {
+  title: string
+  content: any
+}
+
+interface FormattedOutput {
+  agreement_type?: WidgetSection
+  parties?: WidgetSection
+  jurisdiction?: WidgetSection
+  obligations?: WidgetSection
+  rights?: WidgetSection
+  risks?: WidgetSection
+  payment_terms?: WidgetSection
+  suggestions?: WidgetSection
+  mitigations?: WidgetSection
+  calendar?: WidgetSection
+  screening_result?: string
+  confidence_reason?: string
+  [key: string]: any
+}
+
 definePageMeta({
   middleware: 'auth',
 })
@@ -732,7 +754,7 @@ const eli5Error = ref<string | null>(null)
 const feedbackSubmitted = ref<Record<string, boolean>>({})
 const feedbackLoading = ref<Record<string, boolean>>({})
 
-const formattedOutput = computed(() => {
+const formattedOutput = computed<FormattedOutput>(() => {
   return analysesStore.currentAnalysis?.formatted_output || {}
 })
 
@@ -790,10 +812,6 @@ function getAgreementType(): string {
   )
 }
 
-function getAgreementTypeTitle(): string {
-  return formattedOutput.value.agreement_type?.title || 'Agreement Type'
-}
-
 function getParties(): any[] {
   const prepResult = analysesStore.currentAnalysis?.preparation_result
   const data = formattedOutput.value.parties
@@ -805,10 +823,6 @@ function getParties(): any[] {
   if (Array.isArray(data)) return data
   if (data.content && Array.isArray(data.content)) return data.content
   return []
-}
-
-function getPartiesTitle(): string {
-  return formattedOutput.value.parties?.title || 'Parties'
 }
 
 function getJurisdiction(): string {
@@ -912,7 +926,19 @@ function getMitigations(): any[] {
   return []
 }
 
-// Title getter functions
+// ==========================================
+// WIDGET TITLE GETTERS
+// Extracts titles from API data with fallbacks
+// ==========================================
+
+function getAgreementTypeTitle(): string {
+  return formattedOutput.value.agreement_type?.title || 'Agreement Type'
+}
+
+function getPartiesTitle(): string {
+  return formattedOutput.value.parties?.title || 'Parties'
+}
+
 function getJurisdictionTitle(): string {
   return formattedOutput.value.jurisdiction?.title || 'Jurisdiction'
 }
