@@ -221,7 +221,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, computed, ref } from 'vue'
+import { onMounted, onUnmounted, computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAnalysesStore } from '~/stores/analyses'
 import { useAuthStore } from '~/stores/auth'
@@ -411,8 +411,49 @@ function formatEventMessage(event: AnalysisEvent): string {
   return event.payload?.message || event.kind || 'Processing...'
 }
 
-// Polling interval for checking analysis status
+// Polling fallback (only if SSE fails)
 let pollInterval: NodeJS.Timeout | null = null
+
+function startPolling(): void {
+  if (pollInterval) return // Already polling
+
+  pollInterval = setInterval(async () => {
+    if (!analysesStore.isAnalyzing) {
+      stopPolling()
+      return
+    }
+
+    // Don't poll if SSE is connected
+    if (analysesStore.sseConnected) {
+      stopPolling()
+      return
+    }
+
+    await analysesStore.fetchAnalysis(analysisId.value)
+  }, 10000) // Poll every 10 seconds as fallback
+}
+
+function stopPolling(): void {
+  if (pollInterval) {
+    clearInterval(pollInterval)
+    pollInterval = null
+  }
+}
+
+// Watch for SSE connection failures
+watch(() => analysesStore.sseConnected, (connected) => {
+  if (!connected && analysesStore.isAnalyzing) {
+    // SSE failed or disconnected, start polling as fallback
+    setTimeout(() => {
+      if (!analysesStore.sseConnected && analysesStore.isAnalyzing) {
+        startPolling()
+      }
+    }, 5000) // Wait 5 seconds before starting polling
+  } else if (connected) {
+    // SSE connected successfully, stop polling
+    stopPolling()
+  }
+})
 
 // Lifecycle hooks
 onMounted(async () => {
@@ -421,28 +462,12 @@ onMounted(async () => {
     // Connect to SSE if analysis is still running or queued
     if (analysesStore.isAnalyzing) {
       analysesStore.connectSSE(analysisId.value)
-
-      // Also set up polling as a fallback (every 3 seconds)
-      pollInterval = setInterval(async () => {
-        if (analysesStore.isAnalyzing) {
-          await analysesStore.fetchAnalysis(analysisId.value)
-        } else {
-          // Analysis completed, stop polling
-          if (pollInterval) {
-            clearInterval(pollInterval)
-            pollInterval = null
-          }
-        }
-      }, 3000)
     }
   }
 })
 
 onUnmounted(() => {
   analysesStore.disconnectSSE()
-  if (pollInterval) {
-    clearInterval(pollInterval)
-    pollInterval = null
-  }
+  stopPolling()
 })
 </script>

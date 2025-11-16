@@ -31,6 +31,7 @@ export const useAnalysesStore = defineStore('analyses', () => {
   const error = ref<string | null>(null)
   const events = ref<AnalysisEvent[]>([])
   const eventSource = ref<EventSource | null>(null)
+  const sseConnected = ref(false)
 
   // Computed
   const isAnalyzing = computed(() => {
@@ -92,6 +93,10 @@ export const useAnalysesStore = defineStore('analyses', () => {
     // Create EventSource with auth header (via query param since EventSource doesn't support headers)
     const es = new EventSource(`${url}?token=${token}`)
 
+    es.onopen = () => {
+      sseConnected.value = true
+    }
+
     es.onmessage = (event) => {
       try {
         const data: AnalysisEvent = JSON.parse(event.data)
@@ -118,6 +123,7 @@ export const useAnalysesStore = defineStore('analyses', () => {
 
     es.onerror = (err) => {
       console.error('SSE error:', err)
+      sseConnected.value = false
       disconnectSSE()
     }
 
@@ -133,6 +139,7 @@ export const useAnalysesStore = defineStore('analyses', () => {
     if (eventSource.value) {
       eventSource.value.close()
       eventSource.value = null
+      sseConnected.value = false
     }
   }
 
@@ -182,6 +189,7 @@ export const useAnalysesStore = defineStore('analyses', () => {
     loading,
     error,
     events,
+    sseConnected,
     // Computed
     isAnalyzing,
     hasResults,
