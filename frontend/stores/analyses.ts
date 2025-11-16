@@ -104,6 +104,7 @@ export const useAnalysesStore = defineStore('analyses', () => {
 
         // Update current analysis status based on event
         if (currentAnalysis.value) {
+          // Handle status change events
           if (data.kind === 'status_change' && data.payload.status) {
             currentAnalysis.value.status = data.payload.status
 
@@ -114,6 +115,17 @@ export const useAnalysesStore = defineStore('analyses', () => {
                 disconnectSSE()
               })
             }
+          }
+
+          // Handle error events
+          if (data.kind === 'error') {
+            error.value = data.payload.message || 'An error occurred during analysis'
+            // Mark analysis as failed on error
+            if (currentAnalysis.value.status === 'running' || currentAnalysis.value.status === 'queued') {
+              currentAnalysis.value.status = 'failed'
+            }
+            // Disconnect SSE after error
+            disconnectSSE()
           }
         }
       } catch (err) {
