@@ -104,7 +104,10 @@ export const useAnalysesStore = defineStore('analyses', () => {
 
             // Fetch full analysis when status changes to succeeded or failed
             if (data.payload.status === 'succeeded' || data.payload.status === 'failed') {
-              fetchAnalysis(analysisId)
+              fetchAnalysis(analysisId).then(() => {
+                // Disconnect SSE after fetching final results
+                disconnectSSE()
+              })
             }
           }
         }

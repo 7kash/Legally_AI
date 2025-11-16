@@ -407,7 +407,8 @@ async function handleExportFormat(format: 'pdf' | 'docx' | 'json' | 'lawyer-pack
 
 // Format event message
 function formatEventMessage(event: AnalysisEvent): string {
-  return event.message || event.event_type || 'Processing...'
+  // Event structure from SSE: { kind, payload: { message, ... }, timestamp }
+  return event.payload?.message || event.kind || 'Processing...'
 }
 
 // Polling interval for checking analysis status
