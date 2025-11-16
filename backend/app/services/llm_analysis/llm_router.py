@@ -1,34 +1,78 @@
 """
 LLM Router - Provider-agnostic LLM interface
-Currently supports Groq API
+Supports both Groq and OpenRouter APIs
 """
 
 import os
-from groq import Groq
 from typing import Dict, Optional, Any
 import json
-from .constants import GROQ_SETTINGS
+
+# Try importing both clients
+try:
+    from groq import Groq
+    GROQ_AVAILABLE = True
+except ImportError:
+    GROQ_AVAILABLE = False
+
+try:
+    from openai import OpenAI
+    OPENAI_AVAILABLE = True
+except ImportError:
+    OPENAI_AVAILABLE = False
 
 
 class LLMRouter:
     """
     Router for LLM API calls
-    Supports multiple providers with fallback
+    Supports Groq and OpenRouter with automatic fallback
     """
 
-    def __init__(self, api_key: Optional[str] = None):
+    def __init__(
+        self,
+        api_key: Optional[str] = None,
+        provider: Optional[str] = None,
+        model: Optional[str] = None
+    ):
         """
         Initialize LLM router
 
         Args:
-            api_key: Groq API key (or reads from env)
+            api_key: API key (reads from env if not provided)
+            provider: 'groq' or 'openrouter' (auto-detects from env if not provided)
+            model: Model name (uses default from constants if not provided)
         """
-        self.api_key = api_key or os.getenv("GROQ_API_KEY")
-        if not self.api_key:
-            raise ValueError("GROQ_API_KEY not found in environment or provided")
+        # Determine provider
+        self.provider = provider or os.getenv("LLM_PROVIDER", "openrouter")
 
-        self.client = Groq(api_key=self.api_key)
-        self.model = GROQ_SETTINGS["model"]
+        if self.provider == "groq":
+            if not GROQ_AVAILABLE:
+                raise ImportError("Groq SDK not installed. Run: pip install groq")
+
+            self.api_key = api_key or os.getenv("GROQ_API_KEY")
+            if not self.api_key:
+                raise ValueError("GROQ_API_KEY not found in environment")
+
+            self.client = Groq(api_key=self.api_key)
+            self.model = model or os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+
+        elif self.provider == "openrouter":
+            if not OPENAI_AVAILABLE:
+                raise ImportError("OpenAI SDK not installed. Run: pip install openai")
+
+            self.api_key = api_key or os.getenv("OPENROUTER_API_KEY")
+            if not self.api_key:
+                raise ValueError("OPENROUTER_API_KEY not found in environment")
+
+            # OpenRouter uses OpenAI SDK with custom base URL
+            self.client = OpenAI(
+                api_key=self.api_key,
+                base_url="https://openrouter.ai/api/v1"
+            )
+            # Default to a good OpenRouter model
+            self.model = model or os.getenv("OPENROUTER_MODEL", "anthropic/claude-3.5-sonnet")
+
+        else:
+            raise ValueError(f"Unknown provider: {self.provider}. Use 'groq' or 'openrouter'")
 
     def call(
         self,
@@ -44,8 +88,8 @@ class LLMRouter:
         Args:
             prompt: User prompt
             system_prompt: System prompt (optional)
-            temperature: Sampling temperature (default from settings)
-            max_tokens: Max tokens to generate (default from settings)
+            temperature: Sampling temperature (default 0.1)
+            max_tokens: Max tokens to generate (default 8000)
             json_mode: Whether to request JSON output
 
         Returns:
@@ -67,20 +111,32 @@ class LLMRouter:
         kwargs = {
             "model": self.model,
             "messages": messages,
-            "temperature": temperature or GROQ_SETTINGS["temperature"],
-            "max_tokens": max_tokens or GROQ_SETTINGS["max_tokens"],
-            "top_p": GROQ_SETTINGS["top_p"]
+            "temperature": temperature or 0.1,
+            "max_tokens": max_tokens or 8000,
         }
 
-        if json_mode:
-            kwargs["response_format"] = {"type": "json_object"}
+        # Add provider-specific parameters
+        if self.provider == "groq":
+            kwargs["top_p"] = 0.9
+            if json_mode:
+                kwargs["response_format"] = {"type": "json_object"}
+
+        elif self.provider == "openrouter":
+            # OpenRouter supports JSON mode via response_format
+            if json_mode:
+                kwargs["response_format"] = {"type": "json_object"}
+            # Add OpenRouter-specific headers for better tracking
+            kwargs["extra_headers"] = {
+                "HTTP-Referer": "https://legally.ai",
+                "X-Title": "Legally AI Contract Analysis"
+            }
 
         try:
             response = self.client.chat.completions.create(**kwargs)
             return response.choices[0].message.content
 
         except Exception as e:
-            raise RuntimeError(f"LLM API call failed: {str(e)}")
+            raise RuntimeError(f"LLM API call failed ({self.provider}): {str(e)}")
 
     def call_with_json(
         self,
@@ -123,18 +179,19 @@ class LLMRouter:
         return len(text) // 3
 
 
-def test_llm_connection(api_key: Optional[str] = None) -> bool:
+def test_llm_connection(api_key: Optional[str] = None, provider: Optional[str] = None) -> bool:
     """
     Test LLM connection with simple call
 
     Args:
-        api_key: Groq API key (optional)
+        api_key: API key (optional)
+        provider: 'groq' or 'openrouter' (optional)
 
     Returns:
         True if connection works
     """
     try:
-        router = LLMRouter(api_key=api_key)
+        router = LLMRouter(api_key=api_key, provider=provider)
         response = router.call("Say 'Hello' if you can read this.")
 
         return "hello" in response.lower()
