@@ -26,7 +26,7 @@ from pathlib import Path
 # Import LLM analysis modules from prototype
 from ..services.llm_analysis.llm_router import LLMRouter
 from ..services.llm_analysis.step1_preparation import run_step1_preparation
-from ..services.llm_analysis.step2_analysis import run_step2_analysis
+from ..services.llm_analysis.step2_analysis import run_step2_analysis, determine_final_screening_result
 from ..services.llm_analysis.language import detect_language
 from ..services.llm_analysis.parsers import extract_text as extract_text_with_quality
 from ..services.llm_analysis.quality import compute_quality_score, compute_confidence_level
@@ -374,6 +374,30 @@ def analyze_contract_task(
                 "content": analysis_result.get('calendar', [])
             }
         }
+
+        # Calculate and store screening result
+        llm_screening = analysis_result.get('screening_result', 'recommended_to_address')
+        quality_score_value = preparation_result.get('quality_score', 0.9)
+        coverage_score_value = preparation_result.get('coverage_score', 1.0)
+
+        final_screening = determine_final_screening_result(
+            llm_screening,
+            quality_score_value,
+            coverage_score_value
+        )
+
+        # Calculate confidence level (High/Medium/Low)
+        if quality_score_value >= 0.8:
+            confidence = "High"
+        elif quality_score_value >= 0.5:
+            confidence = "Medium"
+        else:
+            confidence = "Low"
+
+        # Store quality metrics to database
+        analysis.screening_result = final_screening
+        analysis.quality_score = int(quality_score_value * 100)  # Convert 0.9 -> 90
+        analysis.confidence_level = confidence
 
         # Store directly as dict (JSON column)
         analysis.formatted_output = formatted_output

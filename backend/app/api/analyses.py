@@ -38,7 +38,10 @@ class AnalysisResponse(BaseModel):
     status: str
     output_language: str
     formatted_output: Optional[Dict[str, Any]] = None
-    confidence_score: Optional[int] = None
+    confidence_score: Optional[float] = None
+    screening_result: Optional[str] = None
+    preparation_result: Optional[Dict[str, Any]] = None
+    analysis_result: Optional[Dict[str, Any]] = None
     created_at: datetime
     started_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None
@@ -104,12 +107,21 @@ def create_analysis(
         except json.JSONDecodeError:
             formatted_output = None
 
+    # Convert quality_score (0-100 int) to confidence_score (0-1 float) for frontend
+    confidence_score = None
+    if analysis.quality_score is not None:
+        confidence_score = analysis.quality_score / 100.0
+
     return AnalysisResponse(
         id=str(analysis.id),
         contract_id=str(analysis.contract_id),
         status=analysis.status,
         output_language=analysis.output_language,
         formatted_output=formatted_output,
+        confidence_score=confidence_score,
+        screening_result=analysis.screening_result,
+        preparation_result=analysis.preparation_result,
+        analysis_result=analysis.analysis_result,
         created_at=analysis.created_at,
         started_at=analysis.started_at,
         completed_at=analysis.completed_at
@@ -145,12 +157,21 @@ def get_analysis(
         except json.JSONDecodeError:
             formatted_output = None
 
+    # Convert quality_score (0-100 int) to confidence_score (0-1 float) for frontend
+    confidence_score = None
+    if analysis.quality_score is not None:
+        confidence_score = analysis.quality_score / 100.0
+
     return AnalysisResponse(
         id=str(analysis.id),
         contract_id=str(analysis.contract_id),
         status=analysis.status,
         output_language=analysis.output_language,
         formatted_output=formatted_output,
+        confidence_score=confidence_score,
+        screening_result=analysis.screening_result,
+        preparation_result=analysis.preparation_result,
+        analysis_result=analysis.analysis_result,
         created_at=analysis.created_at,
         started_at=analysis.started_at,
         completed_at=analysis.completed_at
