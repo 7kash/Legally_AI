@@ -173,18 +173,7 @@
             <p class="text-gray-800 leading-relaxed">{{ getAboutSummary() }}</p>
           </div>
 
-          <!-- Analysis Sections -->
-          <AnalysisSection
-            v-for="(section, key) in formattedOutput"
-            :key="key"
-            :title="getSectionTitle(section, key)"
-            :content="getSectionContent(section)"
-            :section-key="String(key)"
-            @feedback="handleFeedback"
-          />
-
-          <!-- Legacy WidgetCard sections (keeping for reference but hidden) -->
-          <template v-if="false">
+          <!-- 5. Agreement Type -->
           <WidgetCard v-if="getAgreementType()" :title="getAgreementTypeTitle()" icon="document">
             <p class="text-gray-800 font-medium">{{ getAgreementType() }}</p>
           </WidgetCard>
@@ -648,7 +637,6 @@
               </div>
             </div>
           </WidgetCard>
-          </template>
 
           <!-- Actions -->
           <div class="flex flex-wrap gap-3 pt-4">
@@ -800,33 +788,6 @@ const confidenceReason = computed(() => {
     formattedOutput.value.confidence_reason
   )
 })
-
-// Helper functions for AnalysisSection v-for
-function getSectionTitle(section: any, key: string | number): string {
-  // If section has a title property, use it
-  if (section && typeof section === 'object' && 'title' in section && section.title) {
-    return section.title
-  }
-  // Otherwise, convert the key to Title Case
-  return formatSectionTitle(String(key))
-}
-
-function getSectionContent(section: any): any {
-  // If section has a content property, use it (new backend format)
-  if (section && typeof section === 'object' && 'content' in section) {
-    return section.content
-  }
-  // Otherwise, return the section itself (old format or direct content)
-  return section
-}
-
-function formatSectionTitle(key: string): string {
-  // Convert snake_case to Title Case
-  return key
-    .split('_')
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ')
-}
 
 // Helper functions
 function getAboutSummary(): string {
@@ -1082,29 +1043,6 @@ function getCurrentData(): any {
 }
 
 // Feedback functions
-async function handleFeedback(data: {
-  sectionKey: string
-  isCorrect: boolean
-  comment?: string
-}): Promise<void> {
-  try {
-    await analysesStore.submitFeedback(
-      analysisId.value,
-      data.sectionKey,
-      data.isCorrect,
-      data.comment
-    )
-
-    // Show success notification
-    const { success } = useNotifications()
-    success('Feedback submitted', 'Thank you for your feedback!')
-  } catch (error) {
-    console.error('Failed to submit feedback:', error)
-    const { error: showError } = useNotifications()
-    showError('Failed to submit feedback', 'Please try again later.')
-  }
-}
-
 async function submitFeedback(
   section: string,
   itemIndex: number,
