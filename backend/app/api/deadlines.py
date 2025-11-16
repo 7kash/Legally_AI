@@ -13,7 +13,7 @@ from ..database import get_db
 from ..models import Deadline, DeadlineType
 from ..api.auth import get_current_user, User
 
-router = APIRouter(prefix="/deadlines", tags=["deadlines"])
+router = APIRouter()
 
 
 # Pydantic schemas
