@@ -704,6 +704,7 @@
 import { onMounted, onUnmounted, computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAnalysesStore } from '~/stores/analyses'
+import { useAuthStore } from '~/stores/auth'
 import type { AnalysisEvent } from '~/stores/analyses'
 import { exportAnalysisToPDF } from '~/utils/exportToPDF'
 import { exportAnalysisToDOCX } from '~/utils/exportToDOCX'
@@ -715,6 +716,7 @@ definePageMeta({
 
 const route = useRoute()
 const analysesStore = useAnalysesStore()
+const authStore = useAuthStore()
 
 const analysisId = computed(() => route.params.id as string)
 const showExportModal = ref(false)
@@ -946,6 +948,7 @@ async function toggleELI5Mode(): Promise<void> {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authStore.token}`,
         },
         credentials: 'include',
       }
@@ -1006,6 +1009,7 @@ async function submitFeedback(
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authStore.token}`,
         },
         credentials: 'include',
         body: JSON.stringify({
