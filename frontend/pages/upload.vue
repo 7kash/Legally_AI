@@ -52,36 +52,74 @@
       <div class="bg-white rounded-lg border border-gray-200 p-6 sm:p-8">
         <form @submit.prevent="handleSubmit">
           <!-- Language Selection -->
-          <div class="mb-6">
-            <label
-              for="output-language"
-              class="block text-sm font-medium text-gray-700 mb-2"
-            >
-              Output Language
-            </label>
-            <select
-              id="output-language"
-              v-model="outputLanguage"
-              name="output-language"
-              class="input w-full sm:w-auto"
-              required
-            >
-              <option value="english">
-                English
-              </option>
-              <option value="russian">
-                Russian (Русский)
-              </option>
-              <option value="serbian">
-                Serbian (Српски)
-              </option>
-              <option value="french">
-                French (Français)
-              </option>
-            </select>
-            <p class="mt-1 text-sm text-gray-500">
-              Choose the language for the analysis output
-            </p>
+          <div class="mb-6 grid gap-6 md:grid-cols-2">
+            <!-- Output Language -->
+            <div>
+              <label
+                for="output-language"
+                class="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Output Language
+              </label>
+              <select
+                id="output-language"
+                v-model="outputLanguage"
+                name="output-language"
+                class="input w-full"
+                required
+              >
+                <option value="english">
+                  English
+                </option>
+                <option value="russian">
+                  Russian (Русский)
+                </option>
+                <option value="serbian">
+                  Serbian (Српски)
+                </option>
+                <option value="french">
+                  French (Français)
+                </option>
+              </select>
+              <p class="mt-1 text-sm text-gray-500">
+                Language for the analysis output
+              </p>
+            </div>
+
+            <!-- Contract Language Override (Optional) -->
+            <div>
+              <label
+                for="contract-language"
+                class="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Contract Language <span class="text-gray-500 font-normal">(Optional)</span>
+              </label>
+              <select
+                id="contract-language"
+                v-model="contractLanguage"
+                name="contract-language"
+                class="input w-full"
+              >
+                <option value="">
+                  Auto-detect
+                </option>
+                <option value="english">
+                  English
+                </option>
+                <option value="russian">
+                  Russian (Русский)
+                </option>
+                <option value="serbian">
+                  Serbian (Српски)
+                </option>
+                <option value="french">
+                  French (Français)
+                </option>
+              </select>
+              <p class="mt-1 text-sm text-gray-500">
+                Override automatic language detection
+              </p>
+            </div>
           </div>
 
           <!-- File Upload -->
@@ -260,6 +298,7 @@ const contractsStore = useContractsStore()
 const fileUploadRef = ref<any>(null)
 const selectedFile = ref<File | null>(null)
 const outputLanguage = ref('english')
+const contractLanguage = ref('')  // Empty string means auto-detect
 
 // Computed
 const canSubmit = computed(() => {
@@ -313,6 +352,7 @@ async function createAnalysis(contractId: string): Promise<string> {
     body: {
       contract_id: contractId,
       output_language: outputLanguage.value,
+      contract_language: contractLanguage.value || null,  // Send null if auto-detect
     },
   })
 

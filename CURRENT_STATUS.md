@@ -1,29 +1,36 @@
 # Legally AI - Current Status
 
-**Last Updated**: November 14, 2025
-**Branch**: `claude/fix-critical-issues-01Q7VnfjXzC8was868dmX76U`
-**Status**: ✅ **LLM Integration Complete - Ready for Testing**
+**Last Updated**: November 15, 2025
+**Branch**: `claude/review-docs-add-logo-01AJPuUgUWQauYFMq4YMYNWe`
+**Status**: ✅ **MVP Core Features Complete - Ready for Beta Testing**
 
 ## 🎉 Working Features
 
 ### ✅ Complete End-to-End Flow
 1. **User Registration & Authentication** - Working
-2. **File Upload** (PDF/DOCX) - Working
-3. **Text Extraction** - Working (12,404+ characters extracted)
+2. **File Upload** (PDF/DOCX) - Working with validation
+3. **Text Extraction** - Working with OCR support
 4. **Real-time Analysis Progress (SSE)** - Working
-5. **LLM-Based Contract Analysis** - **🎉 NEW: INTEGRATED**
-6. **Structured Results Display** - Working
+5. **LLM-Based Contract Analysis** - ✅ INTEGRATED with bilingual quotes
+6. **Structured Results Display** - ✅ ENHANCED with UX improvements
+7. **Bilingual Quote Extraction** - **🎉 INTEGRATED**
+8. **Deadline Radar System** - **🎉 NEW: Backend Complete**
+9. **"Explain Like I'm 5" Mode** - **🎉 NEW: Full Implementation**
+10. **Feedback System** - **🎉 NEW: Thumbs Up/Down on Items**
 
 ### ✅ Backend Services
 - **FastAPI** - Running on port 8000
 - **PostgreSQL** - Healthy, all tables created
 - **Redis** - Healthy, message broker working
 - **Celery Worker** - Running, processing tasks successfully
+- **GROQ LLM Integration** - Real contract analysis with bilingual quotes
 
 ### ✅ Frontend
 - **Nuxt.js** - Running on port 3000
 - **SSE Integration** - Real-time progress updates working
-- **Results Page** - Displaying structured analysis sections
+- **Results Page** - Beautiful, organized display with expandable quotes
+- **Logo Integration** - Branding throughout app and PDF exports
+- **Analysis History** - Search and filter functionality
 
 ## 🔧 Critical Fixes Applied
 
@@ -62,55 +69,108 @@
 - ✅ Updated requirements.txt with groq>=0.13.0, langdetect, pdfplumber
 - ⚠️ **Requires GROQ_API_KEY in backend/.env file**
 
-## 🎊 NEW: Real LLM Analysis Integrated!
+## 🎊 NEW: Bilingual Quote Extraction!
 
-### What's New
-The application now uses **real LLM-based contract analysis** powered by GROQ API instead of placeholders!
+### What's New (Nov 15, 2025)
+The application now extracts **exact contract quotes in both original and translated languages** for every analysis item!
 
-**Expected Output (with valid GROQ API key):**
+**Features:**
+- **Quote_original**: Exact text from contract in original language (full sentences, up to 200 chars)
+- **Quote_translated**: Same quote translated to user's output language
+- **Visual Display**: Side-by-side original and translation with icons
+- **Coverage**: Quotes for obligations, rights, risks, suggestions, and mitigations
+
+**Example Output:**
 ```json
 {
-  "agreement_type": "Residential Lease",
-  "parties": [
-    {"name": "John Smith", "role": "Landlord"},
-    {"name": "Jane Doe", "role": "Tenant"}
-  ],
-  "jurisdiction": "California",
-  "negotiability": "medium",
   "obligations": [
-    {"action": "Pay rent monthly", "time_window": "1st of each month"},
-    {"action": "Maintain property in good condition", "time_window": "Throughout lease term"}
-  ],
-  "rights": [...],
-  "risks": [...],
-  "payment_terms": {
-    "main_amount": "$2,500/month",
-    "deposit_upfront": "$5,000",
-    "first_due_date": "2024-01-01"
-  }
+    {
+      "action": "Pay €700 monthly rent",
+      "trigger": "Monthly rent due",
+      "time_window": "20th-23rd of each month",
+      "consequence": "Breach; possible termination",
+      "quote_original": "Le locataire doit payer 700€ de loyer entre le 20 et le 23 de chaque mois.",
+      "quote_translated": "The tenant must pay €700 rent between the 20th and 23rd of each month."
+    }
+  ]
 }
 ```
 
-### ⚠️ Configuration Required
+**UI Features:**
+- "Tell me more about it" expandable buttons on every item
+- Original contract text with document icon 📄
+- Translation with language icon 🌐 (only shown if different from original)
+- Color-coded borders matching widget theme
+- Professional formatting with proper spacing and hierarchy
 
-To enable LLM analysis, you **MUST** configure the GROQ API key:
+## 🚀 Recent Updates
 
-1. **Get a GROQ API key** at https://console.groq.com/
-2. **Create/Update `backend/.env` file:**
-   ```env
-   GROQ_API_KEY=your_groq_api_key_here
-   DATABASE_URL=postgresql://postgres:postgres@postgres:5432/legally_ai
-   REDIS_URL=redis://redis:6379/0
-   ```
-3. **Rebuild Docker containers:**
-   ```bash
-   cd backend
-   docker compose down
-   docker compose up -d --build
-   ```
+### November 15, 2025 Session
 
-### Fallback Behavior
-If GROQ API key is missing or LLM call fails, the system gracefully falls back to placeholder data with error messages.
+1. ✅ **Bilingual Quote Extraction**
+   - Updated LLM prompts to extract full sentences (200 chars) instead of fragments
+   - Added quote_original and quote_translated fields to all analysis items
+   - Integrated bilingual quotes throughout the analysis chain
+   - Enhanced frontend to display both original and translated quotes
+   - Added visual indicators (document/translation icons)
+   - Improved UX with expandable quote sections
+
+2. ✅ **Logo Integration**
+   - Integrated actual logo throughout application
+   - Added logo to PDF exports (Lawyer Handoff Pack)
+   - Professional branding consistency
+
+3. ✅ **Frontend UX Improvements**
+   - Reorganized analysis widgets in priority order
+   - Added gradient backgrounds and color-coded themes
+   - Implemented WidgetCard reusable component
+   - Enhanced visual hierarchy with icons and borders
+   - Improved screening badge display
+   - Added confidence level progress bars
+
+4. ✅ **AF-001: Deadline Radar System**
+   - Created Deadline model with deadline types (payment, renewal, notice, termination, etc.)
+   - Automatic deadline extraction from analysis results (calendar, obligations, payment_terms)
+   - Comprehensive API endpoints for deadline management (list, update, delete, export)
+   - Calendar export (.ics) for Google Calendar, Apple Calendar, and Outlook integration
+   - Database migration 006 with proper indexes and foreign keys
+   - Backend complete with full CRUD operations
+   - Frontend UI pending implementation
+
+5. ✅ **EF-002: "Explain Like I'm 5" Simplification Mode**
+   - LLM-powered legal language simplification service
+   - Purple toggle button on analysis page ("Explain Like I'm 5")
+   - Enforces max 15 words/sentence, no jargon, everyday language
+   - Displays simplified text for obligations, rights, and risks
+   - Temperature 0.7 for conversational tone with examples and analogies
+   - Frontend caches simplified data to avoid repeated API calls
+   - "Simple Mode Active" banner when enabled
+   - Seamless toggle between legal and simple language
+
+6. ✅ **EF-006: Feedback & Confidence Calibration**
+   - Feedback model with FeedbackType and FeedbackSection enums
+   - Thumbs up 👍 / Thumbs down 👎 buttons on each obligation, right, and risk item
+   - "Was this helpful?" feedback prompt
+   - Complete CRUD API for feedback management (create, list, stats, delete)
+   - Statistics endpoint for pattern analysis and quality improvement
+   - Database migration 007 with proper relationships
+   - Visual feedback ("Thanks!") when submitted
+   - Prevents duplicate submissions per item
+   - Success/error notifications via toast messages
+
+### November 14, 2025 Session
+
+7. ✅ **LLM Integration**
+   - Integrated GROQ API for real contract analysis
+   - Step 1: Document preparation (metadata extraction, language detection)
+   - Step 2: Contract analysis (obligations, rights, risks, payment terms)
+   - Error handling with graceful fallback to placeholders
+
+8. ✅ **Core Backend Features**
+   - File upload with PDF/DOCX support
+   - Text extraction with OCR for scanned documents
+   - Real-time progress via SSE
+   - Async task processing with Celery
 
 ## 🚀 Next Steps
 

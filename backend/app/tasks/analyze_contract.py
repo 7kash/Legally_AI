@@ -282,7 +282,8 @@ def analyze_contract_task(
             analysis_result = run_step2_analysis(
                 contract_text=contract_text_for_llm,  # ⚠️ IMPORTANT: Use redacted text, not original
                 preparation_data=preparation_result,
-                llm_router=llm_router
+                llm_router=llm_router,
+                output_language=output_language  # Pass output language for bilingual quotes
             )
 
             logger.info(f"Step 2 completed: Found {len(analysis_result.get('obligations', []))} obligations, {len(analysis_result.get('risks', []))} risks")
@@ -360,9 +361,17 @@ def analyze_contract_task(
                 "title": "Payment Terms",
                 "content": analysis_result.get('payment_terms', {})
             },
-            "key_dates": {
-                "title": "Key Dates",
-                "content": analysis_result.get('key_dates', [])
+            "suggestions": {
+                "title": "Suggested Changes",
+                "content": analysis_result.get('suggestions', [])
+            },
+            "mitigations": {
+                "title": "Mitigations (If Signing As-Is)",
+                "content": analysis_result.get('mitigations', [])
+            },
+            "calendar": {
+                "title": "Key Dates & Deadlines",
+                "content": analysis_result.get('calendar', [])
             }
         }
 
@@ -371,6 +380,21 @@ def analyze_contract_task(
         analysis.status = "succeeded"
         analysis.completed_at = datetime.utcnow()
         db.commit()
+
+        # Extract and store deadlines
+        try:
+            from ..services.deadline_service import extract_deadlines_from_analysis
+            deadlines = extract_deadlines_from_analysis(
+                analysis_id=analysis.id,
+                contract_id=analysis.contract_id,
+                user_id=user_id,
+                analysis_result=analysis_result,
+                db=db
+            )
+            logger.info(f"Extracted {len(deadlines)} deadlines from analysis")
+        except Exception as e:
+            logger.error(f"Failed to extract deadlines: {e}", exc_info=True)
+            # Don't fail the whole analysis if deadline extraction fails
 
         # Create final event
         create_event(

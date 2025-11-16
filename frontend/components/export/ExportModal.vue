@@ -154,6 +154,53 @@
                   </svg>
                 </button>
 
+                <!-- Lawyer Pack Export (AF-003) -->
+                <button
+                  type="button"
+                  class="flex w-full items-center justify-between rounded-lg border-2 border-purple-200 bg-purple-50 p-4 text-left transition-all hover:border-purple-500 hover:bg-purple-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+                  :disabled="exporting"
+                  @click="exportFormat('lawyer-pack')"
+                >
+                  <div class="flex items-center gap-3">
+                    <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-600">
+                      <svg
+                        class="h-6 w-6 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                        />
+                      </svg>
+                    </div>
+                    <div>
+                      <div class="font-semibold text-gray-900">
+                        Lawyer Handoff Pack
+                      </div>
+                      <div class="text-sm text-gray-600">
+                        Comprehensive report for legal counsel
+                      </div>
+                    </div>
+                  </div>
+                  <svg
+                    class="h-5 w-5 text-purple-600"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
+                      clip-rule="evenodd"
+                    />
+                  </svg>
+                </button>
+
                 <!-- JSON Export -->
                 <button
                   type="button"
@@ -241,7 +288,7 @@ interface Props {
 
 interface Emits {
   (e: 'update:modelValue', value: boolean): void
-  (e: 'export', format: 'pdf' | 'docx' | 'json'): void
+  (e: 'export', format: 'pdf' | 'docx' | 'json' | 'lawyer-pack'): void
 }
 
 defineProps<Props>()
@@ -255,7 +302,7 @@ function close(): void {
   }
 }
 
-async function exportFormat(format: 'pdf' | 'docx' | 'json'): Promise<void> {
+async function exportFormat(format: 'pdf' | 'docx' | 'json' | 'lawyer-pack'): Promise<void> {
   exporting.value = true
   try {
     emit('export', format)

@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, Field
-from typing import Optional, AsyncGenerator, Any, Dict
+from typing import Optional, AsyncGenerator, Any, Dict, List
 import uuid
 from datetime import datetime
 import asyncio
@@ -11,6 +11,8 @@ import json
 from ..database import get_db
 from ..models import Contract, Analysis, AnalysisEvent
 from ..tasks.analyze_contract import analyze_contract_task
+from ..services.llm_analysis.eli5_service import simplify_full_analysis
+from ..services.llm_analysis.llm_router import LLMRouter
 
 router = APIRouter()
 
@@ -282,3 +284,80 @@ def delete_analysis(
     db.commit()
 
     return None
+
+
+@router.post("/{analysis_id}/simplify")
+def simplify_analysis(
+    analysis_id: str,
+    sections: Optional[List[str]] = None,
+    db: Session = Depends(get_db)
+):
+    """
+    Simplify analysis results using ELI5 (Explain Like I'm 5) mode.
+
+    This endpoint takes a completed analysis and simplifies legal language
+    into everyday terms that anyone can understand.
+
+    Args:
+        analysis_id: UUID of the analysis to simplify
+        sections: Optional list of sections to simplify (default: all)
+                 Valid values: 'obligations', 'rights', 'risks'
+
+    Returns:
+        Simplified analysis with *_simplified fields added
+    """
+    try:
+        analysis_uuid = uuid.UUID(analysis_id)
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid analysis_id format"
+        )
+
+    analysis = db.query(Analysis).filter(Analysis.id == analysis_uuid).first()
+    if not analysis:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Analysis {analysis_id} not found"
+        )
+
+    if analysis.status != "succeeded":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Analysis must be completed before simplification (current status: {analysis.status})"
+        )
+
+    # Parse formatted_output
+    formatted_output = analysis.formatted_output
+    if isinstance(formatted_output, str):
+        try:
+            formatted_output = json.loads(formatted_output)
+        except json.JSONDecodeError:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to parse analysis results"
+            )
+
+    if not formatted_output:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No analysis results to simplify"
+        )
+
+    # Simplify the analysis
+    try:
+        simplified_analysis = simplify_full_analysis(
+            analysis_result=formatted_output,
+            sections_to_simplify=sections
+        )
+
+        return {
+            "analysis_id": str(analysis.id),
+            "status": "success",
+            "simplified_analysis": simplified_analysis
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Simplification failed: {str(e)}"
+        )

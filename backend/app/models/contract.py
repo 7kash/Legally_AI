@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, DateTime, Text, Integer
+from sqlalchemy import Column, String, DateTime, Text, Integer, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from datetime import datetime
@@ -11,7 +11,7 @@ class Contract(Base):
     __tablename__ = "contracts"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), nullable=False, index=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
 
     # File information
     filename = Column(String(255), nullable=False)
@@ -32,7 +32,10 @@ class Contract(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
     # Relationships
+    user = relationship("User", back_populates="contracts")
     analyses = relationship("Analysis", back_populates="contract", cascade="all, delete-orphan")
+    deadlines = relationship("Deadline", back_populates="contract", cascade="all, delete-orphan")
+    feedback = relationship("Feedback", back_populates="contract", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<Contract(id={self.id}, filename={self.filename})>"

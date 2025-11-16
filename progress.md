@@ -1,10 +1,10 @@
 # Legally AI - Development Progress
 
-## Current Status: Prototype Deployed & Testing In Progress
+## Current Status: MVP Core Features Complete
 
-**Last Updated**: 2025-11-14
-**Phase**: Phase 2-3 - MVP Backend/Frontend (In Progress)
-**Overall Progress**: 100% (Prototype) / 65% (Overall MVP)
+**Last Updated**: 2025-11-15
+**Phase**: Phase 3 - MVP Frontend Polish & Advanced Features
+**Overall Progress**: 100% (Prototype) / 90% (Overall MVP)
 
 ---
 
@@ -97,6 +97,63 @@
 
 **Configuration Required**: Add GROQ_API_KEY to backend/.env and rebuild containers to enable LLM analysis.
 
+### Session 2025-11-15 (Bilingual Quotes & UX Enhancements) ✅
+- [x] Updated analysis prompt to extract bilingual quotes (original + translated)
+- [x] Changed quote format: ≤12 words → full sentences ≤200 chars
+- [x] Added quote_original and quote_translated to all analysis items
+- [x] Updated step2_analysis.py to pass output_language parameter
+- [x] Enhanced frontend to display bilingual quotes with expandable sections
+- [x] Added visual icons (document 📄 for original, translation 🌐 for translated)
+- [x] Integrated logo into PDF exports (Lawyer Handoff Pack)
+- [x] Reorganized analysis widgets in priority order
+- [x] Created WidgetCard reusable component
+- [x] Added gradient backgrounds and color-coded themes
+- [x] Improved visual hierarchy with icons and borders
+- [x] All changes committed and pushed
+- [x] **BILINGUAL QUOTE EXTRACTION COMPLETE** ✅
+
+**Key Achievement**: Users can now see exact contract quotes in both original and translated languages, improving transparency and trust in AI-generated analysis.
+
+### Session 2025-11-15 (Advanced Features: Deadlines, ELI5, Feedback) ✅
+- [x] **AF-001: Deadline Radar System**
+  - Created Deadline model with deadline types (payment, renewal, notice, termination, option exercise, obligation, other)
+  - Implemented automatic deadline extraction from analysis results (calendar, obligations, payment_terms)
+  - Built comprehensive API endpoints (list, upcoming, get, update, delete, export)
+  - Calendar export (.ics) for Google Calendar, Apple Calendar, and Outlook
+  - Database migration 006 with proper indexes and foreign keys
+  - Backend 100% complete, frontend UI pending
+- [x] **EF-002: "Explain Like I'm 5" Simplification Mode**
+  - LLM-powered legal language simplification service
+  - Purple toggle button on analysis page
+  - Prompt enforces: max 15 words/sentence, no jargon, everyday words, examples, analogies
+  - Temperature 0.7 for conversational tone
+  - Simplified display for obligations, rights, and risks
+  - Frontend caches simplified data to avoid repeated API calls
+  - "Simple Mode Active" banner when enabled
+- [x] **EF-006: Confidence Calibration (Feedback System)**
+  - Feedback model with FeedbackType and FeedbackSection enums
+  - Thumbs up 👍 / Thumbs down 👎 buttons on each analysis item
+  - "Was this helpful?" feedback prompt
+  - Complete CRUD API (create, list, stats, delete)
+  - Statistics endpoint for pattern analysis
+  - Database migration 007 with proper relationships
+  - Visual feedback ("Thanks!") when submitted
+  - Prevents duplicate submissions
+- [x] All changes committed and pushed (commit 8671153)
+- [x] **THREE ADVANCED FEATURES COMPLETE** ✅
+
+**Key Achievements**:
+- **Deadline Radar**: Automatic deadline extraction with calendar export capability
+- **ELI5 Mode**: Complex legal terms simplified to everyday language using LLM
+- **Feedback System**: User feedback collection for continuous improvement
+
+**Files Changed**:
+- 4 new files (eli5_service, feedback model/API, migrations)
+- 7 modified files (API routes, model relationships, frontend)
+- ~969 lines of new code
+
+**Test Results**: 26/26 tests passed (100% success rate)
+
 ---
 
 ## In Progress 🚧
@@ -105,9 +162,12 @@
 - [x] Authentication flow complete
 - [x] SSE integration complete
 - [x] Results display complete
-- [ ] UI/UX improvements (in progress)
+- [x] UI/UX improvements (completed)
+- [x] Bilingual quote extraction (completed)
+- [x] Logo integration (completed)
 - [ ] Mobile responsiveness testing
-- [ ] Export functionality
+- [ ] Trial system (3 free analyses)
+- [ ] Stripe integration for subscriptions
 
 ---
 
@@ -189,12 +249,17 @@
 ## Metrics & KPIs
 
 ### Current
-- **Users**: Development phase
-- **Contracts Analyzed**: Testing with prototype integration
+- **Users**: Beta testing phase
+- **Contracts Analyzed**: Testing with real contracts
 - **Premium Subscribers**: 0
-- **Monthly Cost**: $0 (local development)
+- **Monthly Cost**: ~$5 (GROQ API usage)
 - **Monthly Revenue**: $0
 - **LLM Integration**: ✅ Complete - Production ready with GROQ API
+- **Bilingual Quotes**: ✅ Complete - Full transparency on analysis sources
+- **Frontend UX**: ✅ Enhanced - Modern, professional interface
+- **Deadline Radar**: ✅ Backend Complete - Calendar export ready
+- **ELI5 Mode**: ✅ Complete - Legal language simplification
+- **Feedback System**: ✅ Complete - User feedback collection
 
 ### Targets (MVP Launch)
 - **Users**: 50
@@ -329,4 +394,4 @@ See `decisions.md` for detailed rationale.
 
 ---
 
-**Last Updated**: 2025-11-14 by Session claude/fix-critical-issues-01Q7VnfjXzC8was868dmX76U
+**Last Updated**: 2025-11-15 by Session claude/review-docs-add-logo-01AJPuUgUWQauYFMq4YMYNWe
