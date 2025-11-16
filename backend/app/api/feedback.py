@@ -13,7 +13,7 @@ from ..database import get_db
 from ..models import Feedback, FeedbackType, FeedbackSection
 from ..api.auth import get_current_user, User
 
-router = APIRouter(prefix="/feedback", tags=["feedback"])
+router = APIRouter()
 
 
 # Pydantic schemas

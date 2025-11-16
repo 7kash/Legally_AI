@@ -124,7 +124,7 @@
 
           <!-- File Upload -->
           <div class="mb-6">
-            <label class="block text-sm font-medium text-gray-700 mb-2">
+            <label for="file-input" class="block text-sm font-medium text-gray-700 mb-2">
               Contract Document
             </label>
             <FileUpload

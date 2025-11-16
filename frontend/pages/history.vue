@@ -210,15 +210,18 @@
 
                 <!-- Filename and metadata -->
                 <div class="flex-1 min-w-0">
+                  <div class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+                    Contract
+                  </div>
                   <h3 class="text-lg font-semibold text-gray-900 truncate">
                     {{ contract.filename }}
                   </h3>
-                  <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-gray-500">
-                    <span>{{ formatFileSize(contract.file_size) }}</span>
+                  <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-gray-500 mt-1">
+                    <span><span class="font-medium">Size:</span> {{ formatFileSize(contract.file_size) }}</span>
                     <span aria-hidden="true">•</span>
-                    <span>{{ formatDate(contract.uploaded_at) }}</span>
+                    <span><span class="font-medium">Uploaded:</span> {{ formatDate(contract.uploaded_at) }}</span>
                     <span v-if="contract.detected_language" aria-hidden="true">•</span>
-                    <span v-if="contract.detected_language">{{ formatLanguage(contract.detected_language) }}</span>
+                    <span v-if="contract.detected_language"><span class="font-medium">Language:</span> {{ formatLanguage(contract.detected_language) }}</span>
                   </div>
                 </div>
               </div>
@@ -226,7 +229,7 @@
               <!-- Page Count -->
               <div v-if="contract.page_count" class="mt-2">
                 <span class="text-sm text-gray-600">
-                  {{ contract.page_count }} {{ contract.page_count === 1 ? 'page' : 'pages' }}
+                  <span class="font-medium">Pages:</span> {{ contract.page_count }}
                 </span>
               </div>
             </div>
