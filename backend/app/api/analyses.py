@@ -214,7 +214,7 @@ async def stream_analysis_events(
         the Celery worker is using to create events.
         """
         last_event_time = datetime.utcnow()
-        max_iterations = 600  # 10 minutes max (600 * 1 second)
+        max_iterations = 200  # 10 minutes max (200 * 3 seconds)
         iteration = 0
 
         while iteration < max_iterations:
@@ -238,8 +238,10 @@ async def stream_analysis_events(
                 yield f"data: {json.dumps(event_data)}\n\n"
                 last_event_time = event.created_at
 
-            # Check if analysis is complete
-            db.refresh(analysis)
+            # Check if analysis is complete (only refresh if we had new events or every 5 iterations)
+            if events or iteration % 5 == 0:
+                db.refresh(analysis)
+
             if analysis.status in ["succeeded", "failed"]:
                 # Send final status event
                 final_event = {
@@ -253,8 +255,8 @@ async def stream_analysis_events(
                 yield f"data: {json.dumps(final_event)}\n\n"
                 break
 
-            # Wait before next poll
-            await asyncio.sleep(1)
+            # Wait before next poll (3 seconds to reduce database load)
+            await asyncio.sleep(3)
             iteration += 1
 
         # Timeout reached

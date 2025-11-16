@@ -226,17 +226,39 @@ def analyze_contract_task(
             quality_score = 0.9
 
             # Run Step 1 preparation analysis with LLM (using redacted text)
-            preparation_result = run_step1_preparation(
-                contract_text=contract_text_for_llm,  # ⚠️ IMPORTANT: Use redacted text, not original
-                detected_language=detected_language,
-                quality_score=quality_score,
-                llm_router=llm_router
-            )
+            # Use ThreadPoolExecutor to enforce hard timeout on LLM call
+            from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
+
+            with ThreadPoolExecutor(max_workers=1) as executor:
+                future = executor.submit(
+                    run_step1_preparation,
+                    contract_text=contract_text_for_llm,  # ⚠️ IMPORTANT: Use redacted text, not original
+                    detected_language=detected_language,
+                    quality_score=quality_score,
+                    llm_router=llm_router
+                )
+
+                try:
+                    # Wait max 180 seconds (3 minutes) for LLM preparation
+                    preparation_result = future.result(timeout=180)
+                except FuturesTimeoutError:
+                    logger.error("Step 1 preparation timed out after 180 seconds")
+                    raise RuntimeError("Preparation timed out - LLM service may be slow or unavailable. Please try again.")
 
             logger.info(f"Step 1 completed: {preparation_result.get('agreement_type', 'Unknown')}")
 
         except Exception as e:
             logger.error(f"Step 1 preparation failed: {e}", exc_info=True)
+
+            # Send error event to SSE
+            create_event(
+                db,
+                analysis.id,
+                event_type="error",
+                message=f"Preparation failed: {str(e)}",
+                data={"step": "preparation", "error": str(e)}
+            )
+
             # Fall back to placeholder if LLM fails
             preparation_result = {
                 "agreement_type": "Error: Could not analyze",
@@ -279,17 +301,39 @@ def analyze_contract_task(
             if 'llm_router' not in locals():
                 llm_router = LLMRouter()
 
-            analysis_result = run_step2_analysis(
-                contract_text=contract_text_for_llm,  # ⚠️ IMPORTANT: Use redacted text, not original
-                preparation_data=preparation_result,
-                llm_router=llm_router,
-                output_language=output_language  # Pass output language for bilingual quotes
-            )
+            # Use ThreadPoolExecutor to enforce hard timeout on LLM call
+            from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
+
+            with ThreadPoolExecutor(max_workers=1) as executor:
+                future = executor.submit(
+                    run_step2_analysis,
+                    contract_text=contract_text_for_llm,  # ⚠️ IMPORTANT: Use redacted text, not original
+                    preparation_data=preparation_result,
+                    llm_router=llm_router,
+                    output_language=output_language  # Pass output language for bilingual quotes
+                )
+
+                try:
+                    # Wait max 180 seconds (3 minutes) for LLM analysis
+                    analysis_result = future.result(timeout=180)
+                except FuturesTimeoutError:
+                    logger.error("Step 2 analysis timed out after 180 seconds")
+                    raise RuntimeError("Analysis timed out - LLM service may be slow or unavailable. Please try again.")
 
             logger.info(f"Step 2 completed: Found {len(analysis_result.get('obligations', []))} obligations, {len(analysis_result.get('risks', []))} risks")
 
         except Exception as e:
             logger.error(f"Step 2 analysis failed: {e}", exc_info=True)
+
+            # Send error event to SSE
+            create_event(
+                db,
+                analysis.id,
+                event_type="error",
+                message=f"Analysis failed: {str(e)}",
+                data={"step": "analysis", "error": str(e)}
+            )
+
             # Fall back to placeholder if LLM fails
             analysis_result = {
                 "obligations": [],
@@ -346,11 +390,11 @@ def analyze_contract_task(
                 "content": preparation_result['jurisdiction']
             },
             "obligations": {
-                "title": "Obligations",
+                "title": "Your Obligations",
                 "content": analysis_result['obligations'] if analysis_result['obligations'] else ["No obligations identified"]
             },
             "rights": {
-                "title": "Rights",
+                "title": "Your Rights",
                 "content": analysis_result['rights'] if analysis_result['rights'] else ["No rights identified"]
             },
             "risks": {
@@ -366,7 +410,7 @@ def analyze_contract_task(
                 "content": analysis_result.get('suggestions', [])
             },
             "mitigations": {
-                "title": "Mitigations (If Signing As-Is)",
+                "title": "Risk Mitigations",
                 "content": analysis_result.get('mitigations', [])
             },
             "calendar": {

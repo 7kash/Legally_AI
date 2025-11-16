@@ -31,6 +31,7 @@ export const useAnalysesStore = defineStore('analyses', () => {
   const error = ref<string | null>(null)
   const events = ref<AnalysisEvent[]>([])
   const eventSource = ref<EventSource | null>(null)
+  const sseConnected = ref(false)
 
   // Computed
   const isAnalyzing = computed(() => {
@@ -92,6 +93,10 @@ export const useAnalysesStore = defineStore('analyses', () => {
     // Create EventSource with auth header (via query param since EventSource doesn't support headers)
     const es = new EventSource(`${url}?token=${token}`)
 
+    es.onopen = () => {
+      sseConnected.value = true
+    }
+
     es.onmessage = (event) => {
       try {
         const data: AnalysisEvent = JSON.parse(event.data)
@@ -99,13 +104,28 @@ export const useAnalysesStore = defineStore('analyses', () => {
 
         // Update current analysis status based on event
         if (currentAnalysis.value) {
+          // Handle status change events
           if (data.kind === 'status_change' && data.payload.status) {
             currentAnalysis.value.status = data.payload.status
 
             // Fetch full analysis when status changes to succeeded or failed
             if (data.payload.status === 'succeeded' || data.payload.status === 'failed') {
-              fetchAnalysis(analysisId)
+              fetchAnalysis(analysisId).then(() => {
+                // Disconnect SSE after fetching final results
+                disconnectSSE()
+              })
             }
+          }
+
+          // Handle error events
+          if (data.kind === 'error') {
+            error.value = data.payload.message || 'An error occurred during analysis'
+            // Mark analysis as failed on error
+            if (currentAnalysis.value.status === 'running' || currentAnalysis.value.status === 'queued') {
+              currentAnalysis.value.status = 'failed'
+            }
+            // Disconnect SSE after error
+            disconnectSSE()
           }
         }
       } catch (err) {
@@ -115,6 +135,7 @@ export const useAnalysesStore = defineStore('analyses', () => {
 
     es.onerror = (err) => {
       console.error('SSE error:', err)
+      sseConnected.value = false
       disconnectSSE()
     }
 
@@ -130,6 +151,7 @@ export const useAnalysesStore = defineStore('analyses', () => {
     if (eventSource.value) {
       eventSource.value.close()
       eventSource.value = null
+      sseConnected.value = false
     }
   }
 
@@ -179,6 +201,7 @@ export const useAnalysesStore = defineStore('analyses', () => {
     loading,
     error,
     events,
+    sseConnected,
     // Computed
     isAnalyzing,
     hasResults,
