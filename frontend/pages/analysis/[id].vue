@@ -145,23 +145,7 @@
             <p class="text-gray-800 leading-relaxed">{{ getAboutSummary() }}</p>
           </div>
 
-          <!-- ⚠️ DEBUG PANEL - Remove after debugging -->
-          <div class="bg-red-100 border-2 border-red-500 p-4 rounded">
-            <h3 class="font-bold text-red-900 mb-2">🔍 DEBUG INFO</h3>
-            <div class="bg-white p-3 rounded text-xs overflow-auto max-h-96 space-y-2">
-              <div><strong>formattedOutput keys:</strong> {{ Object.keys(formattedOutput) }}</div>
-              <div><strong>widgetOrder:</strong> {{ widgetOrder }}</div>
-              <div v-for="key in widgetOrder" :key="key" class="border-t pt-2">
-                <strong>{{ key }}:</strong>
-                <div>Exists: {{ !!formattedOutput[key] }}</div>
-                <div>HasContent: {{ formattedOutput[key] ? hasContent(formattedOutput[key]) : 'N/A' }}</div>
-                <div>Component: {{ getWidgetComponent(key) ? 'Found' : 'Not Found' }}</div>
-              </div>
-              <hr class="my-3">
-              <pre>{{ JSON.stringify(formattedOutput, null, 2) }}</pre>
-            </div>
-          </div>
-
+          <!-- Dynamic Widget Rendering -->
           <component
             v-for="key in widgetOrder"
             :key="key"
@@ -247,6 +231,16 @@ import { exportAnalysisToDOCX } from '~/utils/exportToDOCX'
 import { exportLawyerPackToPDF } from '~/utils/exportLawyerPack'
 import { WIDGET_REGISTRY, hasContent, getWidgetConfig } from '~/components/analysis/widgets'
 import ELI5Toggle from '~/components/analysis/widgets/ELI5Toggle.vue'
+
+// Explicitly import all widget components for Vue's <component :is="">
+import SimpleTextWidget from '~/components/analysis/widgets/SimpleTextWidget.vue'
+import PartiesWidget from '~/components/analysis/widgets/PartiesWidget.vue'
+import ObligationsWidget from '~/components/analysis/widgets/ObligationsWidget.vue'
+import RightsWidget from '~/components/analysis/widgets/RightsWidget.vue'
+import RisksWidget from '~/components/analysis/widgets/RisksWidget.vue'
+import PaymentTermsWidget from '~/components/analysis/widgets/PaymentTermsWidget.vue'
+import CalendarWidget from '~/components/analysis/widgets/CalendarWidget.vue'
+import MitigationsWidget from '~/components/analysis/widgets/MitigationsWidget.vue'
 
 definePageMeta({
   middleware: 'auth',
