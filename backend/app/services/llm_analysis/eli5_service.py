@@ -221,15 +221,27 @@ def simplify_full_analysis(
     simplified_analysis = analysis_result.copy()
 
     for section in sections_to_simplify:
-        if section in analysis_result and isinstance(analysis_result[section], list):
+        if section not in analysis_result:
+            continue
+
+        section_data = analysis_result[section]
+
+        # Handle nested {content: [...]} structure
+        if isinstance(section_data, dict) and 'content' in section_data:
+            section_data = section_data['content']
+
+        # Now check if it's a list
+        if isinstance(section_data, list):
             try:
                 simplified_analysis[f'{section}_simplified'] = simplify_analysis_section(
                     section,
-                    analysis_result[section],
+                    section_data,
                     llm_router
                 )
-                logger.info(f"Simplified {len(analysis_result[section])} items in {section}")
+                logger.info(f"Simplified {len(section_data)} items in {section}")
             except Exception as e:
-                logger.error(f"Failed to simplify {section}: {e}")
+                logger.error(f"Failed to simplify {section}: {e}", exc_info=True)
+        else:
+            logger.warning(f"Section {section} is not a list or doesn't have content: {type(section_data)}")
 
     return simplified_analysis
