@@ -145,18 +145,66 @@
             <p class="text-gray-800 leading-relaxed">{{ getAboutSummary() }}</p>
           </div>
 
-          <!-- Dynamic Widget Rendering -->
-          <template v-for="key in widgetOrder" :key="key">
-            <component
-              v-if="formattedOutput[key] && hasContent(formattedOutput[key])"
-              :is="getWidgetComponent(key)"
-              :title="getWidgetTitle(key)"
-              :content="formattedOutput[key]"
-              :eli5-enabled="eli5Enabled"
-              :icon="getWidgetConfig(key)?.icon"
-              :color="getWidgetConfig(key)?.color"
-            />
-          </template>
+          <!-- Widget Rendering -->
+          <SimpleTextWidget
+            v-if="formattedOutput.agreement_type && hasContent(formattedOutput.agreement_type)"
+            :title="getWidgetTitle('agreement_type')"
+            :content="formattedOutput.agreement_type"
+            icon="document"
+          />
+
+          <PartiesWidget
+            v-if="formattedOutput.parties && hasContent(formattedOutput.parties)"
+            :title="getWidgetTitle('parties')"
+            :content="formattedOutput.parties"
+            icon="users"
+          />
+
+          <SimpleTextWidget
+            v-if="formattedOutput.jurisdiction && hasContent(formattedOutput.jurisdiction)"
+            :title="getWidgetTitle('jurisdiction')"
+            :content="formattedOutput.jurisdiction"
+            icon="globe"
+          />
+
+          <ObligationsWidget
+            v-if="formattedOutput.obligations && hasContent(formattedOutput.obligations)"
+            :title="getWidgetTitle('obligations')"
+            :content="formattedOutput.obligations"
+            :eli5-enabled="eli5Enabled"
+          />
+
+          <RightsWidget
+            v-if="formattedOutput.rights && hasContent(formattedOutput.rights)"
+            :title="getWidgetTitle('rights')"
+            :content="formattedOutput.rights"
+            :eli5-enabled="eli5Enabled"
+          />
+
+          <PaymentTermsWidget
+            v-if="formattedOutput.payment_terms && hasContent(formattedOutput.payment_terms)"
+            :title="getWidgetTitle('payment_terms')"
+            :content="formattedOutput.payment_terms"
+          />
+
+          <CalendarWidget
+            v-if="formattedOutput.calendar && hasContent(formattedOutput.calendar)"
+            :title="getWidgetTitle('calendar')"
+            :content="formattedOutput.calendar"
+          />
+
+          <RisksWidget
+            v-if="formattedOutput.risks && hasContent(formattedOutput.risks)"
+            :title="getWidgetTitle('risks')"
+            :content="formattedOutput.risks"
+            :eli5-enabled="eli5Enabled"
+          />
+
+          <MitigationsWidget
+            v-if="formattedOutput.mitigations && hasContent(formattedOutput.mitigations)"
+            :title="getWidgetTitle('mitigations')"
+            :content="formattedOutput.mitigations"
+          />
 
           <!-- Actions -->
           <div class="flex flex-wrap gap-3 pt-4">
