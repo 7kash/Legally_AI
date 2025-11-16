@@ -301,9 +301,22 @@ const confidenceReason = computed(() => {
   )
 })
 
-// Get widget component from registry
+// Local component map (must use locally imported components for Vue's <component :is="">)
+const componentMap: Record<string, any> = {
+  agreement_type: SimpleTextWidget,
+  parties: PartiesWidget,
+  jurisdiction: SimpleTextWidget,
+  obligations: ObligationsWidget,
+  rights: RightsWidget,
+  payment_terms: PaymentTermsWidget,
+  calendar: CalendarWidget,
+  risks: RisksWidget,
+  mitigations: MitigationsWidget,
+}
+
+// Get widget component from local map
 function getWidgetComponent(key: string) {
-  return WIDGET_REGISTRY[key]?.component
+  return componentMap[key]
 }
 
 // Get widget title
