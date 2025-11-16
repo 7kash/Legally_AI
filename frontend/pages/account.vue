@@ -32,27 +32,27 @@
 
           <div class="space-y-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">
+              <div class="block text-sm font-medium text-gray-700 mb-1">
                 Email Address
-              </label>
+              </div>
               <p class="text-gray-900">
                 {{ authStore.user.email }}
               </p>
             </div>
 
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">
+              <div class="block text-sm font-medium text-gray-700 mb-1">
                 Member Since
-              </label>
+              </div>
               <p class="text-gray-900">
                 {{ formatDate(authStore.user.created_at) }}
               </p>
             </div>
 
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">
+              <div class="block text-sm font-medium text-gray-700 mb-1">
                 User ID
-              </label>
+              </div>
               <p class="text-gray-500 text-sm font-mono">
                 {{ authStore.user.id }}
               </p>
