@@ -132,7 +132,7 @@
 
           <!-- 3. Confidence Level -->
           <div
-            v-if="analysesStore.currentAnalysis.confidence_score !== null"
+            v-if="analysesStore.currentAnalysis?.confidence_score != null && analysesStore.currentAnalysis.confidence_score !== undefined"
             class="bg-white rounded-xl shadow-sm border border-gray-200 p-6"
           >
             <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
@@ -226,7 +226,7 @@
                 </template>
                 <!-- Source quote toggle button or "Not found" message -->
                 <button
-                  v-if="(item.quote_original && item.quote_original.trim() && item.quote_original !== 'null') || (item.quote && item.quote.trim() && item.quote !== 'null')"
+                  v-if="hasValidQuote(item)"
                   type="button"
                   class="mt-3 text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
                   @click="toggleQuote('obligation-' + index)"
@@ -246,7 +246,7 @@
                   Not found in the document text
                 </div>
                 <div
-                  v-if="expandedQuotes['obligation-' + index] && ((item.quote_original && item.quote_original.trim() && item.quote_original !== 'null') || (item.quote && item.quote.trim() && item.quote !== 'null'))"
+                  v-if="expandedQuotes['obligation-' + index] && hasValidQuote(item)"
                   class="mt-2 bg-white border border-gray-300 rounded-lg p-4 text-sm space-y-3"
                 >
                   <div>
@@ -331,7 +331,7 @@
                 </template>
                 <!-- Source quote toggle button or "Not found" message -->
                 <button
-                  v-if="(item.quote_original && item.quote_original.trim() && item.quote_original !== 'null') || (item.quote && item.quote.trim() && item.quote !== 'null')"
+                  v-if="hasValidQuote(item)"
                   type="button"
                   class="mt-3 text-xs text-green-600 hover:text-green-700 font-medium flex items-center gap-1"
                   @click="toggleQuote('right-' + index)"
@@ -351,7 +351,7 @@
                   Not found in the document text
                 </div>
                 <div
-                  v-if="expandedQuotes['right-' + index] && ((item.quote_original && item.quote_original.trim() && item.quote_original !== 'null') || (item.quote && item.quote.trim() && item.quote !== 'null'))"
+                  v-if="expandedQuotes['right-' + index] && hasValidQuote(item)"
                   class="mt-2 bg-white border border-gray-300 rounded-lg p-4 text-sm space-y-3"
                 >
                   <div>
@@ -482,7 +482,7 @@
                 </template>
                 <!-- Source quote toggle button or "Not found" message -->
                 <button
-                  v-if="(item.quote_original && item.quote_original.trim() && item.quote_original !== 'null') || (item.quote && item.quote.trim() && item.quote !== 'null')"
+                  v-if="hasValidQuote(item)"
                   type="button"
                   class="mt-3 text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
                   @click="toggleQuote('risk-' + index)"
@@ -502,7 +502,7 @@
                   Not found in the document text
                 </div>
                 <div
-                  v-if="expandedQuotes['risk-' + index] && ((item.quote_original && item.quote_original.trim() && item.quote_original !== 'null') || (item.quote && item.quote.trim() && item.quote !== 'null'))"
+                  v-if="expandedQuotes['risk-' + index] && hasValidQuote(item)"
                   class="mt-2 bg-white border border-gray-300 rounded-lg p-4 text-sm space-y-3"
                 >
                   <div>
@@ -592,7 +592,7 @@
                 </div>
                 <!-- Source quote toggle button or "Not found" message -->
                 <button
-                  v-if="(typeof item === 'object') && ((item.quote_original && item.quote_original.trim() && item.quote_original !== 'null') || (item.related_risk_quote && item.related_risk_quote.trim() && item.related_risk_quote !== 'null'))"
+                  v-if="(typeof item === 'object') && hasValidQuote(item)"
                   type="button"
                   class="mt-3 ml-8 text-xs text-amber-600 hover:text-amber-700 font-medium flex items-center gap-1"
                   @click="toggleQuote('mitigation-' + index)"
@@ -612,7 +612,7 @@
                   Not found in the document text
                 </div>
                 <div
-                  v-if="expandedQuotes['mitigation-' + index] && (typeof item === 'object') && ((item.quote_original && item.quote_original.trim() && item.quote_original !== 'null') || (item.related_risk_quote && item.related_risk_quote.trim() && item.related_risk_quote !== 'null'))"
+                  v-if="expandedQuotes['mitigation-' + index] && (typeof item === 'object') && hasValidQuote(item)"
                   class="mt-2 ml-8 bg-white border border-gray-300 rounded-lg p-4 text-sm space-y-3"
                 >
                   <div>
@@ -904,6 +904,19 @@ function getMitigations(): any[] {
 
 function toggleQuote(key: string): void {
   expandedQuotes.value[key] = !expandedQuotes.value[key]
+}
+
+// Helper function to check if a quote is valid and should be shown
+function hasValidQuote(item: any): boolean {
+  const checkQuote = (quote: any): boolean => {
+    if (!quote) return false
+    if (typeof quote !== 'string') return false
+    const trimmed = quote.trim()
+    if (trimmed === '' || trimmed === 'null' || trimmed === 'undefined' || trimmed === 'None') return false
+    return true
+  }
+
+  return checkQuote(item.quote_original) || checkQuote(item.quote) || checkQuote(item.related_risk_quote)
 }
 
 // ELI5 Mode functions
