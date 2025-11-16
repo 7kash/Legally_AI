@@ -7,12 +7,9 @@
         class="flex items-start gap-3 p-3 bg-purple-50 rounded-lg border-l-2 border-purple-500"
       >
         <div class="flex-1">
-          <p class="font-semibold text-gray-900">{{ event.event || event.title || 'Event' }}</p>
-          <p v-if="event.date" class="text-sm text-gray-700 mt-1">
-            <span class="font-medium">Date:</span> {{ event.date }}
-          </p>
-          <p v-if="event.formula" class="text-xs text-gray-600 mt-1 italic">
-            {{ event.formula }}
+          <p class="font-semibold text-gray-900">{{ event.date_or_formula || event.date || event.formula }}</p>
+          <p class="text-sm text-gray-700 mt-1">
+            {{ event.event || event.title || 'Event' }}
           </p>
         </div>
       </div>
@@ -28,6 +25,7 @@ import { computed } from 'vue'
 import BaseWidget from './BaseWidget.vue'
 
 interface CalendarEvent {
+  date_or_formula?: string
   event?: string
   title?: string
   date?: string

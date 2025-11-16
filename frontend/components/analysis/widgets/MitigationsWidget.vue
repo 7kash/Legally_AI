@@ -10,7 +10,7 @@
         :key="index"
         class="border-l-4 border-amber-500 pl-4 py-3 bg-amber-50 rounded-r-lg"
       >
-        <p class="font-semibold text-gray-900">{{ item.action || item }}</p>
+        <p class="font-semibold text-gray-900">{{ item.mitigation || item.action || item }}</p>
 
         <p v-if="item.rationale" class="mt-2 text-sm text-gray-700">
           <span class="font-medium">Why:</span> {{ item.rationale }}
@@ -43,6 +43,7 @@ import BaseWidget from './BaseWidget.vue'
 import QuoteToggle from './QuoteToggle.vue'
 
 interface Mitigation {
+  mitigation?: string
   action?: string
   rationale?: string
   when?: string

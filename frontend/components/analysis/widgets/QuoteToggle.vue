@@ -89,8 +89,10 @@ const hasValidQuote = computed(() => {
   const checkQuote = (q: string | null | undefined): boolean => {
     if (!q) return false
     if (typeof q !== 'string') return false
-    const trimmed = q.trim()
-    if (trimmed === '' || trimmed === 'null' || trimmed === 'undefined' || trimmed === 'None') return false
+    const trimmed = q.trim().toLowerCase()
+    if (trimmed === '' || trimmed === 'null' || trimmed === 'undefined' || trimmed === 'none') return false
+    // Treat "Not explicitly stated" as no quote
+    if (trimmed.includes('not explicitly stated') || trimmed.includes('not stated')) return false
     return true
   }
 

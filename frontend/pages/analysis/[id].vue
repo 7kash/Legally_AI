@@ -306,9 +306,31 @@ const eli5Enabled = ref(false)
 const eli5Data = ref<any>(null)
 const eli5Loading = ref(false)
 
-// Formatted output
+// Formatted output (merged with ELI5 data if enabled)
 const formattedOutput = computed(() => {
-  return analysesStore.currentAnalysis?.formatted_output || {}
+  const baseOutput = analysesStore.currentAnalysis?.formatted_output || {}
+
+  // If ELI5 is enabled and we have simplified data, merge it
+  if (eli5Enabled.value && eli5Data.value) {
+    const merged = { ...baseOutput }
+
+    // Merge simplified sections
+    const simplifiableSections = ['obligations', 'rights', 'risks']
+    simplifiableSections.forEach(section => {
+      const simplifiedSection = eli5Data.value[`${section}_simplified`]
+      if (simplifiedSection && merged[section]?.content) {
+        // Merge simplified data into the content
+        merged[section] = {
+          ...merged[section],
+          content: simplifiedSection
+        }
+      }
+    })
+
+    return merged
+  }
+
+  return baseOutput
 })
 
 // Widget rendering order
