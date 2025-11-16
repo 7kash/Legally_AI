@@ -174,12 +174,12 @@
           </div>
 
           <!-- 5. Agreement Type -->
-          <WidgetCard v-if="getAgreementType()" title="Agreement Type" icon="document">
+          <WidgetCard v-if="getAgreementType()" :title="getAgreementTypeTitle()" icon="document">
             <p class="text-gray-800 font-medium">{{ getAgreementType() }}</p>
           </WidgetCard>
 
           <!-- 6. Parties -->
-          <WidgetCard v-if="getParties().length > 0" title="Parties" icon="users">
+          <WidgetCard v-if="getParties().length > 0" :title="getPartiesTitle()" icon="users">
             <div class="space-y-3">
               <div
                 v-for="(party, index) in getParties()"
@@ -195,12 +195,12 @@
           </WidgetCard>
 
           <!-- 7. Jurisdiction -->
-          <WidgetCard v-if="getJurisdiction()" title="Jurisdiction" icon="globe">
+          <WidgetCard v-if="getJurisdiction()" :title="getJurisdictionTitle()" icon="globe">
             <p class="text-gray-800 font-medium">{{ getJurisdiction() }}</p>
           </WidgetCard>
 
           <!-- 8. Obligations -->
-          <WidgetCard v-if="getObligations().length > 0" title="Your Obligations" icon="clipboard" color="blue">
+          <WidgetCard v-if="getObligations().length > 0" :title="getObligationsTitle()" icon="clipboard" color="blue">
             <div class="space-y-4">
               <div
                 v-for="(item, index) in getObligations()"
@@ -310,7 +310,7 @@
           </WidgetCard>
 
           <!-- 9. Rights -->
-          <WidgetCard v-if="getRights().length > 0" title="Your Rights" icon="shield" color="green">
+          <WidgetCard v-if="getRights().length > 0" :title="getRightsTitle()" icon="shield" color="green">
             <div class="space-y-4">
               <div
                 v-for="(item, index) in getRights()"
@@ -415,7 +415,7 @@
           </WidgetCard>
 
           <!-- 10. Payment Terms -->
-          <WidgetCard v-if="getPaymentTerms().length > 0" title="Payment Terms" icon="currency" color="emerald">
+          <WidgetCard v-if="getPaymentTerms().length > 0" :title="getPaymentTermsTitle()" icon="currency" color="emerald">
             <div class="space-y-3">
               <div
                 v-for="(term, index) in getPaymentTerms()"
@@ -428,7 +428,7 @@
           </WidgetCard>
 
           <!-- 11. Key Dates & Deadlines -->
-          <WidgetCard v-if="getCalendar().length > 0" title="Key Dates & Deadlines" icon="calendar" color="purple">
+          <WidgetCard v-if="getCalendar().length > 0" :title="getCalendarTitle()" icon="calendar" color="purple">
             <div class="space-y-3">
               <div
                 v-for="(item, index) in getCalendar()"
@@ -446,7 +446,7 @@
           </WidgetCard>
 
           <!-- 12. Risks -->
-          <WidgetCard v-if="getRisks().length > 0" title="Risks & Concerns" icon="warning" color="red">
+          <WidgetCard v-if="getRisks().length > 0" :title="getRisksTitle()" icon="warning" color="red">
             <div class="space-y-4">
               <div
                 v-for="(item, index) in getRisks()"
@@ -574,7 +574,7 @@
           </WidgetCard>
 
           <!-- 13. Mitigations -->
-          <WidgetCard v-if="getMitigations().length > 0" title="Risk Mitigations" icon="shield-check" color="amber">
+          <WidgetCard v-if="getMitigations().length > 0" :title="getMitigationsTitle()" icon="shield-check" color="amber">
             <p class="text-sm text-gray-600 mb-4">
               If you must sign without changes, take these steps to reduce risks:
             </p>
@@ -790,6 +790,10 @@ function getAgreementType(): string {
   )
 }
 
+function getAgreementTypeTitle(): string {
+  return formattedOutput.value.agreement_type?.title || 'Agreement Type'
+}
+
 function getParties(): any[] {
   const prepResult = analysesStore.currentAnalysis?.preparation_result
   const data = formattedOutput.value.parties
@@ -801,6 +805,10 @@ function getParties(): any[] {
   if (Array.isArray(data)) return data
   if (data.content && Array.isArray(data.content)) return data.content
   return []
+}
+
+function getPartiesTitle(): string {
+  return formattedOutput.value.parties?.title || 'Parties'
 }
 
 function getJurisdiction(): string {
@@ -902,6 +910,35 @@ function getMitigations(): any[] {
   if (Array.isArray(data)) return data
   if (data.content && Array.isArray(data.content)) return data.content
   return []
+}
+
+// Title getter functions
+function getJurisdictionTitle(): string {
+  return formattedOutput.value.jurisdiction?.title || 'Jurisdiction'
+}
+
+function getObligationsTitle(): string {
+  return formattedOutput.value.obligations?.title || 'Your Obligations'
+}
+
+function getRightsTitle(): string {
+  return formattedOutput.value.rights?.title || 'Your Rights'
+}
+
+function getPaymentTermsTitle(): string {
+  return formattedOutput.value.payment_terms?.title || 'Payment Terms'
+}
+
+function getRisksTitle(): string {
+  return formattedOutput.value.risks?.title || 'Risks & Concerns'
+}
+
+function getCalendarTitle(): string {
+  return formattedOutput.value.calendar?.title || 'Key Dates & Deadlines'
+}
+
+function getMitigationsTitle(): string {
+  return formattedOutput.value.mitigations?.title || 'Risk Mitigations'
 }
 
 function toggleQuote(key: string): void {
