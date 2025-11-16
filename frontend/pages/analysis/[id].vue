@@ -146,17 +146,17 @@
           </div>
 
           <!-- Dynamic Widget Rendering -->
-          <component
-            v-for="key in widgetOrder"
-            :key="key"
-            :is="getWidgetComponent(key)"
-            v-if="formattedOutput[key] && hasContent(formattedOutput[key])"
-            :title="getWidgetTitle(key)"
-            :content="formattedOutput[key]"
-            :eli5-enabled="eli5Enabled"
-            :icon="getWidgetConfig(key)?.icon"
-            :color="getWidgetConfig(key)?.color"
-          />
+          <template v-for="key in widgetOrder" :key="key">
+            <component
+              v-if="formattedOutput[key] && hasContent(formattedOutput[key])"
+              :is="getWidgetComponent(key)"
+              :title="getWidgetTitle(key)"
+              :content="formattedOutput[key]"
+              :eli5-enabled="eli5Enabled"
+              :icon="getWidgetConfig(key)?.icon"
+              :color="getWidgetConfig(key)?.color"
+            />
+          </template>
 
           <!-- Actions -->
           <div class="flex flex-wrap gap-3 pt-4">
