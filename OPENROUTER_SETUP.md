@@ -36,8 +36,8 @@ LLM_PROVIDER=openrouter
 # Your OpenRouter API key
 OPENROUTER_API_KEY=sk-or-v1-your-actual-key-here
 
-# Choose a model (recommended: Claude 3.5 Sonnet)
-OPENROUTER_MODEL=anthropic/claude-3.5-sonnet
+# Choose a model (recommended: Llama 3.1 70B - fast & affordable)
+OPENROUTER_MODEL=meta-llama/llama-3.1-70b-instruct
 ```
 
 ## Step 4: Install OpenAI SDK
@@ -87,21 +87,21 @@ print('✅ OpenRouter connected!' if success else '❌ Connection failed')
 
 Here are good models to use on OpenRouter:
 
-### Best Quality (Recommended)
-```bash
-OPENROUTER_MODEL=anthropic/claude-3.5-sonnet
-```
-- **Cost**: ~$3 per 1M input tokens, ~$15 per 1M output tokens
-- **Best for**: Contract analysis (our use case)
-- **Pros**: Excellent reasoning, good at structured output
-
-### Fast & Affordable
+### Fast & Affordable (Recommended)
 ```bash
 OPENROUTER_MODEL=meta-llama/llama-3.1-70b-instruct
 ```
 - **Cost**: ~$0.18 per 1M input tokens, ~$0.18 per 1M output tokens
-- **Best for**: High volume, cost-sensitive
-- **Pros**: Very fast, cheap, good quality
+- **Best for**: Contract analysis with high volume
+- **Pros**: Very fast, extremely cheap, good quality, supports JSON mode
+
+### Best Quality (Premium)
+```bash
+OPENROUTER_MODEL=anthropic/claude-3.5-sonnet
+```
+- **Cost**: ~$3 per 1M input tokens, ~$15 per 1M output tokens
+- **Best for**: Maximum quality analysis
+- **Pros**: Excellent reasoning, best at structured output
 
 ### Long Context
 ```bash

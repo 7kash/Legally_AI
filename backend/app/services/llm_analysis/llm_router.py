@@ -68,8 +68,8 @@ class LLMRouter:
                 api_key=self.api_key,
                 base_url="https://openrouter.ai/api/v1"
             )
-            # Default to a good OpenRouter model
-            self.model = model or os.getenv("OPENROUTER_MODEL", "anthropic/claude-3.5-sonnet")
+            # Default to Llama 3.1 70B (fast, affordable, good quality)
+            self.model = model or os.getenv("OPENROUTER_MODEL", "meta-llama/llama-3.1-70b-instruct")
 
         else:
             raise ValueError(f"Unknown provider: {self.provider}. Use 'groq' or 'openrouter'")
