@@ -469,16 +469,43 @@ async function handleExportFormat(format: 'pdf' | 'docx' | 'json' | 'lawyer-pack
   if (!analysis) return
 
   try {
+    // Prepare metadata
+    const metadata = {
+      contractName: analysis.file_name || 'Contract Analysis',
+      analysisDate: new Date(analysis.created_at || Date.now()).toLocaleDateString(),
+      confidenceScore: analysis.confidence_score,
+    }
+
     if (format === 'pdf') {
-      await exportAnalysisToPDF(analysis)
+      await exportAnalysisToPDF({
+        title: 'Contract Analysis',
+        content: formattedOutput.value,
+        metadata,
+      })
       const { success } = useNotifications()
       success('PDF exported', 'Your analysis has been downloaded as PDF')
     } else if (format === 'docx') {
-      await exportAnalysisToDOCX(analysis)
+      await exportAnalysisToDOCX({
+        title: 'Contract Analysis',
+        content: formattedOutput.value,
+        metadata,
+      })
       const { success } = useNotifications()
       success('DOCX exported', 'Your analysis has been downloaded as DOCX')
     } else if (format === 'lawyer-pack') {
-      await exportLawyerPackToPDF(analysis)
+      await exportLawyerPackToPDF({
+        title: 'Lawyer Handoff Pack',
+        content: formattedOutput.value,
+        metadata,
+        analysisData: {
+          screening_result: screeningResult.value,
+          confidence: {
+            score: analysis.confidence_score,
+            reason: confidenceReason.value,
+          },
+          analysis_result: analysis.analysis_result,
+        },
+      })
       const { success } = useNotifications()
       success('Lawyer pack exported', 'Your lawyer pack has been downloaded')
     } else if (format === 'json') {
