@@ -410,17 +410,38 @@ function formatEventMessage(event: AnalysisEvent): string {
   return event.message || event.event_type || 'Processing...'
 }
 
+// Polling interval for checking analysis status
+let pollInterval: NodeJS.Timeout | null = null
+
 // Lifecycle hooks
 onMounted(async () => {
   if (analysisId.value) {
     await analysesStore.fetchAnalysis(analysisId.value)
-    if (analysesStore.currentAnalysis?.status === 'processing') {
+    // Connect to SSE if analysis is still running or queued
+    if (analysesStore.isAnalyzing) {
       analysesStore.connectSSE(analysisId.value)
+
+      // Also set up polling as a fallback (every 3 seconds)
+      pollInterval = setInterval(async () => {
+        if (analysesStore.isAnalyzing) {
+          await analysesStore.fetchAnalysis(analysisId.value)
+        } else {
+          // Analysis completed, stop polling
+          if (pollInterval) {
+            clearInterval(pollInterval)
+            pollInterval = null
+          }
+        }
+      }, 3000)
     }
   }
 })
 
 onUnmounted(() => {
   analysesStore.disconnectSSE()
+  if (pollInterval) {
+    clearInterval(pollInterval)
+    pollInterval = null
+  }
 })
 </script>
