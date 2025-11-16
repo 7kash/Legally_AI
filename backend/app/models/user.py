@@ -41,7 +41,6 @@ class User(Base):
     # Relationships (imported at runtime to avoid circular imports)
     from sqlalchemy.orm import relationship
     contracts = relationship("Contract", back_populates="user", cascade="all, delete-orphan")
-    analyses = relationship("Analysis", back_populates="user", cascade="all, delete-orphan")
     deadlines = relationship("Deadline", back_populates="user", cascade="all, delete-orphan")
     feedback = relationship("Feedback", back_populates="user", cascade="all, delete-orphan")
 

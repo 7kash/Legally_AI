@@ -11,7 +11,6 @@ class Analysis(Base):
     __tablename__ = "analyses"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     contract_id = Column(UUID(as_uuid=True), ForeignKey("contracts.id", ondelete="CASCADE"), nullable=False, index=True)
 
     # Status: queued, running, succeeded, failed
@@ -40,7 +39,6 @@ class Analysis(Base):
     completed_at = Column(DateTime, nullable=True)
 
     # Relationships
-    user = relationship("User", back_populates="analyses")
     contract = relationship("Contract", back_populates="analyses")
     events = relationship("AnalysisEvent", back_populates="analysis", cascade="all, delete-orphan", order_by="AnalysisEvent.created_at")
     deadlines = relationship("Deadline", back_populates="analysis", cascade="all, delete-orphan")
