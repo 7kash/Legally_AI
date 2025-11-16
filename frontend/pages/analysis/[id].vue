@@ -279,8 +279,11 @@ import { exportAnalysisToDOCX } from '~/utils/exportToDOCX'
 import { exportLawyerPackToPDF } from '~/utils/exportLawyerPack'
 import { WIDGET_REGISTRY, hasContent, getWidgetConfig } from '~/components/analysis/widgets'
 import ELI5Toggle from '~/components/analysis/widgets/ELI5Toggle.vue'
+import ExportModal from '~/components/export/ExportModal.vue'
+import ScreeningBadge from '~/components/analysis/ScreeningBadge.vue'
+import ImportantLimits from '~/components/analysis/ImportantLimits.vue'
 
-// Explicitly import all widget components for Vue's <component :is="">
+// Explicitly import all widget components for Vue's <component :is=""
 import SimpleTextWidget from '~/components/analysis/widgets/SimpleTextWidget.vue'
 import PartiesWidget from '~/components/analysis/widgets/PartiesWidget.vue'
 import ObligationsWidget from '~/components/analysis/widgets/ObligationsWidget.vue'
