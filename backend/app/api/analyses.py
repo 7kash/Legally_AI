@@ -114,12 +114,18 @@ def create_analysis(
         confidence_score = analysis.quality_score / 100.0
 
     # Handle formatted_output_eli5 conversion (TEXT to JSON)
-    formatted_output_eli5 = analysis.formatted_output_eli5
-    if formatted_output_eli5 and isinstance(formatted_output_eli5, str):
-        try:
-            formatted_output_eli5 = json.loads(formatted_output_eli5)
-        except json.JSONDecodeError:
-            formatted_output_eli5 = None
+    # If the column doesn't exist yet (migration not run), this will be None
+    formatted_output_eli5 = None
+    try:
+        formatted_output_eli5 = analysis.formatted_output_eli5
+        if formatted_output_eli5 and isinstance(formatted_output_eli5, str):
+            try:
+                formatted_output_eli5 = json.loads(formatted_output_eli5)
+            except json.JSONDecodeError:
+                formatted_output_eli5 = None
+    except AttributeError:
+        # Column doesn't exist yet - migration not run
+        formatted_output_eli5 = None
 
     return AnalysisResponse(
         id=str(analysis.id),
@@ -173,12 +179,18 @@ def get_analysis(
         confidence_score = analysis.quality_score / 100.0
 
     # Handle formatted_output_eli5 conversion (TEXT to JSON)
-    formatted_output_eli5 = analysis.formatted_output_eli5
-    if formatted_output_eli5 and isinstance(formatted_output_eli5, str):
-        try:
-            formatted_output_eli5 = json.loads(formatted_output_eli5)
-        except json.JSONDecodeError:
-            formatted_output_eli5 = None
+    # If the column doesn't exist yet (migration not run), this will be None
+    formatted_output_eli5 = None
+    try:
+        formatted_output_eli5 = analysis.formatted_output_eli5
+        if formatted_output_eli5 and isinstance(formatted_output_eli5, str):
+            try:
+                formatted_output_eli5 = json.loads(formatted_output_eli5)
+            except json.JSONDecodeError:
+                formatted_output_eli5 = None
+    except AttributeError:
+        # Column doesn't exist yet - migration not run
+        formatted_output_eli5 = None
 
     return AnalysisResponse(
         id=str(analysis.id),
