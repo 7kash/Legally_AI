@@ -7,6 +7,36 @@ from pathlib import Path
 from typing import Dict, Any
 import pdfplumber
 from docx import Document
+import logging
+import sys
+import signal
+from contextlib import contextmanager
+
+# Configure logging
+logger = logging.getLogger(__name__)
+
+
+class TimeoutException(Exception):
+    pass
+
+
+@contextmanager
+def timeout(seconds):
+    """Context manager for timing out operations"""
+    def timeout_handler(signum, frame):
+        raise TimeoutException(f"Operation timed out after {seconds} seconds")
+
+    # Set the signal handler
+    old_handler = signal.signal(signal.SIGALRM, timeout_handler)
+    signal.alarm(seconds)
+
+    try:
+        yield
+    finally:
+        # Restore the old signal handler
+        signal.alarm(0)
+        signal.signal(signal.SIGALRM, old_handler)
+
 
 # OCR support for scanned PDFs
 try:
@@ -14,8 +44,10 @@ try:
     import pytesseract
     from PIL import Image
     OCR_AVAILABLE = True
-except ImportError:
+    logger.info("OCR libraries loaded successfully")
+except ImportError as e:
     OCR_AVAILABLE = False
+    logger.warning(f"OCR libraries not available: {e}")
 
 
 def extract_text_with_ocr(file_path: str) -> Dict[str, Any]:
@@ -33,25 +65,44 @@ def extract_text_with_ocr(file_path: str) -> Dict[str, Any]:
             "OCR libraries not available. Install with: pip install pdf2image pytesseract pillow"
         )
 
+    logger.info(f"[OCR] Starting OCR extraction for: {file_path}")
+    sys.stdout.flush()
+
     try:
-        # Convert PDF to images
-        print(f"Converting PDF to images: {file_path}")
-        images = convert_from_path(file_path)
-        print(f"Converted {len(images)} pages to images")
+        # Convert PDF to images with timeout (60 seconds)
+        logger.info(f"[OCR] Converting PDF to images...")
+        sys.stdout.flush()
+
+        try:
+            with timeout(60):
+                images = convert_from_path(file_path)
+            logger.info(f"[OCR] Converted {len(images)} pages to images")
+            sys.stdout.flush()
+        except TimeoutException as e:
+            logger.error(f"[OCR] PDF to image conversion timed out: {e}")
+            raise ValueError("PDF to image conversion timed out after 60 seconds")
 
         pages = []
         total_chars = 0
 
         for i, image in enumerate(images):
-            # Perform OCR on each page with multi-language support
-            # Try English first, then add other languages if available
-            print(f"Processing page {i+1}/{len(images)} with OCR...")
+            # Perform OCR on each page with timeout (30 seconds per page)
+            logger.info(f"[OCR] Processing page {i+1}/{len(images)}...")
+            sys.stdout.flush()
+
             try:
-                # Try with English only first (most reliable)
-                text = pytesseract.image_to_string(image, lang='eng')
-                print(f"Page {i+1} processed: {len(text)} characters extracted")
+                with timeout(30):
+                    # Try with English only first (most reliable)
+                    text = pytesseract.image_to_string(image, lang='eng', timeout=20)
+                logger.info(f"[OCR] Page {i+1} processed: {len(text)} characters extracted")
+                sys.stdout.flush()
+            except TimeoutException as e:
+                logger.error(f"[OCR] Timeout on page {i+1}: {e}")
+                sys.stdout.flush()
+                text = ""
             except Exception as e:
-                print(f"OCR failed on page {i+1}: {e}")
+                logger.error(f"[OCR] Failed on page {i+1}: {e}")
+                sys.stdout.flush()
                 text = ""
 
             if text.strip():
@@ -114,8 +165,14 @@ def extract_text_from_pdf(file_path: str) -> Dict[str, Any]:
 
             # If document appears scanned (little/no text), try OCR
             if is_scanned and OCR_AVAILABLE and avg_chars_per_page < 200:
-                print(f"PDF appears scanned (avg {avg_chars_per_page:.0f} chars/page), attempting OCR...")
-                return extract_text_with_ocr(file_path)
+                logger.warning(f"PDF appears scanned (avg {avg_chars_per_page:.0f} chars/page), attempting OCR...")
+                sys.stdout.flush()
+                logger.info("Calling extract_text_with_ocr function...")
+                sys.stdout.flush()
+                result = extract_text_with_ocr(file_path)
+                logger.info("extract_text_with_ocr completed successfully")
+                sys.stdout.flush()
+                return result
 
             return {
                 "text": full_text,
