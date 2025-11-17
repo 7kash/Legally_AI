@@ -56,7 +56,7 @@ class AnalysisResponse(BaseModel):
 # ===== API Endpoints =====
 
 @router.post("/", response_model=AnalysisResponse, status_code=status.HTTP_201_CREATED)
-def create_analysis(
+async def create_analysis(
     data: CreateAnalysisRequest,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
