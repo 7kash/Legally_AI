@@ -549,7 +549,7 @@ def analyze_contract_task(
             deadlines = extract_deadlines_from_analysis(
                 analysis_id=analysis.id,
                 contract_id=analysis.contract_id,
-                user_id=user_id,
+                user_id=contract.user_id,
                 analysis_result=analysis_result,
                 db=db
             )
