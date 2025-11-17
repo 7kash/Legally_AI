@@ -92,7 +92,6 @@
           <!-- ELI5 Mode Toggle -->
           <ELI5Toggle
             v-model="eli5Enabled"
-            :loading="eli5Loading"
             @toggle="toggleELI5Mode"
           />
 
@@ -307,20 +306,15 @@ const showExportModal = ref(false)
 
 // ELI5 Mode state
 const eli5Enabled = ref(false)
-const eli5Data = ref<any>(null) // For fallback when pre-generated data not available
-const eli5Loading = ref(false)
 
 // Formatted output (merged with ELI5 data if enabled)
 const formattedOutput = computed(() => {
   const baseOutput = analysesStore.currentAnalysis?.formatted_output || {}
+  const eli5Output = analysesStore.currentAnalysis?.formatted_output_eli5
 
-  // Try pre-generated ELI5 data first, fallback to fetched data
-  const eli5Output = analysesStore.currentAnalysis?.formatted_output_eli5 || eli5Data.value
-
-  // If ELI5 is enabled and we have simplified data (pre-generated or fetched), merge it
+  // If ELI5 is enabled and we have pre-generated simplified data, merge it
   if (eli5Enabled.value && eli5Output) {
-    const dataSource = analysesStore.currentAnalysis?.formatted_output_eli5 ? 'pre-generated' : 'fetched'
-    console.log(`[ELI5] Merging ${dataSource} simplified data:`, {
+    console.log('[ELI5] Merging pre-generated simplified data:', {
       eli5Enabled: eli5Enabled.value,
       eli5Output,
       baseOutput
@@ -442,64 +436,10 @@ function getAboutSummary(): string {
 }
 
 // ELI5 Mode toggle
-async function toggleELI5Mode(): Promise<void> {
-  // If turning off, just disable
-  if (eli5Enabled.value) {
-    eli5Enabled.value = false
-    return
-  }
-
-  // Check if we have pre-generated ELI5 data
-  const hasPreGeneratedData = analysesStore.currentAnalysis?.formatted_output_eli5
-
-  if (hasPreGeneratedData) {
-    // Instant toggle - data is already available
-    eli5Enabled.value = true
-    console.log('[ELI5] Using pre-generated ELI5 data (instant)')
-    return
-  }
-
-  // Fallback: No pre-generated data, fetch from API (migration not run yet)
-  // Check if we already fetched the data before
-  if (eli5Data.value) {
-    eli5Enabled.value = true
-    console.log('[ELI5] Using previously fetched ELI5 data')
-    return
-  }
-
-  // Need to fetch from API
-  try {
-    eli5Loading.value = true
-    console.log('[ELI5] Pre-generated data not available, fetching from API...')
-
-    const config = useRuntimeConfig()
-    const response = await fetch(
-      `${config.public.apiBase}/analyses/${analysisId.value}/simplify`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authStore.token}`,
-        },
-      }
-    )
-
-    if (!response.ok) {
-      throw new Error('Failed to simplify analysis')
-    }
-
-    const data = await response.json()
-    console.log('[ELI5] API Response:', data)
-    console.log('[ELI5] Simplified analysis:', data.simplified_analysis)
-    eli5Data.value = data.simplified_analysis
-    eli5Enabled.value = true
-    console.log('[ELI5] ELI5 mode enabled with fetched data:', eli5Data.value)
-  } catch (error: any) {
-    const { error: showError } = useNotifications()
-    showError('Failed to simplify', error.message || 'Please try again later.')
-  } finally {
-    eli5Loading.value = false
-  }
+function toggleELI5Mode(): void {
+  // Simple instant toggle - ELI5 data is pre-generated during analysis
+  eli5Enabled.value = !eli5Enabled.value
+  console.log('[ELI5] Toggled ELI5 mode:', eli5Enabled.value)
 }
 
 // Export handlers

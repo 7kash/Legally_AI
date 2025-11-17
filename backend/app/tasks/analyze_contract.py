@@ -447,17 +447,15 @@ def analyze_contract_task(
         analysis.formatted_output = formatted_output
 
         # ===== ELI5: Generate Simplified Version =====
-        # Try to generate and store ELI5 version if the database column exists
-        # If the column doesn't exist yet (migration not run), this will be skipped
-        try:
-            create_event(
-                db,
-                analysis.id,
-                event_type="progress",
-                message="Generating simplified version (ELI5)",
-                data={"step": "eli5", "progress": 90}
-            )
+        create_event(
+            db,
+            analysis.id,
+            event_type="progress",
+            message="Generating simplified version (ELI5)",
+            data={"step": "eli5", "progress": 90}
+        )
 
+        try:
             from ..services.llm_analysis.eli5_service import simplify_full_analysis
 
             # Generate ELI5 simplified version
@@ -466,24 +464,27 @@ def analyze_contract_task(
                 sections_to_simplify=['obligations', 'rights', 'risks', 'mitigations']
             )
 
-            # Try to store ELI5 version (will fail if column doesn't exist)
-            try:
-                analysis.formatted_output_eli5 = simplified_output
-                logger.info("ELI5 simplified version generated successfully")
+            # Store ELI5 version
+            analysis.formatted_output_eli5 = simplified_output
+            logger.info("ELI5 simplified version generated successfully")
 
-                create_event(
-                    db,
-                    analysis.id,
-                    event_type="progress",
-                    message="Simplified version ready",
-                    data={"step": "eli5", "progress": 95}
-                )
-            except AttributeError:
-                # Column doesn't exist yet - migration not run
-                logger.info("ELI5 column not available yet - skipping storage")
+            create_event(
+                db,
+                analysis.id,
+                event_type="progress",
+                message="Simplified version ready",
+                data={"step": "eli5", "progress": 95}
+            )
         except Exception as e:
             logger.error(f"ELI5 generation failed: {e}", exc_info=True)
             # Don't fail the whole analysis if ELI5 fails
+            create_event(
+                db,
+                analysis.id,
+                event_type="progress",
+                message=f"Note: Simplified version not available",
+                data={"step": "eli5", "progress": 95, "error": str(e)}
+            )
 
         analysis.status = "succeeded"
         analysis.completed_at = datetime.utcnow()
