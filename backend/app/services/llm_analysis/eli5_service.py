@@ -52,7 +52,7 @@ def simplify_text(text: str, llm_router: LLMRouter) -> str:
     try:
         prompt = ELI5_PROMPT_TEMPLATE.replace("{text_to_simplify}", text)
 
-        simplified = llm_router.call_llm(
+        simplified = llm_router.call(
             prompt=prompt,
             system_prompt="You are a helpful teacher who explains complex legal concepts in simple, everyday language that anyone can understand.",
             temperature=0.7,  # Slightly higher for more conversational tone
@@ -158,16 +158,43 @@ What to do: {risk.get('recommendation', '')}
     return simplified
 
 
+def simplify_mitigation(mitigation: Dict[str, Any], llm_router: LLMRouter) -> Dict[str, Any]:
+    """
+    Simplify a mitigation item
+
+    Args:
+        mitigation: Mitigation dictionary
+        llm_router: LLM router instance
+
+    Returns:
+        Simplified mitigation dictionary
+    """
+    simplified = mitigation.copy()
+
+    original_text = f"""
+What to do to protect yourself: {mitigation.get('mitigation', '') or mitigation.get('action', '')}
+Why this helps: {mitigation.get('rationale', '')}
+When to do it: {mitigation.get('when', '')}
+"""
+
+    simplified_text = simplify_text(original_text, llm_router)
+
+    simplified['mitigation_simple'] = simplified_text
+    simplified['original_mitigation'] = mitigation.get('mitigation', '') or mitigation.get('action', '')
+
+    return simplified
+
+
 def simplify_analysis_section(
     section_name: str,
     section_data: List[Dict[str, Any]],
     llm_router: LLMRouter
 ) -> List[Dict[str, Any]]:
     """
-    Simplify an entire analysis section (obligations, rights, or risks)
+    Simplify an entire analysis section (obligations, rights, risks, or mitigations)
 
     Args:
-        section_name: Name of section ('obligations', 'rights', 'risks')
+        section_name: Name of section ('obligations', 'rights', 'risks', 'mitigations')
         section_data: List of items in the section
         llm_router: LLM router instance
 
@@ -188,6 +215,8 @@ def simplify_analysis_section(
                 simplified_item = simplify_right(item, llm_router)
             elif section_name == 'risks':
                 simplified_item = simplify_risk(item, llm_router)
+            elif section_name == 'mitigations':
+                simplified_item = simplify_mitigation(item, llm_router)
             else:
                 simplified_item = item
 
@@ -215,7 +244,7 @@ def simplify_full_analysis(
         Analysis with simplified versions added
     """
     if sections_to_simplify is None:
-        sections_to_simplify = ['obligations', 'rights', 'risks']
+        sections_to_simplify = ['obligations', 'rights', 'risks', 'mitigations']
 
     llm_router = LLMRouter()
     simplified_analysis = analysis_result.copy()
