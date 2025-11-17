@@ -68,6 +68,7 @@ async def create_analysis(
     This endpoint creates an Analysis record and dispatches a background task.
     The SSE endpoint can be used to stream real-time progress updates.
     """
+    print(f"[DEBUG] create_analysis called with data: {data}")
     # Validate contract exists
     try:
         contract_uuid = uuid.UUID(data.contract_id)
