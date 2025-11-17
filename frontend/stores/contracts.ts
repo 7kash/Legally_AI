@@ -128,12 +128,23 @@ export const useContractsStore = defineStore('contracts', () => {
         },
       })
 
-      contracts.value = response.contracts
-      total.value = response.total
-      currentPage.value = response.page
+      contracts.value = response.contracts || []
+      total.value = response.total || 0
+      currentPage.value = response.page || page
+      error.value = null // Clear any previous errors on success
     } catch (err: any) {
-      error.value = err.data?.detail || 'Failed to fetch contracts'
-      throw err
+      console.error('Failed to fetch contracts:', err)
+      // Set error message but don't show error state for empty results
+      // If it's actually a server error, we'll show it, but if user just has no contracts, show empty state
+      error.value = err.data?.detail || err.message || 'Failed to fetch contracts'
+
+      // Initialize with empty values on error
+      contracts.value = []
+      total.value = 0
+      currentPage.value = 1
+
+      // Don't throw - let the component handle the error state
+      // This prevents showing error when user simply has no contracts
     } finally {
       loading.value = false
     }
