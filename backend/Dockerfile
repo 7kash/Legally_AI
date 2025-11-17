@@ -5,6 +5,10 @@ RUN apt-get update && apt-get install -y \
     gcc \
     postgresql-client \
     tesseract-ocr \
+    tesseract-ocr-eng \
+    tesseract-ocr-rus \
+    tesseract-ocr-srp \
+    tesseract-ocr-fra \
     poppler-utils \
     curl \
     && rm -rf /var/lib/apt/lists/*
