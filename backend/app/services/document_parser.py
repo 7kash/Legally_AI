@@ -35,15 +35,25 @@ def extract_text_with_ocr(file_path: str) -> Dict[str, Any]:
 
     try:
         # Convert PDF to images
+        print(f"Converting PDF to images: {file_path}")
         images = convert_from_path(file_path)
+        print(f"Converted {len(images)} pages to images")
 
         pages = []
         total_chars = 0
 
         for i, image in enumerate(images):
             # Perform OCR on each page with multi-language support
-            # eng=English, rus=Russian, srp=Serbian, fra=French
-            text = pytesseract.image_to_string(image, lang='eng+rus+srp+fra')
+            # Try English first, then add other languages if available
+            print(f"Processing page {i+1}/{len(images)} with OCR...")
+            try:
+                # Try with English only first (most reliable)
+                text = pytesseract.image_to_string(image, lang='eng')
+                print(f"Page {i+1} processed: {len(text)} characters extracted")
+            except Exception as e:
+                print(f"OCR failed on page {i+1}: {e}")
+                text = ""
+
             if text.strip():
                 pages.append(text)
                 total_chars += len(text)
