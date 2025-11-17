@@ -445,6 +445,47 @@ def analyze_contract_task(
 
         # Store directly as dict (JSON column)
         analysis.formatted_output = formatted_output
+
+        # ===== ELI5: Generate Simplified Version =====
+        create_event(
+            db,
+            analysis.id,
+            event_type="progress",
+            message="Generating simplified version (ELI5)",
+            data={"step": "eli5", "progress": 90}
+        )
+
+        try:
+            from ..services.llm_analysis.eli5_service import simplify_full_analysis
+
+            # Generate ELI5 simplified version
+            simplified_output = simplify_full_analysis(
+                analysis_result=formatted_output,
+                sections_to_simplify=['obligations', 'rights', 'risks', 'mitigations']
+            )
+
+            # Store ELI5 version
+            analysis.formatted_output_eli5 = simplified_output
+            logger.info("ELI5 simplified version generated successfully")
+
+            create_event(
+                db,
+                analysis.id,
+                event_type="progress",
+                message="Simplified version ready",
+                data={"step": "eli5", "progress": 95}
+            )
+        except Exception as e:
+            logger.error(f"ELI5 generation failed: {e}", exc_info=True)
+            # Don't fail the whole analysis if ELI5 fails
+            create_event(
+                db,
+                analysis.id,
+                event_type="progress",
+                message=f"Note: Simplified version not available",
+                data={"step": "eli5", "progress": 95, "error": str(e)}
+            )
+
         analysis.status = "succeeded"
         analysis.completed_at = datetime.utcnow()
         db.commit()

@@ -38,6 +38,7 @@ class AnalysisResponse(BaseModel):
     status: str
     output_language: str
     formatted_output: Optional[Dict[str, Any]] = None
+    formatted_output_eli5: Optional[Dict[str, Any]] = None
     confidence_score: Optional[float] = None
     screening_result: Optional[str] = None
     preparation_result: Optional[Dict[str, Any]] = None
@@ -112,12 +113,21 @@ def create_analysis(
     if analysis.quality_score is not None:
         confidence_score = analysis.quality_score / 100.0
 
+    # Handle formatted_output_eli5 conversion (TEXT to JSON)
+    formatted_output_eli5 = analysis.formatted_output_eli5
+    if formatted_output_eli5 and isinstance(formatted_output_eli5, str):
+        try:
+            formatted_output_eli5 = json.loads(formatted_output_eli5)
+        except json.JSONDecodeError:
+            formatted_output_eli5 = None
+
     return AnalysisResponse(
         id=str(analysis.id),
         contract_id=str(analysis.contract_id),
         status=analysis.status,
         output_language=analysis.output_language,
         formatted_output=formatted_output,
+        formatted_output_eli5=formatted_output_eli5,
         confidence_score=confidence_score,
         screening_result=analysis.screening_result,
         preparation_result=analysis.preparation_result,
@@ -162,12 +172,21 @@ def get_analysis(
     if analysis.quality_score is not None:
         confidence_score = analysis.quality_score / 100.0
 
+    # Handle formatted_output_eli5 conversion (TEXT to JSON)
+    formatted_output_eli5 = analysis.formatted_output_eli5
+    if formatted_output_eli5 and isinstance(formatted_output_eli5, str):
+        try:
+            formatted_output_eli5 = json.loads(formatted_output_eli5)
+        except json.JSONDecodeError:
+            formatted_output_eli5 = None
+
     return AnalysisResponse(
         id=str(analysis.id),
         contract_id=str(analysis.contract_id),
         status=analysis.status,
         output_language=analysis.output_language,
         formatted_output=formatted_output,
+        formatted_output_eli5=formatted_output_eli5,
         confidence_score=confidence_score,
         screening_result=analysis.screening_result,
         preparation_result=analysis.preparation_result,
