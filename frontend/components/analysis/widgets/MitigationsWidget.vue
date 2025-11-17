@@ -10,15 +10,23 @@
         :key="index"
         class="border-l-4 border-amber-500 pl-4 py-3 bg-amber-50 rounded-r-lg"
       >
-        <p class="font-semibold text-gray-900">{{ item.mitigation || item.action || item }}</p>
-
-        <p v-if="item.rationale" class="mt-2 text-sm text-gray-700">
-          <span class="font-medium">Why:</span> {{ item.rationale }}
+        <!-- ELI5 Mode - Show simplified text -->
+        <p v-if="eli5Enabled && typeof item === 'object' && item.mitigation_simple" class="text-gray-800 leading-relaxed">
+          {{ item.mitigation_simple }}
         </p>
 
-        <p v-if="item.when" class="mt-1 text-sm text-gray-700">
-          <span class="font-medium">When:</span> {{ item.when }}
-        </p>
+        <!-- Normal Mode - Show full details -->
+        <template v-else>
+          <p class="font-semibold text-gray-900">{{ item.mitigation || item.action || item }}</p>
+
+          <p v-if="typeof item === 'object' && item.rationale" class="mt-2 text-sm text-gray-700">
+            <span class="font-medium">Why:</span> {{ item.rationale }}
+          </p>
+
+          <p v-if="typeof item === 'object' && item.when" class="mt-1 text-sm text-gray-700">
+            <span class="font-medium">When:</span> {{ item.when }}
+          </p>
+        </template>
 
         <!-- Quote Toggle (supports both regular quote and related_risk_quote) -->
         <QuoteToggle
@@ -44,6 +52,7 @@ import QuoteToggle from './QuoteToggle.vue'
 
 interface Mitigation {
   mitigation?: string
+  mitigation_simple?: string
   action?: string
   rationale?: string
   when?: string
@@ -56,9 +65,12 @@ interface Mitigation {
 interface Props {
   title: string
   content: (Mitigation | string)[] | { content: (Mitigation | string)[] } | any
+  eli5Enabled?: boolean
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  eli5Enabled: false,
+})
 
 const mitigations = computed<(Mitigation | string)[]>(() => {
   let data = props.content

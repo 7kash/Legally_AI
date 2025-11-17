@@ -204,6 +204,7 @@
             v-if="formattedOutput.mitigations && hasContent(formattedOutput.mitigations)"
             :title="getWidgetTitle('mitigations')"
             :content="formattedOutput.mitigations"
+            :eli5-enabled="eli5Enabled"
           />
 
           <!-- Actions -->
@@ -324,7 +325,7 @@ const formattedOutput = computed(() => {
     const merged = { ...baseOutput }
 
     // Merge simplified sections
-    const simplifiableSections = ['obligations', 'rights', 'risks']
+    const simplifiableSections = ['obligations', 'rights', 'risks', 'mitigations']
     simplifiableSections.forEach(section => {
       const simplifiedSection = eli5Data.value[`${section}_simplified`]
       console.log(`[ELI5] Section ${section}:`, {
