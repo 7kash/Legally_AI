@@ -6,6 +6,7 @@ Simplifies legal language into everyday terms using LLM
 from typing import Dict, Any, List, Optional
 from .llm_router import LLMRouter
 import logging
+import re
 
 logger = logging.getLogger(__name__)
 
@@ -13,7 +14,14 @@ logger = logging.getLogger(__name__)
 ELI5_PROMPT_TEMPLATE = """**Your Task:**
 Rephrase the following contract analysis text in simple, everyday language that anyone can understand.
 
-**Rules:**
+**Critical Rules:**
+1. ONLY output the simplified text - NOTHING ELSE
+2. Do NOT add notes, explanations, or commentary about what you did
+3. Do NOT write things like "(Note: I've kept...)" or "I've rephrased..."
+4. Do NOT explain your simplification choices
+5. JUST provide the simple version - no meta-commentary whatsoever
+
+**Simplification Rules:**
 1. REPHRASE the exact text provided below - do NOT create new content or add information
 2. NO legal jargon, NO Latin terms, NO complex words
 3. Use everyday words: "end" not "terminate", "pay" not "remuneration"
@@ -25,6 +33,7 @@ Rephrase the following contract analysis text in simple, everyday language that 
 9. Do NOT skip important details
 10. Do NOT add ANY prefixes or introductions - start directly with the rephrased content
 11. Put each section on a new line for better readability
+12. Keep emojis and symbols as-is (ℹ️, ⚠️, etc.) - just simplify the text around them
 
 **Example:**
 Original: "What you can do: Terminate agreement
@@ -42,7 +51,9 @@ Any conditions:
 You can only do this if you haven't broken any rules in the agreement.
 
 **Text to Rephrase:**
-{text_to_simplify}"""
+{text_to_simplify}
+
+**Remember: Output ONLY the simplified text. No notes, no explanations, no commentary about your process.**"""
 
 
 def simplify_text(text: str, llm_router: LLMRouter) -> str:
@@ -84,6 +95,16 @@ def simplify_text(text: str, llm_router: LLMRouter) -> str:
             if result.startswith(prefix):
                 result = result[len(prefix):].strip()
                 break
+
+        # Remove parenthetical notes that LLMs add (e.g., "(Note: I've kept...)")
+        # Match patterns like "(Note: ...)" at the end of text
+        result = re.sub(r'\s*\(Note:.*?\)\.?\s*$', '', result, flags=re.IGNORECASE | re.DOTALL)
+        # Match patterns like "(Note: ...)" anywhere in the text
+        result = re.sub(r'\s*\(Note:.*?\)\.?\s*', '\n', result, flags=re.IGNORECASE | re.DOTALL)
+        # Clean up extra whitespace but preserve line breaks
+        result = re.sub(r'[ \t]+', ' ', result)  # Collapse spaces/tabs but not newlines
+        result = re.sub(r'\n{3,}', '\n\n', result)  # Max 2 consecutive newlines
+        result = result.strip()
 
         return result
 
