@@ -20,6 +20,8 @@ export interface Contract {
   jurisdiction: string | null
   uploaded_at: string
   updated_at: string
+  latest_analysis_id: string | null
+  latest_analysis_date: string | null
 }
 
 export interface ContractListResponse {

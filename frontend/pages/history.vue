@@ -219,7 +219,12 @@
                   <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-gray-500 mt-1">
                     <span><span class="font-medium">Size:</span> {{ formatFileSize(contract.file_size) }}</span>
                     <span aria-hidden="true">•</span>
-                    <span><span class="font-medium">Uploaded:</span> {{ formatDate(contract.uploaded_at) }}</span>
+                    <span v-if="contract.latest_analysis_date">
+                      <span class="font-medium">Analyzed:</span> {{ formatDate(contract.latest_analysis_date) }}
+                    </span>
+                    <span v-else>
+                      <span class="font-medium">Uploaded:</span> {{ formatDate(contract.uploaded_at) }}
+                    </span>
                     <span v-if="contract.detected_language" aria-hidden="true">•</span>
                     <span v-if="contract.detected_language"><span class="font-medium">Language:</span> {{ formatLanguage(contract.detected_language) }}</span>
                   </div>
@@ -551,12 +556,14 @@ const filteredContracts = computed(() => {
     )
   }
 
-  // Apply date filter
+  // Apply date filter (use analysis date if available, otherwise upload date)
   if (dateFilter.value) {
     const now = new Date()
     filtered = filtered.filter((contract: any) => {
-      const uploadDate = new Date(contract.uploaded_at)
-      const diffMs = now.getTime() - uploadDate.getTime()
+      // Use analysis date if available, otherwise fall back to upload date
+      const dateToUse = contract.latest_analysis_date || contract.uploaded_at
+      const contractDate = new Date(dateToUse)
+      const diffMs = now.getTime() - contractDate.getTime()
       const diffDays = diffMs / (1000 * 60 * 60 * 24)
 
       switch (dateFilter.value) {
