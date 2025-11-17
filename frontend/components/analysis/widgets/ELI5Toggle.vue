@@ -48,7 +48,9 @@ interface Emits {
   (e: 'toggle'): void
 }
 
-defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  loading: false
+})
 const emit = defineEmits<Emits>()
 
 function handleToggle() {

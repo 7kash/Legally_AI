@@ -92,7 +92,6 @@
           <!-- ELI5 Mode Toggle -->
           <ELI5Toggle
             v-model="eli5Enabled"
-            :loading="eli5Loading"
             @toggle="toggleELI5Mode"
           />
 
@@ -307,18 +306,17 @@ const showExportModal = ref(false)
 
 // ELI5 Mode state
 const eli5Enabled = ref(false)
-const eli5Data = ref<any>(null)
-const eli5Loading = ref(false)
 
 // Formatted output (merged with ELI5 data if enabled)
 const formattedOutput = computed(() => {
   const baseOutput = analysesStore.currentAnalysis?.formatted_output || {}
+  const eli5Output = analysesStore.currentAnalysis?.formatted_output_eli5
 
-  // If ELI5 is enabled and we have simplified data, merge it
-  if (eli5Enabled.value && eli5Data.value) {
-    console.log('[ELI5] Merging simplified data:', {
+  // If ELI5 is enabled and we have pre-generated simplified data, merge it
+  if (eli5Enabled.value && eli5Output) {
+    console.log('[ELI5] Merging pre-generated simplified data:', {
       eli5Enabled: eli5Enabled.value,
-      eli5Data: eli5Data.value,
+      eli5Output,
       baseOutput
     })
 
@@ -327,7 +325,7 @@ const formattedOutput = computed(() => {
     // Merge simplified sections
     const simplifiableSections = ['obligations', 'rights', 'risks', 'mitigations']
     simplifiableSections.forEach(section => {
-      const simplifiedSection = eli5Data.value[`${section}_simplified`]
+      const simplifiedSection = eli5Output[`${section}_simplified`]
       console.log(`[ELI5] Section ${section}:`, {
         simplifiedSection,
         hasContent: !!merged[section]?.content,
@@ -438,50 +436,10 @@ function getAboutSummary(): string {
 }
 
 // ELI5 Mode toggle
-async function toggleELI5Mode(): Promise<void> {
-  if (eli5Enabled.value) {
-    eli5Enabled.value = false
-    return
-  }
-
-  // If we already have the data, just enable
-  if (eli5Data.value) {
-    eli5Enabled.value = true
-    return
-  }
-
-  // Otherwise fetch simplified version
-  try {
-    eli5Loading.value = true
-
-    const config = useRuntimeConfig()
-    const response = await fetch(
-      `${config.public.apiBase}/analyses/${analysisId.value}/simplify`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authStore.token}`,
-        },
-      }
-    )
-
-    if (!response.ok) {
-      throw new Error('Failed to simplify analysis')
-    }
-
-    const data = await response.json()
-    console.log('[ELI5] API Response:', data)
-    console.log('[ELI5] Simplified analysis:', data.simplified_analysis)
-    eli5Data.value = data.simplified_analysis
-    eli5Enabled.value = true
-    console.log('[ELI5] ELI5 mode enabled with data:', eli5Data.value)
-  } catch (error: any) {
-    const { error: showError } = useNotifications()
-    showError('Failed to simplify', error.message || 'Please try again later.')
-  } finally {
-    eli5Loading.value = false
-  }
+function toggleELI5Mode(): void {
+  // Simple instant toggle - ELI5 data is pre-generated during analysis
+  eli5Enabled.value = !eli5Enabled.value
+  console.log('[ELI5] Toggled ELI5 mode:', eli5Enabled.value)
 }
 
 // Export handlers

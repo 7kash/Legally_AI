@@ -10,29 +10,39 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-ELI5_PROMPT_TEMPLATE = """You are helping someone understand legal contract terms in the simplest possible way.
-
-**Your Task:**
-Rewrite the following contract analysis text in extremely simple, everyday language that a 5th grader could understand.
+ELI5_PROMPT_TEMPLATE = """**Your Task:**
+Rephrase the following contract analysis text in simple, everyday language that anyone can understand.
 
 **Rules:**
-1. NO legal jargon, NO Latin terms, NO complex words
-2. Use everyday words: "end" not "terminate", "pay" not "remuneration"
-3. Keep sentences SHORT: Maximum 15 words per sentence
-4. Add simple examples when helpful (e.g., "like when you...")
-5. Use analogies to everyday situations
-6. Be conversational and friendly
-7. Keep the SAME meaning, just simpler words
-8. Do NOT skip important details
+1. REPHRASE the exact text provided below - do NOT create new content or add information
+2. NO legal jargon, NO Latin terms, NO complex words
+3. Use everyday words: "end" not "terminate", "pay" not "remuneration"
+4. Keep sentences SHORT: Maximum 15 words per sentence
+5. Add simple examples when helpful (e.g., "like when you...")
+6. Use analogies to everyday situations
+7. Be conversational and friendly
+8. Keep the SAME meaning, just simpler words
+9. Do NOT skip important details
+10. Do NOT add ANY prefixes or introductions - start directly with the rephrased content
+11. Put each section on a new line for better readability
 
 **Example:**
-Original: "Lessee shall indemnify and hold harmless Lessor from any claims arising from Lessee's use of the premises."
-Simplified: "If someone sues the landlord because of something you did in the apartment, you have to pay for the landlord's legal costs. Like if your guest gets hurt in your apartment and sues the landlord."
+Original: "What you can do: Terminate agreement
+How to do it: Provide 30 days written notice
+Any conditions: Must not be in breach"
 
-**Text to Simplify:**
-{text_to_simplify}
+Simplified:
+What you can do:
+You can end this agreement anytime.
 
-**Simplified Version (in everyday language):**"""
+How to do it:
+Send a letter saying you want to end it. Do this 30 days before you want it to end.
+
+Any conditions:
+You can only do this if you haven't broken any rules in the agreement.
+
+**Text to Rephrase:**
+{text_to_simplify}"""
 
 
 def simplify_text(text: str, llm_router: LLMRouter) -> str:
@@ -54,12 +64,28 @@ def simplify_text(text: str, llm_router: LLMRouter) -> str:
 
         simplified = llm_router.call(
             prompt=prompt,
-            system_prompt="You are a helpful teacher who explains complex legal concepts in simple, everyday language that anyone can understand.",
-            temperature=0.7,  # Slightly higher for more conversational tone
+            system_prompt="You are a helpful lawyer who explains complex legal concepts in simple, everyday language that anyone can understand.",
+            temperature=0.1,  # Low temperature for consistent, accurate rephrasing
             max_tokens=1000
         )
 
-        return simplified.strip()
+        # Strip common prefixes that LLMs add despite instructions
+        prefixes_to_remove = [
+            "Here's the rephrased text:",
+            "Here's the simplified version:",
+            "Here is the rephrased text:",
+            "Here is the simplified version:",
+            "Rephrased:",
+            "Simplified:",
+        ]
+
+        result = simplified.strip()
+        for prefix in prefixes_to_remove:
+            if result.startswith(prefix):
+                result = result[len(prefix):].strip()
+                break
+
+        return result
 
     except Exception as e:
         logger.error(f"ELI5 simplification failed: {e}", exc_info=True)
@@ -137,12 +163,12 @@ def simplify_risk(risk: Dict[str, Any], llm_router: LLMRouter) -> Dict[str, Any]
     """
     simplified = risk.copy()
 
-    # Risk level in simple terms
+    # Risk level in simple terms (emoji only)
     level_simple = {
-        'high': '⚠️ BIG PROBLEM',
-        'medium': '⚠️ Watch out',
-        'low': 'ℹ️ Minor issue'
-    }.get(risk.get('level', 'medium').lower(), 'Issue')
+        'high': '⚠️',
+        'medium': '⚠️',
+        'low': 'ℹ️'
+    }.get(risk.get('level', 'medium').lower(), '⚠️')
 
     original_text = f"""
 {level_simple}: {risk.get('description', '')}

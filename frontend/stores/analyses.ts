@@ -13,6 +13,7 @@ export interface Analysis {
   status: 'queued' | 'running' | 'succeeded' | 'failed'
   confidence_score: number | null
   formatted_output: Record<string, any> | null
+  formatted_output_eli5: Record<string, any> | null
   created_at: string
   updated_at: string
   completed_at: string | null

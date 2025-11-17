@@ -88,11 +88,10 @@
       <!-- Error State -->
       <div
         v-else-if="contractsStore.error && !contractsStore.hasContracts"
-        role="alert"
-        class="alert alert--error"
+        class="bg-white rounded-lg border border-red-200 p-12 text-center"
       >
         <svg
-          class="h-5 w-5 flex-shrink-0"
+          class="mx-auto h-12 w-12 text-red-400 mb-4"
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 20 20"
           fill="currentColor"
@@ -104,7 +103,37 @@
             clip-rule="evenodd"
           />
         </svg>
-        <span>{{ contractsStore.error }}</span>
+        <h2 class="text-xl font-semibold text-gray-900 mb-2">
+          Unable to load contracts
+        </h2>
+        <p class="text-gray-600 mb-2">
+          {{ contractsStore.error }}
+        </p>
+        <p class="text-sm text-gray-500 mb-6">
+          This might be a temporary issue. Please try again.
+        </p>
+        <button
+          type="button"
+          class="btn btn--primary inline-flex"
+          :disabled="contractsStore.loading"
+          @click="retryFetch"
+        >
+          <svg
+            v-if="!contractsStore.loading"
+            class="h-4 w-4 -ml-1 mr-2"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          <span v-if="contractsStore.loading" class="spinner h-4 w-4 -ml-1 mr-2" />
+          Retry
+        </button>
       </div>
 
       <!-- Empty State -->
@@ -219,7 +248,12 @@
                   <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-gray-500 mt-1">
                     <span><span class="font-medium">Size:</span> {{ formatFileSize(contract.file_size) }}</span>
                     <span aria-hidden="true">•</span>
-                    <span><span class="font-medium">Uploaded:</span> {{ formatDate(contract.uploaded_at) }}</span>
+                    <span v-if="contract.latest_analysis_date">
+                      <span class="font-medium">Analyzed:</span> {{ formatDate(contract.latest_analysis_date) }}
+                    </span>
+                    <span v-else>
+                      <span class="font-medium">Uploaded:</span> {{ formatDate(contract.uploaded_at) }}
+                    </span>
                     <span v-if="contract.detected_language" aria-hidden="true">•</span>
                     <span v-if="contract.detected_language"><span class="font-medium">Language:</span> {{ formatLanguage(contract.detected_language) }}</span>
                   </div>
@@ -551,12 +585,14 @@ const filteredContracts = computed(() => {
     )
   }
 
-  // Apply date filter
+  // Apply date filter (use analysis date if available, otherwise upload date)
   if (dateFilter.value) {
     const now = new Date()
     filtered = filtered.filter((contract: any) => {
-      const uploadDate = new Date(contract.uploaded_at)
-      const diffMs = now.getTime() - uploadDate.getTime()
+      // Use analysis date if available, otherwise fall back to upload date
+      const dateToUse = contract.latest_analysis_date || contract.uploaded_at
+      const contractDate = new Date(dateToUse)
+      const diffMs = now.getTime() - contractDate.getTime()
       const diffDays = diffMs / (1000 * 60 * 60 * 24)
 
       switch (dateFilter.value) {
@@ -700,6 +736,14 @@ function applyFilters(): void {
 function clearFilters(): void {
   searchQuery.value = ''
   dateFilter.value = ''
+}
+
+async function retryFetch(): Promise<void> {
+  try {
+    await contractsStore.fetchContracts(1)
+  } catch (error) {
+    console.error('Retry failed:', error)
+  }
 }
 
 // Set page title

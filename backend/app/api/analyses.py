@@ -10,6 +10,8 @@ import json
 
 from ..database import get_db
 from ..models import Contract, Analysis, AnalysisEvent
+from ..models.user import User
+from ..core.deps import get_current_user
 from ..tasks.analyze_contract import analyze_contract_task
 from ..services.llm_analysis.eli5_service import simplify_full_analysis
 from ..services.llm_analysis.llm_router import LLMRouter
@@ -22,12 +24,14 @@ router = APIRouter()
 class CreateAnalysisRequest(BaseModel):
     contract_id: str = Field(..., description="UUID of the contract to analyze")
     output_language: str = Field(default="english", description="Language for analysis output")
+    contract_language: Optional[str] = Field(default=None, description="Original language of the contract")
 
     class Config:
         json_schema_extra = {
             "example": {
                 "contract_id": "123e4567-e89b-12d3-a456-426614174000",
-                "output_language": "english"
+                "output_language": "english",
+                "contract_language": "spanish"
             }
         }
 
@@ -38,6 +42,7 @@ class AnalysisResponse(BaseModel):
     status: str
     output_language: str
     formatted_output: Optional[Dict[str, Any]] = None
+    formatted_output_eli5: Optional[Dict[str, Any]] = None
     confidence_score: Optional[float] = None
     screening_result: Optional[str] = None
     preparation_result: Optional[Dict[str, Any]] = None
@@ -52,9 +57,10 @@ class AnalysisResponse(BaseModel):
 
 # ===== API Endpoints =====
 
-@router.post("/", response_model=AnalysisResponse, status_code=status.HTTP_201_CREATED)
-def create_analysis(
+@router.post("", response_model=AnalysisResponse, status_code=status.HTTP_201_CREATED)
+async def create_analysis(
     data: CreateAnalysisRequest,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """
@@ -72,7 +78,10 @@ def create_analysis(
             detail="Invalid contract_id format"
         )
 
-    contract = db.query(Contract).filter(Contract.id == contract_uuid).first()
+    contract = db.query(Contract).filter(
+        Contract.id == contract_uuid,
+        Contract.user_id == current_user.id
+    ).first()
     if not contract:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -112,12 +121,21 @@ def create_analysis(
     if analysis.quality_score is not None:
         confidence_score = analysis.quality_score / 100.0
 
+    # Handle formatted_output_eli5 conversion (TEXT to JSON)
+    formatted_output_eli5 = analysis.formatted_output_eli5
+    if formatted_output_eli5 and isinstance(formatted_output_eli5, str):
+        try:
+            formatted_output_eli5 = json.loads(formatted_output_eli5)
+        except json.JSONDecodeError:
+            formatted_output_eli5 = None
+
     return AnalysisResponse(
         id=str(analysis.id),
         contract_id=str(analysis.contract_id),
         status=analysis.status,
         output_language=analysis.output_language,
         formatted_output=formatted_output,
+        formatted_output_eli5=formatted_output_eli5,
         confidence_score=confidence_score,
         screening_result=analysis.screening_result,
         preparation_result=analysis.preparation_result,
@@ -162,12 +180,21 @@ def get_analysis(
     if analysis.quality_score is not None:
         confidence_score = analysis.quality_score / 100.0
 
+    # Handle formatted_output_eli5 conversion (TEXT to JSON)
+    formatted_output_eli5 = analysis.formatted_output_eli5
+    if formatted_output_eli5 and isinstance(formatted_output_eli5, str):
+        try:
+            formatted_output_eli5 = json.loads(formatted_output_eli5)
+        except json.JSONDecodeError:
+            formatted_output_eli5 = None
+
     return AnalysisResponse(
         id=str(analysis.id),
         contract_id=str(analysis.contract_id),
         status=analysis.status,
         output_language=analysis.output_language,
         formatted_output=formatted_output,
+        formatted_output_eli5=formatted_output_eli5,
         confidence_score=confidence_score,
         screening_result=analysis.screening_result,
         preparation_result=analysis.preparation_result,

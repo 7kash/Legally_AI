@@ -161,7 +161,7 @@ async def list_contracts(
             .order_by(Analysis.completed_at.desc())\
             .first()
 
-        # Convert contract to dict and add latest_analysis_id
+        # Convert contract to dict and add latest_analysis_id and date
         contract_data = {
             "id": contract.id,
             "user_id": contract.user_id,
@@ -175,7 +175,8 @@ async def list_contracts(
             "jurisdiction": contract.jurisdiction,
             "uploaded_at": contract.uploaded_at,
             "updated_at": contract.updated_at,
-            "latest_analysis_id": latest_analysis.id if latest_analysis else None
+            "latest_analysis_id": latest_analysis.id if latest_analysis else None,
+            "latest_analysis_date": latest_analysis.completed_at if latest_analysis else None
         }
         contract_responses.append(ContractResponse(**contract_data))
 

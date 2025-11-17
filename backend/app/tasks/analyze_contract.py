@@ -19,7 +19,6 @@ logger = logging.getLogger(__name__)
 from ..celery_app import celery_app
 from ..database import SessionLocal
 from ..models import Contract, Analysis, AnalysisEvent
-from ..services.document_parser import extract_text
 from ..config import settings
 from pathlib import Path
 
@@ -28,8 +27,8 @@ from ..services.llm_analysis.llm_router import LLMRouter
 from ..services.llm_analysis.step1_preparation import run_step1_preparation
 from ..services.llm_analysis.step2_analysis import run_step2_analysis, determine_final_screening_result
 from ..services.llm_analysis.language import detect_language
-from ..services.llm_analysis.parsers import extract_text as extract_text_with_quality
-from ..services.llm_analysis.quality import compute_quality_score, compute_confidence_level
+from ..services.llm_analysis.parsers import extract_text, detect_structure
+from ..services.llm_analysis.quality import compute_quality_score, compute_confidence_level, compute_coverage_score
 
 # Import PII redaction for GDPR compliance
 from ..utils.pii_redactor import redact_pii
@@ -122,6 +121,8 @@ def analyze_contract_task(
         )
 
         # ===== STEP 0: Text Extraction (if needed) =====
+        extraction_metadata = {}
+
         if not contract.extracted_text:
             create_event(
                 db,
@@ -135,24 +136,37 @@ def analyze_contract_task(
                 # Build full file path
                 file_path = Path(settings.UPLOAD_DIR) / contract.file_path
 
-                # Extract text using document parser
+                # Extract text using quality-aware parser
                 extraction_result = extract_text(str(file_path))
+
+                # Store extraction metadata for quality calculation
+                extraction_metadata = {
+                    'quality_score': extraction_result.get('quality_score', 1.0),
+                    'is_scanned': extraction_result.get('is_scanned', False),
+                    'format': extraction_result.get('format', 'unknown')
+                }
 
                 # Update contract with extracted text
                 contract.extracted_text = extraction_result['text']
-                if 'page_count' in extraction_result:
+                if 'pages' in extraction_result:
+                    contract.page_count = extraction_result['pages']
+                elif 'page_count' in extraction_result:
                     contract.page_count = extraction_result['page_count']
                 elif 'paragraph_count' in extraction_result:
                     contract.page_count = extraction_result['paragraph_count'] // 20  # Rough estimate
 
                 db.commit()
 
+                quality_msg = f"quality: {extraction_metadata['quality_score']:.0%}"
+                if extraction_metadata['is_scanned']:
+                    quality_msg += " (scanned document)"
+
                 create_event(
                     db,
                     analysis.id,
                     event_type="progress",
-                    message=f"Extracted {len(extraction_result['text'])} characters from document",
-                    data={"step": "extraction", "progress": 20}
+                    message=f"Extracted {len(extraction_result['text'])} characters ({quality_msg})",
+                    data={"step": "extraction", "progress": 20, **extraction_metadata}
                 )
             except Exception as e:
                 logger.error(f"Text extraction failed: {e}")
@@ -165,7 +179,11 @@ def analyze_contract_task(
                     data={"step": "extraction", "progress": 20, "error": str(e)}
                 )
                 contract.extracted_text = ""
+                extraction_metadata = {'quality_score': 0.5, 'is_scanned': False, 'format': 'unknown'}
                 db.commit()
+        else:
+            # Text already extracted, assume good quality for existing extractions
+            extraction_metadata = {'quality_score': 1.0, 'is_scanned': False, 'format': 'unknown'}
 
         # ===== GDPR COMPLIANCE: PII REDACTION =====
         # Redact personally identifiable information before sending to LLM
@@ -221,9 +239,47 @@ def analyze_contract_task(
                 data={"step": "preparation", "progress": 30}
             )
 
-            # Compute quality score
-            # For simplicity, assume high quality for now (can enhance later)
-            quality_score = 0.9
+            # ===== Compute Document Quality Score =====
+            create_event(
+                db,
+                analysis.id,
+                event_type="progress",
+                message="Assessing document quality",
+                data={"step": "preparation", "progress": 32}
+            )
+
+            # Detect document structure
+            structure = detect_structure(contract_text_for_llm)
+            appears_complete = structure.get('appears_complete', True)
+
+            # For now, assume no translation and all referenced documents present
+            # In future, can enhance to detect translations and missing annexes
+            is_translation = False
+            has_original = True
+            coverage = 1.0  # Assume 100% coverage for now
+
+            # Compute quality score based on extraction quality and document completeness
+            scan_quality = extraction_metadata.get('quality_score', 1.0)
+            is_scanned = extraction_metadata.get('is_scanned', False)
+
+            quality_score, quality_reason = compute_quality_score(
+                scan_quality=scan_quality,
+                is_scanned=is_scanned,
+                is_translation=is_translation,
+                has_original=has_original,
+                coverage=coverage,
+                appears_complete=appears_complete
+            )
+
+            logger.info(f"Quality score: {quality_score:.2f} - {quality_reason}")
+
+            create_event(
+                db,
+                analysis.id,
+                event_type="progress",
+                message=f"Document quality: {quality_score:.0%} ({quality_reason})",
+                data={"step": "preparation", "progress": 35, "quality_score": quality_score, "quality_reason": quality_reason}
+            )
 
             # Run Step 1 preparation analysis with LLM (using redacted text)
             # Use ThreadPoolExecutor to enforce hard timeout on LLM call
@@ -421,8 +477,8 @@ def analyze_contract_task(
 
         # Calculate and store screening result
         llm_screening = analysis_result.get('screening_result', 'recommended_to_address')
-        quality_score_value = preparation_result.get('quality_score', 0.9)
-        coverage_score_value = preparation_result.get('coverage_score', 1.0)
+        quality_score_value = preparation_result.get('quality_score', quality_score)  # Use calculated quality_score
+        coverage_score_value = preparation_result.get('coverage_score', coverage)  # Use calculated coverage
 
         final_screening = determine_final_screening_result(
             llm_screening,
@@ -430,13 +486,10 @@ def analyze_contract_task(
             coverage_score_value
         )
 
-        # Calculate confidence level (High/Medium/Low)
-        if quality_score_value >= 0.8:
-            confidence = "High"
-        elif quality_score_value >= 0.5:
-            confidence = "Medium"
-        else:
-            confidence = "Low"
+        # Calculate confidence level using quality module
+        confidence, should_proceed = compute_confidence_level(quality_score_value)
+
+        logger.info(f"Confidence level: {confidence} (quality: {quality_score_value:.2f}, screening: {final_screening})")
 
         # Store quality metrics to database
         analysis.screening_result = final_screening
@@ -445,6 +498,47 @@ def analyze_contract_task(
 
         # Store directly as dict (JSON column)
         analysis.formatted_output = formatted_output
+
+        # ===== ELI5: Generate Simplified Version =====
+        create_event(
+            db,
+            analysis.id,
+            event_type="progress",
+            message="Generating simplified version (ELI5)",
+            data={"step": "eli5", "progress": 90}
+        )
+
+        try:
+            from ..services.llm_analysis.eli5_service import simplify_full_analysis
+
+            # Generate ELI5 simplified version
+            simplified_output = simplify_full_analysis(
+                analysis_result=formatted_output,
+                sections_to_simplify=['obligations', 'rights', 'risks', 'mitigations']
+            )
+
+            # Store ELI5 version
+            analysis.formatted_output_eli5 = simplified_output
+            logger.info("ELI5 simplified version generated successfully")
+
+            create_event(
+                db,
+                analysis.id,
+                event_type="progress",
+                message="Simplified version ready",
+                data={"step": "eli5", "progress": 95}
+            )
+        except Exception as e:
+            logger.error(f"ELI5 generation failed: {e}", exc_info=True)
+            # Don't fail the whole analysis if ELI5 fails
+            create_event(
+                db,
+                analysis.id,
+                event_type="progress",
+                message=f"Note: Simplified version not available",
+                data={"step": "eli5", "progress": 95, "error": str(e)}
+            )
+
         analysis.status = "succeeded"
         analysis.completed_at = datetime.utcnow()
         db.commit()

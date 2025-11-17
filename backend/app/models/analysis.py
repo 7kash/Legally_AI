@@ -23,6 +23,7 @@ class Analysis(Base):
     preparation_result = Column(JSON, nullable=True)  # Step 1 results
     analysis_result = Column(JSON, nullable=True)     # Step 2 results
     formatted_output = Column(JSON, nullable=True)    # Final formatted output
+    formatted_output_eli5 = Column(JSON, nullable=True)  # ELI5 simplified version
 
     # Quality metrics
     quality_score = Column(Integer, nullable=True)
