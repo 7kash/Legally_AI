@@ -24,12 +24,14 @@ router = APIRouter()
 class CreateAnalysisRequest(BaseModel):
     contract_id: str = Field(..., description="UUID of the contract to analyze")
     output_language: str = Field(default="english", description="Language for analysis output")
+    contract_language: Optional[str] = Field(default=None, description="Original language of the contract")
 
     class Config:
         json_schema_extra = {
             "example": {
                 "contract_id": "123e4567-e89b-12d3-a456-426614174000",
-                "output_language": "english"
+                "output_language": "english",
+                "contract_language": "spanish"
             }
         }
 
