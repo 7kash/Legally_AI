@@ -10,6 +10,8 @@ import json
 
 from ..database import get_db
 from ..models import Contract, Analysis, AnalysisEvent
+from ..models.user import User
+from ..core.deps import get_current_user
 from ..tasks.analyze_contract import analyze_contract_task
 from ..services.llm_analysis.eli5_service import simplify_full_analysis
 from ..services.llm_analysis.llm_router import LLMRouter
@@ -56,6 +58,7 @@ class AnalysisResponse(BaseModel):
 @router.post("/", response_model=AnalysisResponse, status_code=status.HTTP_201_CREATED)
 def create_analysis(
     data: CreateAnalysisRequest,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """
@@ -73,7 +76,10 @@ def create_analysis(
             detail="Invalid contract_id format"
         )
 
-    contract = db.query(Contract).filter(Contract.id == contract_uuid).first()
+    contract = db.query(Contract).filter(
+        Contract.id == contract_uuid,
+        Contract.user_id == current_user.id  # Ensure user owns the contract
+    ).first()
     if not contract:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
