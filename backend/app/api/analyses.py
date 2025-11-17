@@ -60,6 +60,7 @@ class AnalysisResponse(BaseModel):
 @router.post("", response_model=AnalysisResponse, status_code=status.HTTP_201_CREATED)
 async def create_analysis(
     data: CreateAnalysisRequest,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """
@@ -68,7 +69,6 @@ async def create_analysis(
     This endpoint creates an Analysis record and dispatches a background task.
     The SSE endpoint can be used to stream real-time progress updates.
     """
-    print(f"[DEBUG] create_analysis called with data: {data}")
     # Validate contract exists
     try:
         contract_uuid = uuid.UUID(data.contract_id)
@@ -79,7 +79,8 @@ async def create_analysis(
         )
 
     contract = db.query(Contract).filter(
-        Contract.id == contract_uuid
+        Contract.id == contract_uuid,
+        Contract.user_id == current_user.id
     ).first()
     if not contract:
         raise HTTPException(
