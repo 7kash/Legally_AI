@@ -52,7 +52,7 @@ def simplify_text(text: str, llm_router: LLMRouter) -> str:
     try:
         prompt = ELI5_PROMPT_TEMPLATE.replace("{text_to_simplify}", text)
 
-        simplified = llm_router.call_llm(
+        simplified = llm_router.call(
             prompt=prompt,
             system_prompt="You are a helpful teacher who explains complex legal concepts in simple, everyday language that anyone can understand.",
             temperature=0.7,  # Slightly higher for more conversational tone
