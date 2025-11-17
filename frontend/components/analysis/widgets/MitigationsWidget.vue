@@ -11,7 +11,7 @@
         class="border-l-4 border-amber-500 pl-4 py-3 bg-amber-50 rounded-r-lg"
       >
         <!-- ELI5 Mode - Show simplified text -->
-        <p v-if="eli5Enabled && typeof item === 'object' && item.mitigation_simple" class="text-gray-800 leading-relaxed">
+        <p v-if="eli5Enabled && typeof item === 'object' && item.mitigation_simple" class="text-gray-800 leading-relaxed whitespace-pre-line">
           {{ item.mitigation_simple }}
         </p>
 

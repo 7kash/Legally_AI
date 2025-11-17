@@ -7,7 +7,7 @@
         class="border-l-4 border-green-500 pl-4 py-3 bg-green-50 rounded-r-lg"
       >
         <!-- ELI5 Mode - Show simplified text -->
-        <p v-if="eli5Enabled && item.right_simple" class="text-gray-800 leading-relaxed">
+        <p v-if="eli5Enabled && item.right_simple" class="text-gray-800 leading-relaxed whitespace-pre-line">
           {{ item.right_simple }}
         </p>
 

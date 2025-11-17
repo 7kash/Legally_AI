@@ -21,7 +21,7 @@
         </div>
 
         <!-- ELI5 Mode - Show simplified description -->
-        <p v-if="eli5Enabled && item.description_simple" class="text-gray-800 leading-relaxed">
+        <p v-if="eli5Enabled && item.description_simple" class="text-gray-800 leading-relaxed whitespace-pre-line">
           {{ item.description_simple }}
         </p>
 
