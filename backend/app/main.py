@@ -16,16 +16,22 @@ app = FastAPI(
     version=settings.APP_VERSION,
     description="Multilingual contract analysis API",
     docs_url="/docs",
-    redoc_url="/redoc"
+    redoc_url="/redoc",
+    # Disable automatic trailing slash redirects to preserve CORS headers
+    # Without this, FastAPI redirects /contracts to /contracts/ which loses CORS headers
+    redirect_slashes=False
 )
 
 # Add CORS middleware
+# Must be added before other middleware to handle CORS properly
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["*"],
+    expose_headers=["*"],
+    max_age=3600,  # Cache preflight requests for 1 hour
 )
 
 # Include API routers
