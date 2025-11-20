@@ -287,6 +287,10 @@
                     clip-rule="evenodd"
                   />
                 </svg>
+
+definePageMeta({
+  middleware: 'auth',
+})
                 <div v-else class="spinner h-5 w-5" />
               </button>
 
