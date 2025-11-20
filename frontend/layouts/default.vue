@@ -51,6 +51,15 @@
             Account
           </NuxtLink>
 
+          <!-- Chudik Logo -->
+          <div class="flex items-center ml-2">
+            <img
+              src="/chudik_logo.png"
+              alt="Chudik"
+              class="h-12 w-auto"
+            />
+          </div>
+
           <!-- Theme Toggle -->
           <ThemeToggle />
 
