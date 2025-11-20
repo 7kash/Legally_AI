@@ -1,5 +1,9 @@
 <template>
   <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8">
+    <!-- Version Info -->
+    <div class="text-center text-xs text-gray-400 py-2">
+      Version: {{ appVersion }}
+    </div>
     <div class="container-custom max-w-4xl">
       <!-- Loading State -->
       <div
@@ -58,6 +62,19 @@
             <p class="text-gray-600 mb-6">
               This may take a few moments. Please don't close this page.
             </p>
+            <!-- Analysis Video -->
+            <div class="mt-6 flex justify-center">
+              <video
+                autoplay
+                loop
+                muted
+                playsinline
+                class="w-full max-w-md rounded-lg shadow-lg"
+              >
+                <source src="/analyse.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+              </video>
+            </div>
 
             <!-- Progress Events -->
             <div v-if="analysesStore.events.length > 0" class="mt-6 space-y-2">
@@ -270,6 +287,8 @@
 
 <script setup lang="ts">
 import { onMounted, onUnmounted, computed, ref, watch } from 'vue'
+// App version from git commit
+const appVersion = ref("3e370b4")
 import { useRoute } from 'vue-router'
 import { useAnalysesStore } from '~/stores/analyses'
 import { useAuthStore } from '~/stores/auth'
