@@ -1,4 +1,18 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+import { execSync } from 'child_process'
+
+// Get git commit hash at build time
+function getGitCommitHash(): string {
+  try {
+    return execSync('git rev-parse --short HEAD').toString().trim()
+  } catch (error) {
+    console.warn('Failed to get git commit hash:', error)
+    return 'unknown'
+  }
+}
+
+const gitCommitHash = getGitCommitHash()
+
 export default defineNuxtConfig({
   // Modern mode
   future: {
@@ -58,7 +72,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:8000/api/v1',
-      appVersion: '1.0.0',
+      appVersion: gitCommitHash, // Dynamic version from git commit
       enableAnalytics: process.env.NUXT_PUBLIC_ENABLE_ANALYTICS === 'true',
     },
   },

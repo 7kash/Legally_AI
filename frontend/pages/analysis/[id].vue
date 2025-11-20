@@ -301,7 +301,8 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, computed, ref, watch } from 'vue'
 // App version from git commit
-const appVersion = ref("3e370b4")
+const config = useRuntimeConfig()
+const appVersion = computed(() => config.public.appVersion)
 import { useRoute } from 'vue-router'
 import { useAnalysesStore } from '~/stores/analyses'
 import { useAuthStore } from '~/stores/auth'
