@@ -288,9 +288,6 @@
                   />
                 </svg>
 
-definePageMeta({
-  middleware: 'auth',
-})
                 <div v-else class="spinner h-5 w-5" />
               </button>
 
@@ -430,6 +427,10 @@ definePageMeta({
 import { ref, computed, onMounted } from 'vue'
 import { useRuntimeConfig, useRouter } from '#app'
 
+
+definePageMeta({
+  middleware: 'auth',
+})
 // Types
 interface Deadline {
   id: string
