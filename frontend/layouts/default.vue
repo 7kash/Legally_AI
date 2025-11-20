@@ -38,6 +38,13 @@
           </NuxtLink>
           <NuxtLink
             v-if="isAuthenticated"
+            to="/deadlines"
+            class="nav-link"
+          >
+            Deadlines
+          </NuxtLink>
+          <NuxtLink
+            v-if="isAuthenticated"
             to="/account"
             class="nav-link"
           >
@@ -172,6 +179,14 @@
               @click="closeMobileMenu"
             >
               History
+            </NuxtLink>
+            <NuxtLink
+              v-if="isAuthenticated"
+              to="/deadlines"
+              class="block rounded-lg px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-100"
+              @click="closeMobileMenu"
+            >
+              Deadlines
             </NuxtLink>
             <NuxtLink
               v-if="isAuthenticated"
