@@ -69,7 +69,7 @@
                 loop
                 muted
                 playsinline
-                class="w-full max-w-md rounded-lg shadow-lg"
+                class="w-full max-w-xs rounded-lg"
               >
                 <source src="/Analysis_video.mp4" type="video/mp4">
                 Your browser does not support the video tag.
