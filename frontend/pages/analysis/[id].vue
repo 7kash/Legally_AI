@@ -55,7 +55,6 @@
           class="bg-white rounded-xl shadow-lg border border-gray-200 p-8"
         >
           <div class="text-center">
-            <div class="spinner mx-auto h-12 w-12 mb-4" />
             <h2 class="text-xl font-semibold text-gray-900 mb-2">
               Analyzing your contract...
             </h2>
