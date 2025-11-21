@@ -514,7 +514,7 @@ def analyze_contract_task(
             # Generate ELI5 simplified version
             simplified_output = simplify_full_analysis(
                 analysis_result=formatted_output,
-                sections_to_simplify=['obligations', 'rights', 'risks', 'mitigations']
+                sections_to_simplify=['obligations', 'rights', 'risks', 'mitigations', 'about_summary']
             )
 
             # Store ELI5 version

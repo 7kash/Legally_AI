@@ -255,6 +255,64 @@ def simplify_analysis_section(
     return simplified_items
 
 
+def simplify_about_summary(about_text: str, llm_router: LLMRouter) -> str:
+    """
+    Simplify the "About the Contract" summary text
+
+    Args:
+        about_text: Original about summary text
+        llm_router: LLM router instance
+
+    Returns:
+        Simplified about summary in everyday language
+    """
+    if not about_text or len(about_text.strip()) == 0:
+        return about_text
+
+    try:
+        # Use simplified prompt specifically for contract summaries
+        prompt = f"""Rephrase this contract summary in simple, everyday language that anyone can understand.
+
+**Rules:**
+1. Use simple, everyday words - NO legal jargon
+2. Keep sentences SHORT: Maximum 15 words per sentence
+3. Be conversational and friendly
+4. Keep the SAME meaning and key facts
+5. Do NOT add ANY prefixes - start directly with the rephrased content
+
+**Contract Summary to Rephrase:**
+{about_text}"""
+
+        simplified = llm_router.call(
+            prompt=prompt,
+            system_prompt="You are a helpful lawyer who explains complex legal concepts in simple, everyday language.",
+            temperature=0.1,
+            max_tokens=500
+        )
+
+        # Strip common prefixes
+        prefixes_to_remove = [
+            "Here's the rephrased text:",
+            "Here's the simplified version:",
+            "Here is the rephrased text:",
+            "Here is the simplified version:",
+            "Rephrased:",
+            "Simplified:",
+        ]
+
+        result = simplified.strip()
+        for prefix in prefixes_to_remove:
+            if result.startswith(prefix):
+                result = result[len(prefix):].strip()
+                break
+
+        return result
+
+    except Exception as e:
+        logger.error(f"ELI5 about summary simplification failed: {e}", exc_info=True)
+        return about_text
+
+
 def simplify_full_analysis(
     analysis_result: Dict[str, Any],
     sections_to_simplify: Optional[List[str]] = None
@@ -270,7 +328,7 @@ def simplify_full_analysis(
         Analysis with simplified versions added
     """
     if sections_to_simplify is None:
-        sections_to_simplify = ['obligations', 'rights', 'risks', 'mitigations']
+        sections_to_simplify = ['obligations', 'rights', 'risks', 'mitigations', 'about_summary']
 
     llm_router = LLMRouter()
     simplified_analysis = analysis_result.copy()
@@ -280,6 +338,21 @@ def simplify_full_analysis(
             continue
 
         section_data = analysis_result[section]
+
+        # Special handling for about_summary (string, not list)
+        if section == 'about_summary':
+            if isinstance(section_data, str):
+                try:
+                    simplified_analysis['about_summary_simplified'] = simplify_about_summary(
+                        section_data,
+                        llm_router
+                    )
+                    logger.info(f"Simplified about_summary text")
+                except Exception as e:
+                    logger.error(f"Failed to simplify about_summary: {e}", exc_info=True)
+            else:
+                logger.warning(f"about_summary is not a string: {type(section_data)}")
+            continue
 
         # Handle nested {content: [...]} structure
         if isinstance(section_data, dict) and 'content' in section_data:
