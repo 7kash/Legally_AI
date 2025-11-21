@@ -460,7 +460,14 @@ function getWidgetTitle(key: string): string {
 function getAboutSummary(): string {
   const prepResult = analysesStore.currentAnalysis?.preparation_result
   const analysisResult = analysesStore.currentAnalysis?.analysis_result
+  const eli5Output = analysesStore.currentAnalysis?.formatted_output_eli5
 
+  // If ELI5 is enabled and we have simplified about_summary, use it
+  if (eli5Enabled.value && eli5Output?.about_summary_simplified) {
+    return eli5Output.about_summary_simplified
+  }
+
+  // Otherwise return the original about summary
   return (
     analysisResult?.about_summary ||
     prepResult?.about ||
