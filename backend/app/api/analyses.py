@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel, Field
 from typing import Optional, AsyncGenerator, Any, Dict, List
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 import asyncio
 import json
 
@@ -240,19 +240,32 @@ async def stream_analysis_events(
         The bug fix ensures we're polling for events with the SAME analysis_id that
         the Celery worker is using to create events.
         """
-        last_event_time = datetime.utcnow()
-        max_iterations = 200  # 10 minutes max (200 * 3 seconds)
+        # FIX: Start from analysis creation time to catch ALL events (even those created before SSE connects)
+        last_event_time = analysis.created_at - timedelta(seconds=1)  # Slightly before creation to ensure we catch everything
+        max_iterations = 400  # 10 minutes max (400 * 1.5 seconds)
         iteration = 0
+        last_event_id = None  # Track last event ID to avoid duplicates
 
         while iteration < max_iterations:
             # Get new events since last check
-            events = db.query(AnalysisEvent).filter(
+            # Use >= to include events with same timestamp, then filter by ID to avoid duplicates
+            query = db.query(AnalysisEvent).filter(
                 AnalysisEvent.analysis_id == analysis_uuid,
-                AnalysisEvent.created_at > last_event_time
-            ).order_by(AnalysisEvent.created_at).all()
+                AnalysisEvent.created_at >= last_event_time
+            )
+
+            # Exclude already-sent events by ID
+            if last_event_id:
+                query = query.filter(AnalysisEvent.id != last_event_id)
+
+            events = query.order_by(AnalysisEvent.created_at).all()
 
             # Send events to client
             for event in events:
+                # Skip if we've already sent this exact event (safety check)
+                if last_event_id and event.id == last_event_id:
+                    continue
+
                 # Format event data to match frontend expectations
                 event_data = {
                     "kind": event.event_type,  # Frontend expects "kind"
@@ -264,6 +277,7 @@ async def stream_analysis_events(
                 }
                 yield f"data: {json.dumps(event_data)}\n\n"
                 last_event_time = event.created_at
+                last_event_id = event.id
 
             # Check if analysis is complete (only refresh if we had new events or every 5 iterations)
             if events or iteration % 5 == 0:
@@ -282,8 +296,8 @@ async def stream_analysis_events(
                 yield f"data: {json.dumps(final_event)}\n\n"
                 break
 
-            # Wait before next poll (3 seconds to reduce database load)
-            await asyncio.sleep(3)
+            # FIX: Reduced polling interval from 3s to 1.5s for smoother progress updates
+            await asyncio.sleep(1.5)
             iteration += 1
 
         # Timeout reached
