@@ -71,17 +71,27 @@ def simplify_text(text: str, llm_router: LLMRouter) -> str:
 
         # Strip common prefixes that LLMs add despite instructions
         prefixes_to_remove = [
+            "Here's the contract summary in simple, everyday language:",
+            "Here is the contract summary in simple, everyday language:",
+            "Here's the contract summary in simple language:",
+            "Here is the contract summary in simple language:",
+            "Here's the simplified contract summary:",
+            "Here is the simplified contract summary:",
             "Here's the rephrased text:",
             "Here's the simplified version:",
             "Here is the rephrased text:",
             "Here is the simplified version:",
             "Rephrased:",
             "Simplified:",
+            "In simple terms:",
+            "In everyday language:",
         ]
 
         result = simplified.strip()
+
+        # Try removing prefixes (case-insensitive check)
         for prefix in prefixes_to_remove:
-            if result.startswith(prefix):
+            if result.lower().startswith(prefix.lower()):
                 result = result[len(prefix):].strip()
                 break
 
@@ -290,19 +300,29 @@ def simplify_about_summary(about_text: str, llm_router: LLMRouter) -> str:
             max_tokens=500
         )
 
-        # Strip common prefixes
+        # Strip common prefixes that LLMs add despite instructions
         prefixes_to_remove = [
+            "Here's the contract summary in simple, everyday language:",
+            "Here is the contract summary in simple, everyday language:",
+            "Here's the contract summary in simple language:",
+            "Here is the contract summary in simple language:",
+            "Here's the simplified contract summary:",
+            "Here is the simplified contract summary:",
             "Here's the rephrased text:",
             "Here's the simplified version:",
             "Here is the rephrased text:",
             "Here is the simplified version:",
             "Rephrased:",
             "Simplified:",
+            "In simple terms:",
+            "In everyday language:",
         ]
 
         result = simplified.strip()
+
+        # Try removing prefixes (case-insensitive check)
         for prefix in prefixes_to_remove:
-            if result.startswith(prefix):
+            if result.lower().startswith(prefix.lower()):
                 result = result[len(prefix):].strip()
                 break
 
