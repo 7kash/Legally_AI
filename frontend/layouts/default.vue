@@ -13,7 +13,7 @@
           class="flex items-center gap-2 text-xl font-bold text-primary-600 transition-colors hover:text-primary-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
         >
           <img
-            src="/logo.png"
+            src="/chudik_logo_small.png"
             alt="Legally AI Logo"
             class="h-10 w-auto"
           />
@@ -50,15 +50,6 @@
           >
             Account
           </NuxtLink>
-
-          <!-- Chudik Logo -->
-          <div class="flex items-center ml-2">
-            <img
-              src="/chudik_logo.png"
-              alt="Chudik"
-              class="h-12 w-auto"
-            />
-          </div>
 
           <!-- Theme Toggle -->
           <ThemeToggle />
@@ -250,7 +241,7 @@
           <div>
             <div class="flex items-center gap-2 mb-2">
               <img
-                src="/logo.png"
+                src="/chudik_logo_small.png"
                 alt="Legally AI Logo"
                 class="h-8 w-auto"
               />
