@@ -394,17 +394,41 @@ def simplify_analysis(
             detail="No analysis results to simplify"
         )
 
-    # Simplify the analysis
+    # Check if ELI5 is already cached
+    if analysis.formatted_output_eli5:
+        # Parse if it's a string
+        cached_eli5 = analysis.formatted_output_eli5
+        if isinstance(cached_eli5, str):
+            try:
+                cached_eli5 = json.loads(cached_eli5)
+            except json.JSONDecodeError:
+                cached_eli5 = None
+
+        if cached_eli5:
+            return {
+                "analysis_id": str(analysis.id),
+                "status": "success",
+                "simplified_analysis": cached_eli5,
+                "cached": True
+            }
+
+    # Simplify the analysis (using batch processing for speed)
     try:
         simplified_analysis = simplify_full_analysis(
             analysis_result=formatted_output,
-            sections_to_simplify=sections
+            sections_to_simplify=sections,
+            use_batch=True  # Use batch processing (10-15x faster)
         )
+
+        # Cache the result in database for future requests
+        analysis.formatted_output_eli5 = simplified_analysis
+        db.commit()
 
         return {
             "analysis_id": str(analysis.id),
             "status": "success",
-            "simplified_analysis": simplified_analysis
+            "simplified_analysis": simplified_analysis,
+            "cached": False
         }
     except Exception as e:
         raise HTTPException(
