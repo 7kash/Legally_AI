@@ -487,20 +487,13 @@ async function toggleELI5Mode(): Promise<void> {
     eli5Loading.value = true
 
     try {
-      const config = useRuntimeConfig()
-      const response = await fetch(`${config.public.apiUrl}/api/analyses/${analysisId.value}/simplify`, {
+      const data = await $fetch(`/analyses/${analysisId.value}/simplify`, {
         method: 'POST',
+        baseURL: useRuntimeConfig().public.apiBase,
         headers: {
-          'Content-Type': 'application/json',
           'Authorization': `Bearer ${authStore.token}`
         }
       })
-
-      if (!response.ok) {
-        throw new Error('Failed to generate simplified version')
-      }
-
-      const data = await response.json()
 
       // Update the analysis with ELI5 data
       if (analysesStore.currentAnalysis) {
