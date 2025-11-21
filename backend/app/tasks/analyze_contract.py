@@ -472,7 +472,8 @@ def analyze_contract_task(
             "calendar": {
                 "title": "Key Dates & Deadlines",
                 "content": analysis_result.get('calendar', [])
-            }
+            },
+            "about_summary": analysis_result.get('about_summary', '')
         }
 
         # Calculate and store screening result
