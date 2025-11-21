@@ -550,8 +550,14 @@ async function handleExportFormat(format: 'pdf' | 'docx' | 'json' | 'lawyer-pack
 async function exportCalendarEvents() {
   exportingCalendar.value = true
   try {
-    const calendar = formattedOutput.value?.calendar
-    if (!calendar || !Array.isArray(calendar)) {
+    let calendar = formattedOutput.value?.calendar
+
+    // Unwrap {content: ...} structure if needed
+    if (calendar && typeof calendar === 'object' && 'content' in calendar) {
+      calendar = calendar.content
+    }
+
+    if (!calendar || !Array.isArray(calendar) || calendar.length === 0) {
       throw new Error('No calendar events found')
     }
 
@@ -559,16 +565,17 @@ async function exportCalendarEvents() {
     let icsContent = 'BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Legally AI//Contract Analysis//EN\nCALSCALE:GREGORIAN\n'
 
     calendar.forEach((event, index) => {
-      const eventDate = event.date || event.date_or_formula
+      const eventDate = event.date_or_formula || event.date || event.formula
       if (eventDate && !eventDate.includes('monthly') && !eventDate.includes(':')) {
         const date = new Date(eventDate)
         if (!isNaN(date.getTime())) {
+          const eventTitle = event.event || event.title || 'Contract Event'
           icsContent += 'BEGIN:VEVENT\n'
           icsContent += 'UID:' + analysisId.value + '-' + index + '@legally-ai.com\n'
           icsContent += 'DTSTAMP:' + new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z\n'
           icsContent += 'DTSTART;VALUE=DATE:' + date.toISOString().split('T')[0].replace(/-/g, '') + '\n'
-          icsContent += 'SUMMARY:' + (event.event || event.description || 'Contract Event').replace(/\n/g, ' ') + '\n'
-          icsContent += 'DESCRIPTION:' + (event.event || event.description || '').replace(/\n/g, '\\n') + '\n'
+          icsContent += 'SUMMARY:' + eventTitle.replace(/\n/g, ' ') + '\n'
+          icsContent += 'DESCRIPTION:' + eventTitle.replace(/\n/g, '\\n') + '\n'
           icsContent += 'END:VEVENT\n'
         }
       }
