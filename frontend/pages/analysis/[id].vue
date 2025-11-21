@@ -1,5 +1,9 @@
 <template>
   <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8">
+    <!-- Version Info -->
+    <div class="text-center text-xs text-gray-400 py-2">
+      Version: {{ appVersion }}
+    </div>
     <div class="container-custom max-w-4xl">
       <!-- Loading State -->
       <div
@@ -58,6 +62,19 @@
             <p class="text-gray-600 mb-6">
               This may take a few moments. Please don't close this page.
             </p>
+            <!-- Analysis Video -->
+            <div class="mt-6 flex justify-center">
+              <video
+                autoplay
+                loop
+                muted
+                playsinline
+                class="w-full max-w-xs rounded-lg"
+              >
+                <source src="/Analysis_video.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+              </video>
+            </div>
 
             <!-- Progress Events -->
             <div v-if="analysesStore.events.length > 0" class="mt-6 space-y-2">
@@ -219,6 +236,19 @@
               Export Results
             </button>
             <NuxtLink to="/upload" class="btn btn--secondary">
+            <button
+              v-if="formattedOutput?.calendar && hasContent(formattedOutput.calendar)"
+              type="button"
+              class="btn btn--secondary flex items-center gap-2"
+              @click="exportCalendarEvents"
+              :disabled="exportingCalendar"
+            >
+              <svg v-if="!exportingCalendar" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <div v-else class="spinner h-5 w-5" />
+              {{ exportingCalendar ? 'Exporting...' : 'Download Calendar Events' }}
+            </button>
               Analyze Another Contract
             </NuxtLink>
             <NuxtLink to="/history" class="btn btn--secondary">
@@ -270,6 +300,9 @@
 
 <script setup lang="ts">
 import { onMounted, onUnmounted, computed, ref, watch } from 'vue'
+// App version from git commit
+const config = useRuntimeConfig()
+const appVersion = computed(() => config.public.appVersion)
 import { useRoute } from 'vue-router'
 import { useAnalysesStore } from '~/stores/analyses'
 import { useAuthStore } from '~/stores/auth'
@@ -303,6 +336,7 @@ const authStore = useAuthStore()
 
 const analysisId = computed(() => route.params.id as string)
 const showExportModal = ref(false)
+const exportingCalendar = ref(false)
 
 // ELI5 Mode state
 const eli5Enabled = ref(false)
@@ -512,6 +546,63 @@ async function handleExportFormat(format: 'pdf' | 'docx' | 'json' | 'lawyer-pack
 }
 
 // Format event message
+// Export calendar events as .ics file
+async function exportCalendarEvents() {
+  exportingCalendar.value = true
+  try {
+    let calendar = formattedOutput.value?.calendar
+
+    // Unwrap {content: ...} structure if needed
+    if (calendar && typeof calendar === 'object' && 'content' in calendar) {
+      calendar = calendar.content
+    }
+
+    if (!calendar || !Array.isArray(calendar) || calendar.length === 0) {
+      throw new Error('No calendar events found')
+    }
+
+    const config = useRuntimeConfig()
+    let icsContent = 'BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Legally AI//Contract Analysis//EN\nCALSCALE:GREGORIAN\n'
+
+    calendar.forEach((event, index) => {
+      const eventDate = event.date_or_formula || event.date || event.formula
+      if (eventDate && !eventDate.includes('monthly') && !eventDate.includes(':')) {
+        const date = new Date(eventDate)
+        if (!isNaN(date.getTime())) {
+          const eventTitle = event.event || event.title || 'Contract Event'
+          icsContent += 'BEGIN:VEVENT\n'
+          icsContent += 'UID:' + analysisId.value + '-' + index + '@legally-ai.com\n'
+          icsContent += 'DTSTAMP:' + new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z\n'
+          icsContent += 'DTSTART;VALUE=DATE:' + date.toISOString().split('T')[0].replace(/-/g, '') + '\n'
+          icsContent += 'SUMMARY:' + eventTitle.replace(/\n/g, ' ') + '\n'
+          icsContent += 'DESCRIPTION:' + eventTitle.replace(/\n/g, '\\n') + '\n'
+          icsContent += 'END:VEVENT\n'
+        }
+      }
+    })
+
+    icsContent += 'END:VCALENDAR'
+
+    const blob = new Blob([icsContent], { type: 'text/calendar' })
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'contract-events-' + analysisId.value + '.ics'
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    window.URL.revokeObjectURL(url)
+
+    const { success } = useNotifications()
+    success('Calendar exported', 'Calendar events downloaded successfully')
+  } catch (err) {
+    const { error: showError } = useNotifications()
+    showError('Export failed', err.message || 'Failed to export calendar events')
+  } finally {
+    exportingCalendar.value = false
+  }
+}
+
 function formatEventMessage(event: AnalysisEvent): string {
   // Event structure from SSE: { kind, payload: { message, ... }, timestamp }
   return event.payload?.message || event.kind || 'Processing...'

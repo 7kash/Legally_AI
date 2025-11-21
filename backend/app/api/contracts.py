@@ -114,7 +114,7 @@ async def upload_contract(
     )
 
 
-@router.get("/", response_model=ContractList)
+@router.get("", response_model=ContractList)
 async def list_contracts(
     page: int = 1,
     page_size: int = 20,

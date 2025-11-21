@@ -13,7 +13,7 @@
           class="flex items-center gap-2 text-xl font-bold text-primary-600 transition-colors hover:text-primary-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
         >
           <img
-            src="/logo.png"
+            src="/chudik_logo_small.png"
             alt="Legally AI Logo"
             class="h-10 w-auto"
           />
@@ -35,6 +35,13 @@
             class="nav-link"
           >
             History
+          </NuxtLink>
+          <NuxtLink
+            v-if="isAuthenticated"
+            to="/deadlines"
+            class="nav-link"
+          >
+            Deadlines
           </NuxtLink>
           <NuxtLink
             v-if="isAuthenticated"
@@ -175,6 +182,14 @@
             </NuxtLink>
             <NuxtLink
               v-if="isAuthenticated"
+              to="/deadlines"
+              class="block rounded-lg px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-100"
+              @click="closeMobileMenu"
+            >
+              Deadlines
+            </NuxtLink>
+            <NuxtLink
+              v-if="isAuthenticated"
               to="/account"
               class="block rounded-lg px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-100"
               @click="closeMobileMenu"
@@ -226,7 +241,7 @@
           <div>
             <div class="flex items-center gap-2 mb-2">
               <img
-                src="/logo.png"
+                src="/chudik_logo_small.png"
                 alt="Legally AI Logo"
                 class="h-8 w-auto"
               />
