@@ -63,6 +63,49 @@ def health_check():
     )
 
 
+@app.delete("/admin/clear-test-users")
+def clear_test_users():
+    """
+    Admin endpoint to clear test users (development only)
+    WARNING: This endpoint should be removed in production!
+    """
+    from .database import SessionLocal
+    from .models.user import User
+
+    db = SessionLocal()
+    try:
+        # Count test users
+        test_users = db.query(User).filter(
+            User.email.like('test%@example.com')
+        ).all()
+
+        emails = [u.email for u in test_users]
+
+        # Delete them
+        deleted = db.query(User).filter(
+            User.email.like('test%@example.com')
+        ).delete(synchronize_session=False)
+
+        db.commit()
+
+        return JSONResponse(
+            status_code=200,
+            content={
+                "status": "success",
+                "deleted": deleted,
+                "emails": emails
+            }
+        )
+    except Exception as e:
+        db.rollback()
+        return JSONResponse(
+            status_code=500,
+            content={"status": "error", "message": str(e)}
+        )
+    finally:
+        db.close()
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(
