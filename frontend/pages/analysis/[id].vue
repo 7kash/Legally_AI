@@ -55,7 +55,6 @@
           class="bg-white rounded-xl shadow-lg border border-gray-200 p-8"
         >
           <div class="text-center">
-            <div class="spinner mx-auto h-12 w-12 mb-4" />
             <h2 class="text-xl font-semibold text-gray-900 mb-2">
               Analyzing your contract...
             </h2>
@@ -109,6 +108,7 @@
           <!-- ELI5 Mode Toggle -->
           <ELI5Toggle
             v-model="eli5Enabled"
+            :loading="eli5Loading"
             @toggle="toggleELI5Mode"
           />
 
@@ -340,6 +340,7 @@ const exportingCalendar = ref(false)
 
 // ELI5 Mode state
 const eli5Enabled = ref(false)
+const eli5Loading = ref(false)
 
 // Formatted output (merged with ELI5 data if enabled)
 const formattedOutput = computed(() => {
@@ -477,10 +478,41 @@ function getAboutSummary(): string {
 }
 
 // ELI5 Mode toggle
-function toggleELI5Mode(): void {
-  // Simple instant toggle - ELI5 data is pre-generated during analysis
-  eli5Enabled.value = !eli5Enabled.value
-  console.log('[ELI5] Toggled ELI5 mode:', eli5Enabled.value)
+async function toggleELI5Mode(): Promise<void> {
+  const newValue = !eli5Enabled.value
+
+  // If enabling and no ELI5 data exists, fetch it
+  if (newValue && !analysesStore.currentAnalysis?.formatted_output_eli5) {
+    eli5Loading.value = true
+
+    try {
+      const data = await $fetch(`/analyses/${analysisId.value}/simplify`, {
+        method: 'POST',
+        baseURL: useRuntimeConfig().public.apiBase,
+        headers: {
+          'Authorization': `Bearer ${authStore.token}`
+        }
+      })
+
+      // Update the analysis with ELI5 data
+      if (analysesStore.currentAnalysis) {
+        analysesStore.currentAnalysis.formatted_output_eli5 = data.simplified_analysis
+      }
+
+      eli5Enabled.value = newValue
+      console.log('[ELI5] Loaded and enabled ELI5 mode (cached:', data.cached || false, ')')
+    } catch (error) {
+      console.error('[ELI5] Failed to load simplified version:', error)
+      const { error: showError } = useNotifications()
+      showError('Simplification failed', 'Could not load simplified version. Please try again.')
+    } finally {
+      eli5Loading.value = false
+    }
+  } else {
+    // Just toggle (data already loaded or disabling)
+    eli5Enabled.value = newValue
+    console.log('[ELI5] Toggled ELI5 mode:', newValue)
+  }
 }
 
 // Export handlers
